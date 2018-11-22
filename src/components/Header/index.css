@@ -1,0 +1,10 @@
+.header-top{
+    height:60px;
+    line-height: 60px;
+    padding:0 20px;
+    text-align:right;
+    background: #fff;
+}
+.header-top span{
+    margin-right: 40px;
+}

@@ -1,0 +1,58 @@
+@import "./loading.css";
+.container{
+	display:flex;	
+}
+.nav-left{
+	width:15%;
+	min-width: 180px;
+	background: #001529;
+	height:calc(100vh)
+}
+.main{
+	flex:1;
+	height:calc(100vh);
+	background: #eee;
+	overflow: auto;
+	min-width: 620px;
+}
+.content{	
+	position: relative;
+	padding:20px;
+	background: #fff;
+}
+.login{
+	position: relative;
+	height:calc(100vh);
+	background: #001529
+}
+.login form{
+	background: #fff;
+	position: absolute;
+	top:50%;
+	left:50%;
+	transform: translate(-50%,-50%);
+	padding:30px 20px;
+	border-radius: 5px
+}
+.login form .ant-form-item{
+	margin-bottom: 14px
+}
+.tableList,.tableWrap{
+	background: #fff;
+}
+.logo{
+	line-height: 90px;
+	padding-left: 20px;
+	background: #002140;
+}
+.logo img{
+	height:35px;
+	}
+h1{
+	font-size: 20px;
+	color:#fff;
+	display: inline-block;
+	text-align: center;
+	vertical-align: middle;
+	margin: 0 0 0 10px;
+}
