@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Card,message,Modal } from 'antd';
+import { Button, Pagination ,message,Modal,Card } from 'antd';
 import axios from "./../../axios/index"
 import BaseForm from "./../../components/BaseForm"
 import ModalForm from "./../../components/ModalForm"
@@ -7,6 +7,7 @@ import Etable from "../../components/Etable/Etable"
 import Units from "../../units/unit"
 import "./index.css"
 
+var storage=window.localStorage;
 export default class actTable extends React.Component{
     state={
         loading: false,
@@ -95,9 +96,8 @@ export default class actTable extends React.Component{
         //console.log(item)
     }   
     handleFilter=(params)=>{
-        //this.params=params;
-        console.log(this.params)
-        this.request()
+        //console.log(params)
+        this.props.searchParams(params)
     }
     handleSubmit=()=>{
         //let item=this.state.selectedItem;
@@ -134,6 +134,12 @@ export default class actTable extends React.Component{
         })
         this.userForm.props.form.resetFields()
     }
+    onChange=(pageNumber)=> {
+        this.props.callbackPage(pageNumber)
+    }
+    showTotal=(total)=>{
+        return `共 ${total} 条`;
+      }
     render(){
         const loading = this.state.loading;
         //详情查看隐藏底部按钮
@@ -144,8 +150,11 @@ export default class actTable extends React.Component{
             }
         }
         return(
-            <div>    
-                <BaseForm formList={this.props.formList} filterSubmit={this.handleFilter}/>
+            <div>
+                <h3>{this.props.moduleTitle}</h3>
+                <Card>
+                    <BaseForm formList={this.props.formList} filterSubmit={this.handleFilter}/>          
+                </Card>   
                 
                 <div className="buttonDiv">
                     <Button type="primary" icon="plus" onClick={()=>this.handleOperate("add")}>新增</Button>
@@ -160,10 +169,20 @@ export default class actTable extends React.Component{
                         dataSource={this.props.list}
                         selectedRowKeys={this.state.selectedRowKeys}
                         selectedItem={this.state.selectedItem}
+                        bordered
+                        pagination={false}
+                        style={{display:this.props.columns?"block":"none"}}
                         //rowSelection='checkbox' //默认radio
                         //selectedIds={this.state.selectedIds} //单选没有
-                        pagination={false}
                     />
+                    <Pagination 
+                        showQuickJumper 
+                        defaultCurrent={1} 
+                        total={this.props.pageCount} 
+                        onChange={this.onChange} 
+                        hideOnSinglePage={true}
+                        showTotal={()=>this.showTotal(this.props.pageCount)}
+                        />
                 </div>               
                 <Modal
                     title={this.state.title}

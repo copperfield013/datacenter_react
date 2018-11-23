@@ -13,11 +13,11 @@ export default {
             onchange:(current)=>{
                 callback(current)
             },
-            current:data.result.page,
-            pageSize:data.result.page_size,
-            total:data.result.total,
+            current:data.pageInfo.pageNo,
+            pageSize:data.pageInfo.pageSize,
+            total:data.pageInfo.count,
             showTotal:()=>{
-                return `共${data.result.total}条`
+                return `共${data.pageInfo.count}条`
             },
             showQuickIumper:true
         }

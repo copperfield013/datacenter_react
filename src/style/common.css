@@ -6,7 +6,8 @@
 	width:15%;
 	min-width: 180px;
 	background: #001529;
-	height:calc(100vh)
+	height:calc(100vh);
+	overflow:hidden
 }
 .main{
 	flex:1;
@@ -19,6 +20,8 @@
 	position: relative;
 	padding:20px;
 	background: #fff;
+	flex:1;
+    min-height:calc(75vh);
 }
 .login{
 	position: relative;
