@@ -156,7 +156,7 @@ export default class actTable extends React.Component{
                     <BaseForm formList={this.props.formList} filterSubmit={this.handleFilter}/>          
                 </Card>   
                 
-                <div className="buttonDiv">
+                <div className="buttonDiv" style={{display:this.props.columns?"block":"none"}}>
                     <Button type="primary" icon="plus" onClick={()=>this.handleOperate("add")}>新增</Button>
                     <Button type="danger" icon="delete" onClick={()=>this.handleOperate("delete")}>删除</Button>
                     <Button icon="edit" onClick={()=>this.handleOperate("edit")}>编辑</Button>

@@ -71,7 +71,7 @@ export default class Admin extends React.Component{
 		}
 		// const activeKey = `newTab${this.newTabIndex++}`;
 		this.requestList(key)
-		console.log(key)
+		//console.log(key)
 	}
 	handleOpen=(openKeys)=>{
 		if(openKeys.length>1){
@@ -95,13 +95,18 @@ export default class Admin extends React.Component{
 				list:this.renderLists(list),
 				moduleTitle:res.module.title
 			})
-			if(res.entities.length>0){
+			if(res.entities.length!=0){
 				this.setState({
 					columns:this.renderColumns(res.entities[0].fields),
 					pageCount:res.pageInfo.count
 				})
+			}else{
+				this.setState({
+					columns:'',
+					pageCount:''
+				})
 			}
-			//console.log(res.pageInfo.count)
+			//console.log(res.entities.length)
   })
 	}
 	//list数据转换
@@ -187,6 +192,10 @@ export default class Admin extends React.Component{
 		  activeKey = panes[lastIndex].key;
 		}
 		this.setState({ panes, activeKey });
+		if(this.state.activeKey==targetKey && activeKey!=0){
+			this.requestList(activeKey)
+		}
+		//console.log(activeKey+'------'+targetKey+'----'+lastIndex)
 		}
 	render(){
 		return(
