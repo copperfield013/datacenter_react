@@ -23,7 +23,7 @@ class BaseForm extends React.Component{
         if(formList && formList.length>0){
             formList.forEach((item)=>{
                 let label=item.title;
-                let field=`criteria_${item.id}`;
+                let field=`criteria_${item.id}`||'';
                 let placeholder=item.placeholder || '';
                 let initialValue=item.defaultValue || '';
                 if(item.inputType=="daterange"){
@@ -36,7 +36,7 @@ class BaseForm extends React.Component{
                 }else if(item.inputType=="text"){
                     const INPUT= <FormItem label={label} key={field}>
                         {getFieldDecorator([field])(
-                            <Input type="text" placeholder={placeholder} style={{width:165}}/>
+                            <Input type="text" placeholder={placeholder} style={{width:165}} />
                         )}
                     </FormItem>   
                     formItemList.push(INPUT)                
