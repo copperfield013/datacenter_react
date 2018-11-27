@@ -82,33 +82,41 @@ export default class Admin extends React.Component{
 				isShowLoading:true
 			}
 		}).then((res)=>{
-			var list=[]
-			var code=[];	
-			res.entities.map((item)=>{			
-				return code.push(item.code)
-			})
-			this.setState({code,}) //不能写一起，不然第一次code取不到
-			res.entities.map((item)=>{			
-				return list.push(item.fields)
-			})
-			this.setState({
-				formList:res.criterias,
-				list:this.renderLists(list,key),
-				moduleTitle:res.module.title,
-			})
-			if(res.entities.length!=0){
-				this.setState({
-					columns:this.renderColumns(res.entities[0].fields),
-					pageCount:res.pageInfo.count
-				})
-			}else{
-				this.setState({
-					columns:'',
-					pageCount:''
-				})
+			if(res){
+				var obj = eval(res);
+				storage[key]=JSON.stringify(obj); //存储一个列表数据
 			}
-		//console.log(this.state.list)
+			this.editList(storage[key])
+		//console.log(res)
   })
+	}
+	editList=(value)=>{
+		let data=JSON.parse(value)
+		var list=[]
+		var code=[];	
+		data.entities.map((item)=>{			
+			return code.push(item.code)
+		})
+		this.setState({code,}) //不能写一起，不然第一次code取不到
+		data.entities.map((item)=>{			
+			return list.push(item.fields)
+		})
+		this.setState({
+			formList:data.criterias,
+			list:this.renderLists(list,storage.getItem("key")),
+			moduleTitle:data.module.title,
+		})
+		if(data.entities.length!=0){
+			this.setState({
+				columns:this.renderColumns(data.entities[0].fields),
+				pageCount:data.pageInfo.count,
+			})
+		}else{
+			this.setState({
+				columns:'',
+				pageCount:'',
+			})
+		}
 	}
 	//list数据转换
 	renderLists=(data,key)=>{
@@ -139,8 +147,8 @@ export default class Admin extends React.Component{
 				key: 'action',
 				render: (text, record) => (
 				  <span>
-					<Button type="primary" icon="align-left" size="small"onClick={()=>this.handleOperate("detail",record)}>详情</Button>
-					<Button type="dashed" icon="edit" size="small">修改</Button>
+					<Button type="primary" icon="align-left" size="small" onClick={()=>this.handleOperate("detail",record)}>详情</Button>
+					<Button type="dashed" icon="edit" size="small" onClick={()=>this.handleOperate("edit",record)}>修改</Button>
 					<Button type="danger" icon="delete" size="small" onClick={()=>this.handleOperate("delete",record)}>删除</Button>
 				  </span>
 				),
@@ -170,12 +178,14 @@ export default class Admin extends React.Component{
 					})
 				}
 			})
-		}else if(type=="detail"){
-			//console.log(record)
-			this.handleDetail({record})
+		}else if(type=="detail"){	
+			this.handleDetail({record},"detail")
+		}else if(type=="edit"){
+			this.handleDetail({record},"edit")
 		}
 	}  
-	handleDetail=({record})=>{
+	handleDetail=({record},type)=>{
+		
 		const panes = this.state.panes;
 		let flag = false;
 		for(let ops of panes){			
@@ -185,11 +195,25 @@ export default class Admin extends React.Component{
 		  }
 		  continue;
 		}
-		this.setState({ panes, activeKey:record.code,xqTitle:record["姓名"]?`详情-${record["姓名"]}`:"详情",menuId:record.menuId});
-		if(flag == false){
-			panes.push({ title: record["姓名"]?`详情-${record["姓名"]}`:"详情", key:record.code });
+		let xqTitle="";
+		if(type=="detail"){
+			xqTitle=record["姓名"]?`详情-${record["姓名"]}`:"详情"
+			this.setState({type:"detail"})
+		}else{
+			xqTitle=record["姓名"]?`修改-${record["姓名"]}`:"修改"
+			this.setState({type:"edit"})
 		}
-		this.requestDetails(record.code)
+		this.setState({ 
+			panes, 
+			activeKey:record.code,
+			xqTitle:xqTitle,
+			menuId:record.menuId
+		});
+		if(flag == false){
+			panes.push({ title:xqTitle, key:record.code });
+		}
+		this.requestDetails(record.code,type)
+		console.log(this.state.activeKey)
 	} 
 	//搜索和页码
 	searchList=(params)=>{
@@ -211,7 +235,8 @@ export default class Admin extends React.Component{
 			})
 			this.setState({
 				list:this.renderLists(list),
-				code
+				code,
+				pageCount:res.pageInfo.count,
 			})
 		})			
 	}
@@ -222,6 +247,8 @@ export default class Admin extends React.Component{
 					case xqTitle:
 					return <Detail 
 								detailsTitle={this.state.detailsTitle}
+								detailsList={this.state.detailsList}
+								type={this.state.type}
 					/>
 					default:
 					return <ActTable 
@@ -235,28 +262,50 @@ export default class Admin extends React.Component{
 								/>
 			}  	
 	}
-	onChange = (activeKey) => {
-		console.log(this.state.xqTitle)
-		this.setState({ activeKey });
-		if(activeKey.length>30){
-			this.requestDetails(activeKey)
-		}else{
-			this.requestList(activeKey)	
-		}	
-	}
-	requestDetails=(activeKey)=>{
+	
+	requestDetails=(activeKey,type)=>{
 		axios.ajax({
 			url:`/api/entity/detail/${this.state.menuId}/${activeKey}`,
 			data:{
 				isShowLoading:true
 			}
 		}).then((res)=>{
-			let detailsTitle=res.entity.title?res.module.title+"-"+res.entity.title+"-详情":res.module.title+"-详情"
-			this.setState({ 
-				detailsTitle,
-			});
-			//console.log(res.entity.title)
+			if(res){
+				var obj = eval(res);
+				storage[activeKey]=JSON.stringify(obj); //存储一条数据
+			}
+			this.editDetails(storage[activeKey],type)
+			//console.log(res)
 		})
+	}
+	editDetails=(item,type)=>{
+		let data=JSON.parse(item)
+		let detailsTitle=""
+		if(type=="detail"){
+			detailsTitle=data.entity.title?data.module.title+"-"+data.entity.title+"-详情":data.module.title+"-详情";
+		}else{
+			detailsTitle=data.entity.title?data.module.title+"-修改-"+data.entity.title:data.module.title+"-修改";
+		}		
+		let detailsList=data.entity.fieldGroups
+		this.setState({ 
+			detailsTitle,
+			detailsList,
+		});
+	}
+	onChange = (activeKey) => {	
+		let type=this.state.type
+		console.log(type)
+		this.setState({ activeKey });
+		if(activeKey.length>30){
+			this.editDetails(storage[activeKey],type)
+			this.state.panes.map((item)=>{
+				if(item.key==activeKey){
+					this.setState({ xqTitle:item.title}) 
+				}
+			})
+		}else if(activeKey.length<=30 && activeKey!=0){
+			this.editList(storage[activeKey])
+		}	
 	}
 	onEdit = (targetKey, action) => {
 		this[action](targetKey);
@@ -274,8 +323,15 @@ export default class Admin extends React.Component{
 		  activeKey = panes[lastIndex].key;
 		}
 		this.setState({ panes, activeKey });
-		if(this.state.activeKey==targetKey && activeKey!=0){
-			this.requestList(activeKey)
+		if(activeKey.length>30){
+			this.editDetails(storage[activeKey])
+			this.state.panes.map((item)=>{
+				if(item.key==activeKey){
+					this.setState({ xqTitle:item.title}) 
+				}
+			})
+		}else if(this.state.activeKey==targetKey && activeKey!=0){
+			this.editList(storage[activeKey])
 		}
 		//console.log(activeKey+'------'+targetKey+'----'+lastIndex)
 		}
