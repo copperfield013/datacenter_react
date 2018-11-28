@@ -57,7 +57,7 @@ export default class Axios{
                 url: options.url,
                 headers:{"datamobile-token":tokenName},
                 timeout:10000,
-                params:(options.data && options.data.params)|| ''
+                data:options.data|| ''
             }).then((response)=>{
                 if(options.data && options.data.isShowLoading!==false){
                     loading=document.getElementById('ajaxLoading')

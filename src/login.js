@@ -43,18 +43,21 @@ class Loginit extends React.Component{
                         <FormItem>
                             {
                                 getFieldDecorator('username', {
+                                    initialValue: 'admin',
                                     rules: [
                                         { required: true, message: '请输入用户名!' },
                                         {max:5,min:0,message:'输入0-5个字符'},
+                                        {defaultValue:"admin"}
                                     ],
                                 })(
-                                    <Input prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />} placeholder="用户名"/>
+                                    <Input prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />} placeholder="用户名" />
                                 )
                             }                        
                         </FormItem>
                         <FormItem>
                             {
                                 getFieldDecorator('password', {
+                                    initialValue: '123456',
                                     rules: [
                                         { required: true, message: '请输入密码!' },
                                         {min:5,message:"输入大于5个字符"}

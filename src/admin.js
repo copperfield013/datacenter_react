@@ -86,12 +86,12 @@ export default class Admin extends React.Component{
 				var obj = eval(res);
 				storage[key]=JSON.stringify(obj); //存储一个列表数据
 			}
-			this.editList(storage[key])
+			let data=JSON.parse(storage[key])
+			this.editList(data)
 		//console.log(res)
   })
 	}
-	editList=(value)=>{
-		let data=JSON.parse(value)
+	editList=(data)=>{
 		var list=[]
 		var code=[];	
 		data.entities.map((item)=>{			
@@ -184,12 +184,14 @@ export default class Admin extends React.Component{
 			this.handleDetail({record},"edit")
 		}
 	}  
-	handleDetail=({record},type)=>{
-		
+	handleDetail=({record},type)=>{		
 		const panes = this.state.panes;
 		let flag = false;
+		var code=type; 
+		code+=record.code;  //为了打开新页面，加入detail和eidt的code
+		//console.log(code)
 		for(let ops of panes){			
-		  if(ops.key == record.code){
+		  if(ops.key == code){
 			flag = true;
 			break;
 		  }
@@ -203,18 +205,113 @@ export default class Admin extends React.Component{
 			xqTitle=record["姓名"]?`修改-${record["姓名"]}`:"修改"
 			this.setState({type:"edit"})
 		}
+		this.requestDetails(record.code,type)
 		this.setState({ 
 			panes, 
-			activeKey:record.code,
-			xqTitle:xqTitle,
+			activeKey:code,
+			xqTitle,
 			menuId:record.menuId
 		});
 		if(flag == false){
-			panes.push({ title:xqTitle, key:record.code });
+			panes.push({ title:xqTitle, key:code });
+		}		
+		//console.log(record.code)
+	} 	
+	requestDetails=(activeKey,type)=>{
+		axios.ajax({
+			url:`/api/entity/detail/${this.state.menuId}/${activeKey}`,
+			data:{
+				isShowLoading:true
+			}
+		}).then((res)=>{
+			if(res){
+				var obj = eval(res);
+				var code=type; 
+				code+=activeKey; 
+				storage[code]=JSON.stringify(obj); //存储一条数据
+			}
+			let data=JSON.parse(storage[code])
+			this.toDetails(data,type)
+			//console.log(data)
+		})
+	}
+	// requestEdit=(activeKey,type)=>{
+	// 	axios.ajax({
+	// 		url:`/api/entity/update/${this.state.menuId}`,
+	// 		data:{
+	// 			isShowLoading:true,
+	// 			"唯一编码":activeKey				
+	// 		}
+	// 	}).then((res)=>{
+	// 		//console.log(activeKey)
+	// 	})
+	// }
+	toDetails=(data,type)=>{
+		let detailsTitle="";
+		let moduleTitle=data.module.title || "";
+		let entityTitle=data.entity.title || "";
+		let detailsList=data.entity.fieldGroups || "";
+		//console.log(type)
+		if(type=="detail"){
+			detailsTitle=entityTitle?moduleTitle+"-"+entityTitle+"-详情":moduleTitle+"-详情";
+		}else{
+			detailsTitle=entityTitle?moduleTitle+"-修改-"+entityTitle:moduleTitle+"-修改";
+		}			
+		this.setState({ 
+			detailsTitle,
+			detailsList,
+			type,
+		});
+	}
+	onChange = (activeKey) => {
+		let type="";
+		this.setState({ activeKey });
+		if(activeKey.length>30){
+			activeKey.indexOf("detail")==0?type="detail":type="edit";
+			console.log(activeKey+"---"+type)
+			let data=JSON.parse(storage[activeKey]);
+			this.toDetails(data,type)
+			this.state.panes.map((item)=>{
+				if(item.key==activeKey){
+					this.setState({ xqTitle:item.title}) 
+				}
+			})
+		}else if(activeKey.length<=30 && activeKey!=0){
+			let data=JSON.parse(storage[activeKey]);
+			this.editList(data)
+		}	
+	}
+	onEdit = (targetKey, action) => {
+		this[action](targetKey);
+	}
+	remove = (targetKey) => {
+		let type="";
+		let activeKey = this.state.activeKey;
+		let lastIndex;
+		this.state.panes.forEach((pane, i) => {
+		  if (pane.key === targetKey) {
+			lastIndex = i - 1;
+		  }
+		});
+		const panes = this.state.panes.filter(pane => pane.key !== targetKey);
+		if (lastIndex >= 0 && activeKey === targetKey) {
+		  activeKey = panes[lastIndex].key;
 		}
-		this.requestDetails(record.code,type)
-		console.log(this.state.activeKey)
-	} 
+		this.setState({ panes, activeKey });
+		if(activeKey.length>30){
+			activeKey.indexOf("detail")==0?type="detail":type="edit";
+			let data=JSON.parse(storage[activeKey])
+			this.toDetails(data,type)	
+			this.state.panes.map((item)=>{
+				if(item.key==activeKey){
+					this.setState({ xqTitle:item.title}) 
+				}
+			})
+		}else if(this.state.activeKey==targetKey && activeKey!=0){
+			let data=JSON.parse(storage[activeKey])
+			this.editList(data)
+		}
+		}
 	//搜索和页码
 	searchList=(params)=>{
 		let key=storage.getItem("key");
@@ -241,100 +338,27 @@ export default class Admin extends React.Component{
 		})			
 	}
 	Welcome = (title,xqTitle) => {
-			switch(title){
-					case "主页":
-					return <Home />
-					case xqTitle:
-					return <Detail 
-								detailsTitle={this.state.detailsTitle}
-								detailsList={this.state.detailsList}
-								type={this.state.type}
-					/>
-					default:
-					return <ActTable 
-								formList={this.state.formList} 
-								columns={this.state.columns} 
-								list={this.state.list} 
-								pageCount={this.state.pageCount}
-								callbackPage={this.searchList}
-								moduleTitle={this.state.moduleTitle}
-								searchParams={this.searchList}
-								/>
-			}  	
+		switch(title){
+			case "主页":
+			return <Home />
+			case xqTitle:
+			return <Detail 
+						detailsTitle={this.state.detailsTitle}
+						detailsList={this.state.detailsList}
+						type={this.state.type}
+			/>
+			default:
+			return <ActTable 
+						formList={this.state.formList} 
+						columns={this.state.columns} 
+						list={this.state.list} 
+						pageCount={this.state.pageCount}
+						callbackPage={this.searchList}
+						moduleTitle={this.state.moduleTitle}
+						searchParams={this.searchList}
+						/>
+		}  	
 	}
-	
-	requestDetails=(activeKey,type)=>{
-		axios.ajax({
-			url:`/api/entity/detail/${this.state.menuId}/${activeKey}`,
-			data:{
-				isShowLoading:true
-			}
-		}).then((res)=>{
-			if(res){
-				var obj = eval(res);
-				storage[activeKey]=JSON.stringify(obj); //存储一条数据
-			}
-			this.editDetails(storage[activeKey],type)
-			//console.log(res)
-		})
-	}
-	editDetails=(item,type)=>{
-		let data=JSON.parse(item)
-		let detailsTitle=""
-		if(type=="detail"){
-			detailsTitle=data.entity.title?data.module.title+"-"+data.entity.title+"-详情":data.module.title+"-详情";
-		}else{
-			detailsTitle=data.entity.title?data.module.title+"-修改-"+data.entity.title:data.module.title+"-修改";
-		}		
-		let detailsList=data.entity.fieldGroups
-		this.setState({ 
-			detailsTitle,
-			detailsList,
-		});
-	}
-	onChange = (activeKey) => {	
-		let type=this.state.type
-		console.log(type)
-		this.setState({ activeKey });
-		if(activeKey.length>30){
-			this.editDetails(storage[activeKey],type)
-			this.state.panes.map((item)=>{
-				if(item.key==activeKey){
-					this.setState({ xqTitle:item.title}) 
-				}
-			})
-		}else if(activeKey.length<=30 && activeKey!=0){
-			this.editList(storage[activeKey])
-		}	
-	}
-	onEdit = (targetKey, action) => {
-		this[action](targetKey);
-	}
-	remove = (targetKey) => {
-		let activeKey = this.state.activeKey;
-		let lastIndex;
-		this.state.panes.forEach((pane, i) => {
-		  if (pane.key === targetKey) {
-			lastIndex = i - 1;
-		  }
-		});
-		const panes = this.state.panes.filter(pane => pane.key !== targetKey);
-		if (lastIndex >= 0 && activeKey === targetKey) {
-		  activeKey = panes[lastIndex].key;
-		}
-		this.setState({ panes, activeKey });
-		if(activeKey.length>30){
-			this.editDetails(storage[activeKey])
-			this.state.panes.map((item)=>{
-				if(item.key==activeKey){
-					this.setState({ xqTitle:item.title}) 
-				}
-			})
-		}else if(this.state.activeKey==targetKey && activeKey!=0){
-			this.editList(storage[activeKey])
-		}
-		//console.log(activeKey+'------'+targetKey+'----'+lastIndex)
-		}
 	render(){
 		return(
 			<Row className="container">
