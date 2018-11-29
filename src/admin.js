@@ -158,8 +158,12 @@ export default class Admin extends React.Component{
 		}		
 	}
 	handleOperate=(type,record)=>{
-		let menuId=storage.getItem("key");
+		let menuId=storage.getItem("key");		
 		let code=record.code
+		this.setState({
+			menuId,
+			code
+		})
 		//console.log(record.code)
         if(type=="delete"){
             Modal.confirm({
@@ -235,17 +239,6 @@ export default class Admin extends React.Component{
 			//console.log(data)
 		})
 	}
-	// requestEdit=(activeKey,type)=>{
-	// 	axios.ajax({
-	// 		url:`/api/entity/update/${this.state.menuId}`,
-	// 		data:{
-	// 			isShowLoading:true,
-	// 			"唯一编码":activeKey				
-	// 		}
-	// 	}).then((res)=>{
-	// 		//console.log(activeKey)
-	// 	})
-	// }
 	toDetails=(data,type)=>{
 		let detailsTitle="";
 		let moduleTitle=data.module.title || "";
@@ -346,6 +339,8 @@ export default class Admin extends React.Component{
 						detailsTitle={this.state.detailsTitle}
 						detailsList={this.state.detailsList}
 						type={this.state.type}
+						menuId={this.state.menuId}
+						code={this.state.code}
 			/>
 			default:
 			return <ActTable 
