@@ -67,7 +67,7 @@ export default class Admin extends React.Component{
 		  panes.push({ title: item.props.children, key });
 		}
 		this.requestList(key)
-		//console.log(item)
+		//console.log(key)
 	}
 	handleOpen=(openKeys)=>{
 		if(openKeys.length>1){
@@ -75,7 +75,7 @@ export default class Admin extends React.Component{
 		}
 	}
 	requestList=(key)=>{
-		storage.setItem("key",key);
+		storage.setItem("menuId",key);
 		axios.ajax({
 			url:`/api/entity/list/${key}`,
 			data:{
@@ -88,22 +88,22 @@ export default class Admin extends React.Component{
 			}
 			let data=JSON.parse(storage[key])
 			this.editList(data)
-		//console.log(res)
+		console.log(res)
   })
 	}
 	editList=(data)=>{
 		var list=[]
-		var code=[];	
+		var codes=[];	
 		data.entities.map((item)=>{			
-			return code.push(item.code)
+			return codes.push(item.code)
 		})
-		this.setState({code,}) //不能写一起，不然第一次code取不到
+		this.setState({codes}) //不能写一起，不然第一次code取不到
 		data.entities.map((item)=>{			
 			return list.push(item.fields)
 		})
 		this.setState({
 			formList:data.criterias,
-			list:this.renderLists(list,storage.getItem("key")),
+			list:this.renderLists(list,storage.getItem("menuId")),
 			moduleTitle:data.module.title,
 		})
 		if(data.entities.length!=0){
@@ -119,13 +119,13 @@ export default class Admin extends React.Component{
 		}
 	}
 	//list数据转换
-	renderLists=(data,key)=>{
+	renderLists=(data,menuId)=>{
 			let result=[];
 			data.map((item,index)=>{
 				let list={};
 				list['key']=index;//每一项添加key值
-				list['code']={...this.state.code}[index];//添加code
-				list['menuId']=key;
+				list['code']={...this.state.codes}[index];//添加code
+				list['menuId']=menuId;
 				item.map((item)=>{
 					let key=item.title
 					let value=item.value
@@ -138,9 +138,8 @@ export default class Admin extends React.Component{
 	renderColumns=(data)=>{
 		if(data){
 			data.map((item)=>{
-				let key="dataIndex";
 				let value=item.title;
-				item[key]=value;								
+				item["dataIndex"]=value;								
 			})
 			var act={
 				title: '操作',
@@ -158,13 +157,13 @@ export default class Admin extends React.Component{
 		}		
 	}
 	handleOperate=(type,record)=>{
-		let menuId=storage.getItem("key");		
+		let menuId=storage.getItem("menuId");		
 		let code=record.code
 		this.setState({
 			menuId,
 			code
 		})
-		//console.log(record.code)
+		//console.log(code)
         if(type=="delete"){
             Modal.confirm({
 				title:"删除提示",
@@ -193,7 +192,7 @@ export default class Admin extends React.Component{
 		let flag = false;
 		var code=type; 
 		code+=record.code;  //为了打开新页面，加入detail和eidt的code
-		//console.log(code)
+		//console.log(record.code)
 		for(let ops of panes){			
 		  if(ops.key == code){
 			flag = true;
