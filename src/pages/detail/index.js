@@ -9,7 +9,7 @@ import EditTable from './../../pages/EditTable'
 const Option = Select.Option;
 const FormItem=Form.Item
 
-
+var storage=window.localStorage;
 class Detail extends React.Component{
     state={
         type:this.props.type,
@@ -20,36 +20,70 @@ class Detail extends React.Component{
         visible: false,
         value:{},
     }
+    componentDidMount(){
+        this.props.onRef(this)
+    }
+    componentWillMount(){
+        this.requestLists()
+    }
+    requestLists=()=>{
+        let menuId=this.props.menuId;
+        let code=this.props.code;
+        axios.ajax({
+            url:`/api/entity/detail/${menuId}/${code}`,
+            data:{
+                isShowLoading:true
+            }
+        }).then((res)=>{
+            let detailsList=res.entity.fieldGroups || "";          
+            console.log(res)
+           
+            detailsList.forEach((item)=>{
+                if(item.descs){
+                    this.setState({
+                        itemDescs:item.descs,
+                        columns:this.renderColumns(item.descs),
+                        dataSource:this.requestList(item)
+                    })
+                }
+            })
+            this.setState({
+                detailsList,
+                
+            })
+        })
+      
+    }
     initDetailsList=()=>{      
         const { getFieldDecorator } = this.props.form;
-        const detailsList=this.props.detailsList;
+        const detailsList=this.state.detailsList;
         const detailsItemList=[];
 
         const rowSelection = {
             type: 'radio',
             onChange: (selectedRowKeys, selectedRows) => {
-              //console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+              console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
               this.setState({
                 selectedRowKeys
               })
             },
           };
         const props = {
-        name: 'file',
-        action: '//jsonplaceholder.typicode.com/posts/',
-        headers: {
-            authorization: 'authorization-text',
-        },
-        onChange(info) {
-            if (info.file.status !== 'uploading') {
-            console.log(info.file, info.fileList);
-            }
-            if (info.file.status === 'done') {
-            message.success(`${info.file.name} file uploaded successfully`);
-            } else if (info.file.status === 'error') {
-            message.error(`${info.file.name} file upload failed.`);
-            }
-        },
+            name: 'file',
+            action: '//jsonplaceholder.typicode.com/posts/',
+            headers: {
+                authorization: 'authorization-text',
+            },
+            onChange(info) {
+                if (info.file.status !== 'uploading') {
+                console.log(info.file, info.fileList);
+                }
+                if (info.file.status === 'done') {
+                message.success(`${info.file.name} file uploaded successfully`);
+                } else if (info.file.status === 'error') {
+                message.error(`${info.file.name} file upload failed.`);
+                }
+            },
         };
         if(detailsList && detailsList.length>0){
             detailsList.forEach((item)=>{
@@ -65,20 +99,20 @@ class Detail extends React.Component{
                             if(type=="text"){
                                 return <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
                                             {
-                                                this.state.type=="detail"?<span style={{width:170,display:"inline-block"}}>{fieldValue}</span>:
+                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                                 getFieldDecorator([fieldName],{
                                                 initialValue:fieldValue
                                             })(
-                                                <Input type="text" style={{width:165}}/>
+                                                <Input type="text" style={{width:220}}/>
                                             )}
                                         </FormItem> 
                             }else if(type=="file"){
                                 return <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
                                             {
-                                                this.state.type=="detail"?<Avatar src={item.fieldId}/>:
+                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}><Avatar src={item.fieldId}/></span>:
                                                 getFieldDecorator([fieldName])(
                                                     <Upload {...props}>
-                                                        <Button style={{width:165}}>
+                                                        <Button style={{width:220}}>
                                                             <Icon type="upload" /> Click to Upload
                                                         </Button>
                                                     </Upload>
@@ -87,9 +121,9 @@ class Detail extends React.Component{
                             }else if(type=="select"){
                                 return <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
                                             {
-                                                this.state.type=="detail"?<span style={{width:170,display:"inline-block"}}>{fieldValue}</span>:
+                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                                 getFieldDecorator([fieldName])(
-                                                        <Select style={{width:165}}>
+                                                        <Select style={{width:220}}>
                                                             <Option value="1">男</Option>
                                                             <Option value="2">女</Option>
                                                         </Select>
@@ -98,17 +132,17 @@ class Detail extends React.Component{
                             }else if(type=="date"){
                                 return <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
                                             {
-                                                this.state.type=="detail"?<span style={{width:170,display:"inline-block"}}>{fieldValue}</span>:
+                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                                 getFieldDecorator([fieldName])(
-                                                    <DatePicker style={{width:165}} locale={locale}/>
+                                                    <DatePicker style={{width:220}} locale={locale}/>
                                             )}
                                         </FormItem>  
                             }else if(type=="label"){
                                 return <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
                                             {
-                                                this.state.type=="detail"?<span style={{width:170,display:"inline-block"}}>{fieldValue}</span>:
+                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                                 getFieldDecorator([fieldName])(
-                                                    <Select mode="multiple" style={{width:165}}>
+                                                    <Select mode="multiple" style={{width:220}}>
                                                         <Option value="1">游泳</Option>
                                                         <Option value="2">唱歌</Option>
                                                         <Option value="3">旅游</Option>
@@ -124,26 +158,31 @@ class Detail extends React.Component{
                     }                   
                     </Card>
                     detailsItemList.push(INPUT)
-                }else if(item.descs){
+                }else if(this.state.itemDescs){
                     const RANGE=<Card title={cardTitle} key={cardTitle}>
-                                    {/* {
+                                    {
                                         this.state.type=="edit"?<div>
-                                                                    <Button type='primary' icon="plus" onClick={()=>{this.handleAdd(item.descs)}} style={{marginBottom:10}}>新增</Button>
+                                                                    <Button type='primary' icon="plus" onClick={()=>{this.handleAdd(item)}} style={{marginBottom:10,marginRight:10}}>新增</Button>
                                                                     <Button type='danger' icon="delete" onClick={()=>{this.handleDelete(this.state.selectedRowKeys)}} style={{marginBottom:10}}>删除</Button>
                                                                 </div>
                                         :""
                                     }
                                     <Table
+                                        rowKey="index"
                                         rowSelection={this.state.type=="edit"?rowSelection:""}
                                         pagination={false}
                                         bordered
-                                        columns={this.renderColumns(item.descs)}
-                                        dataSource={this.requestList(item)}
-                                    />                   */}
-                                    <EditTable
-                                        columns={this.renderColumns(item.descs)}
-                                        dataSource={this.requestList(item)}
-                                    />
+                                        columns={this.state.columns}
+                                        dataSource={this.state.dataSource}
+                                    />                  
+                                    {/* <EditTable 
+                                        rowKey="index"
+                                        rowSelection={this.state.type=="edit"?rowSelection:""}
+                                        pagination={false}
+                                        bordered
+                                        columns={this.state.columns}
+                                        dataSource={this.state.dataSource}
+                                    /> */}
                                 </Card>
                     detailsItemList.push(RANGE)
                 }
@@ -158,50 +197,56 @@ class Detail extends React.Component{
     renderColumns=(data)=>{
 		if(data){
 			data.map((item,index)=>{
-                let fieldName=item.fieldName;
-                item["dataIndex"]=fieldName;	
-                item["key"]=index; 
-                item["editable"]=true       					
+                let fieldId=item.fieldId;
+                item["dataIndex"]=fieldId;	
+                item["key"]=index;       					
             })
-            console.log(data)
+            //console.log(data)
             return data
 		}		
     }
     requestList=(data)=>{
-        let res=[]
-        const { count } = this.state;
+        let res=[]      
+        const count = this.state.count;
+        const { getFieldDecorator } = this.props.form;
         if(data.array){
             data.array.map((item)=>{
                 let code=item.code;
                 let list={};              
                 item.fields.map((it)=>{
+                    let fieldName=item.fieldName;
                     let fieldValue=it.value;
-                    let fieldName=it.fieldName;
+                    let fieldId=it.fieldId;
                     list["key"]=count;
                     list["code"]=code;
-                    list[fieldName]=fieldValue
+                    list[fieldId]=fieldValue;
                 })
                 res.push(list)              
             })
             return res        
         }
     }
+    onInputChange(e) {
+        this.setState({ value: e.target.value } );
+        this.props.form.setFieldsValue({
+            value: "2222"
+          });
+    }
     handleAdd=(data)=> {
-        const { count } = this.state;
-        console.log(count)
+        const count = this.state.count+data.array.length;
         const { getFieldDecorator } = this.props.form;
         const newDataSource = this.state.dataSource 
         let list={}    
-        data.map((item,index)=>{
+        data.descs.map((item,index)=>{
             let fieldName=item.fieldName;
             let fieldId=item.fieldId;
             list["key"]=count
             //list[fieldId]=<Input type="text" style={{width:165}} key={Date.now()}/>        
             list[fieldId]=<FormItem key={Date.now()} className='labelcss'>
-                                {getFieldDecorator([fieldName+count])(
-                                    <Input type="text" placeholder={`请输入${fieldName}`}/>
-                                )}
-                            </FormItem>
+                            {getFieldDecorator([fieldName+count])(
+                                <Input type="text" placeholder={`请输入${fieldName}`} onChange={this.state.onInputChange} key={[fieldName+count]}/>
+                            )}
+                        </FormItem>
                                   
         })
         newDataSource.push(list)
@@ -217,19 +262,22 @@ class Detail extends React.Component{
         if(key.length==0){
             message.info("请选择")
         }else{
-            dataSource.map((item)=>{
-                key.map((key)=>{
-                    if(item.key!==key){
-                        return newSource.push(item)  
-                    }
-                })
+            // dataSource.map((item)=>{
+            //     key.map((key)=>{
+            //         if(item.key!==key){
+            //             return newSource.push(item)  
+            //         }
+            //     })
                 
+            // })
+            console.log(dataSource)
+            // this.setState({ 
+            //     dataSource: newSource,
+            //     selectedRowKeys:[]
+            //  });
+            key.map((key)=>{
+                this.setState({ dataSource: dataSource.filter(item => item.key !== key) });
             })
-            console.log(key)
-            this.setState({ 
-                dataSource: newSource,
-                selectedRowKeys:[]
-             });
         }      
     }
     handleOk = (e) => {
@@ -271,11 +319,11 @@ class Detail extends React.Component{
         return(
             <div>
                 <h3>{this.props.detailsTitle}</h3>
-                <Card>
+                <div>
                     <Form layout="inline" onSubmit={this.handleSubmit}>
                         {this.initDetailsList()}
                     </Form>
-                </Card>
+                </div>
                 <Modal
                     visible={this.state.visible}
                     onOk={this.handleOk}

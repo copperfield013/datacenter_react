@@ -23,6 +23,7 @@ export default class Admin extends React.Component{
 		this.state = {
 			activeKey: panes[0].key,
 			panes,
+			isChange:false
 		};
 	  }
 	componentWillMount(){
@@ -88,7 +89,7 @@ export default class Admin extends React.Component{
 			}
 			let data=JSON.parse(storage[key])
 			this.editList(data)
-		console.log(res)
+		//console.log(res)
   })
 	}
 	editList=(data)=>{
@@ -208,7 +209,7 @@ export default class Admin extends React.Component{
 			xqTitle=record["姓名"]?`修改-${record["姓名"]}`:"修改"
 			this.setState({type:"edit"})
 		}
-		this.requestDetails(record.code,type)
+		this.requestDetailsTitle(record.code,type)
 		this.setState({ 
 			panes, 
 			activeKey:code,
@@ -220,7 +221,7 @@ export default class Admin extends React.Component{
 		}		
 		//console.log(record.code)
 	} 	
-	requestDetails=(activeKey,type)=>{
+	requestDetailsTitle=(activeKey,type)=>{
 		axios.ajax({
 			url:`/api/entity/detail/${this.state.menuId}/${activeKey}`,
 			data:{
@@ -231,6 +232,7 @@ export default class Admin extends React.Component{
 				var obj = eval(res);
 				var code=type; 
 				code+=activeKey; 
+				storage.setItem("code",code)
 				storage[code]=JSON.stringify(obj); //存储一条数据
 			}
 			let data=JSON.parse(storage[code])
@@ -242,8 +244,7 @@ export default class Admin extends React.Component{
 		let detailsTitle="";
 		let moduleTitle=data.module.title || "";
 		let entityTitle=data.entity.title || "";
-		let detailsList=data.entity.fieldGroups || "";
-		//console.log(type)
+		//console.log(detailsList)
 		if(type=="detail"){
 			detailsTitle=entityTitle?moduleTitle+"-"+entityTitle+"-详情":moduleTitle+"-详情";
 		}else{
@@ -251,10 +252,9 @@ export default class Admin extends React.Component{
 		}			
 		this.setState({ 
 			detailsTitle,
-			detailsList,
-			type,
 		});
 	}
+	
 	onChange = (activeKey) => {
 		let type="";
 		this.setState({ activeKey });
@@ -262,10 +262,11 @@ export default class Admin extends React.Component{
 			activeKey.indexOf("detail")==0?type="detail":type="edit";
 			console.log(activeKey+"---"+type)
 			let data=JSON.parse(storage[activeKey]);
+
 			this.toDetails(data,type)
 			this.state.panes.map((item)=>{
 				if(item.key==activeKey){
-					this.setState({ xqTitle:item.title}) 
+					this.setState({ xqTitle:item.title,type}) 
 				}
 			})
 		}else if(activeKey.length<=30 && activeKey!=0){
@@ -336,10 +337,12 @@ export default class Admin extends React.Component{
 			case xqTitle:
 			return <Detail 
 						detailsTitle={this.state.detailsTitle}
-						detailsList={this.state.detailsList}
+						// detailsList={this.state.detailsList}
 						type={this.state.type}
 						menuId={this.state.menuId}
 						code={this.state.code}
+						onRef={this.onRef}
+						changeKey={this.state.activeKey}
 			/>
 			default:
 			return <ActTable 
@@ -352,6 +355,10 @@ export default class Admin extends React.Component{
 						searchParams={this.searchList}
 						/>
 		}  	
+	}
+	//调用子组件方法
+	onRef=(ref)=>{
+		this.child=ref
 	}
 	render(){
 		return(

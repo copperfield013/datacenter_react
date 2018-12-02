@@ -1,11 +1,8 @@
 import React from 'react'
-import { Button, Pagination ,message,Modal,Card,Table} from 'antd';
-import axios from "./../../axios/index"
+import { Pagination ,Card,Table} from 'antd';
 import BaseForm from "./../../components/BaseForm"
-import ModalForm from "./../../components/ModalForm"
-import "./index.css"
+import './index.css'
 
-var storage=window.localStorage;
 export default class actTable extends React.Component{
     state={
         loading: false,
@@ -14,40 +11,40 @@ export default class actTable extends React.Component{
         //console.log(params)
         this.props.searchParams(params)
     }
-    handleSubmit=()=>{
-        //let item=this.state.selectedItem;
-        //console.log(item)
-        this.setState({
-            loading: true,
-          });
-        setTimeout(() => {
-            this.setState({
-                isShowModal: false,
-                loading: false,
-            });          
-            this.request();
-            this.userForm.props.form.resetFields()          
-        }, 1000);
-        let data=this.userForm.props.form.getFieldsValue();
-        console.log(JSON.stringify(data));
-        axios.ajax({
-            url:this.state.type=="add"?'/table/add':'/table/edit',
-            data:{
-                params:data,
-                isShowLoading:false
-            }           
-        }).then((res)=>{
-            if(res.code=="0"){
-                message.success('操作成功')                               
-            }
-        })   
-    }
-    handleCancel=()=>{
-        this.setState({
-            isShowModal:false
-        })
-        this.userForm.props.form.resetFields()
-    }
+    // handleSubmit=()=>{
+    //     //let item=this.state.selectedItem;
+    //     //console.log(item)
+    //     this.setState({
+    //         loading: true,
+    //       });
+    //     setTimeout(() => {
+    //         this.setState({
+    //             isShowModal: false,
+    //             loading: false,
+    //         });          
+    //         this.request();
+    //         this.userForm.props.form.resetFields()          
+    //     }, 1000);
+    //     let data=this.userForm.props.form.getFieldsValue();
+    //     console.log(JSON.stringify(data));
+    //     axios.ajax({
+    //         url:this.state.type=="add"?'/table/add':'/table/edit',
+    //         data:{
+    //             params:data,
+    //             isShowLoading:false
+    //         }           
+    //     }).then((res)=>{
+    //         if(res.code=="0"){
+    //             message.success('操作成功')                               
+    //         }
+    //     })   
+    // }
+    // handleCancel=()=>{
+    //     this.setState({
+    //         isShowModal:false
+    //     })
+    //     this.userForm.props.form.resetFields()
+    // }
     onChange=(pageNumber)=> {
         this.props.callbackPage(pageNumber)
     }
@@ -76,15 +73,13 @@ export default class actTable extends React.Component{
                     <Button icon="edit" onClick={()=>this.handleOperate("edit")}>编辑</Button>
                     <Button icon="align-left" onClick={()=>this.handleOperate("detail")}>详情</Button>
                 </div>   */}
-                <div className="tableWrap">
+                <div>
                     <Table
                         columns={this.props.columns}
                         dataSource={this.props.list}
                         bordered
                         pagination={false}
                         style={{display:this.props.columns?"block":"none"}}
-                        //rowSelection='checkbox' //默认radio
-                        //selectedIds={this.state.selectedIds} //单选没有
                     >
                     </Table>
                     <Pagination 
@@ -96,7 +91,7 @@ export default class actTable extends React.Component{
                         showTotal={()=>this.showTotal(this.props.pageCount)}
                         />
                 </div>               
-                <Modal
+                {/* <Modal
                     title={this.state.title}
                     visible={this.state.isShowModal}
                     onCancel={this.handleCancel}
@@ -107,7 +102,7 @@ export default class actTable extends React.Component{
                     {...footer}
                 >
                     <ModalForm wrappedComponentRef={(inst)=>{this.userForm=inst}} addFormList={this.state.modalFormList} userInfo={this.state.userInfo} type={this.state.type}/>
-                </Modal>
+                </Modal> */}
             </div>
            
         )

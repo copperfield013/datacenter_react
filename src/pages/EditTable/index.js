@@ -1,208 +1,84 @@
 import React from 'react'
-import { Table, Input, Button, Popconfirm, Form } from 'antd';
+import { Table, Input, Button, message, Form } from 'antd';
 import './index.css'
-
 const FormItem = Form.Item;
-const EditableContext = React.createContext();
 
-const EditableRow = ({ form, index, ...props }) => (
-  <EditableContext.Provider value={form}>
-    <tr {...props} />
-  </EditableContext.Provider>
-);
-
-const EditableFormRow = Form.create()(EditableRow);
-
-class EditableCell extends React.Component {
-  state = {
-    editing: false,
+class EditTable extends React.Component {
+ 
+  state={
+    selectedRowKeys:"",
+    dataSource:this.props.dataSource,
+    columns:this.props.columns
   }
-
-  componentDidMount() {
-    if (this.props.editable) {
-      document.addEventListener('click', this.handleClickOutside, true);
+  componentDidMount(){
+    console.log(this.props.dataSource)
+  }
+  handleAdd=(data)=> {
+    // const { count } = this.state;
+    // console.log(count)
+    // const { getFieldDecorator } = this.props.form;
+    // const newDataSource = this.state.dataSource 
+    // let list={}    
+    // data.map((item,index)=>{
+    //     let fieldName=item.fieldName;
+    //     let fieldId=item.fieldId;
+    //     list["key"]=count
+    //     //list[fieldId]=<Input type="text" style={{width:165}} key={Date.now()}/>        
+    //     list[fieldId]=<FormItem key={Date.now()} className='labelcss'>
+    //                         {getFieldDecorator([fieldName+count])(
+    //                             <Input type="text" placeholder={`请输入${fieldName}`}/>
+    //                         )}
+    //                     </FormItem>
+                              
+    // })
+    // newDataSource.push(list)
+    // this.setState({
+    //     dataSource:newDataSource ,
+    //     count: count + 1,
+    // });
+    console.log(111)
     }
-  }
-
-  componentWillUnmount() {
-    if (this.props.editable) {
-      document.removeEventListener('click', this.handleClickOutside, true);
-    }
-  }
-
-  toggleEdit = () => {
-    const editing = !this.state.editing;
-    this.setState({ editing }, () => {
-      if (editing) {
-        this.input.focus();
-      }
-    });
-  }
-
-  handleClickOutside = (e) => {
-    const { editing } = this.state;
-    if (editing && this.cell !== e.target && !this.cell.contains(e.target)) {
-      this.save();
-    }
-  }
-
-  save = () => {
-    const { record, handleSave } = this.props;
-    this.form.validateFields((error, values) => {
-      if (error) {
-        return;
-      }
-      this.toggleEdit();
-      handleSave({ ...record, ...values });
-    });
-  }
-
-  render() {
-    const { editing,count } = this.state;
-    const {
-      editable,
-      dataIndex,
-      title,
-      record,
-      index,
-      handleSave,
-      ...restProps
-    } = this.props;
-    console.log(dataIndex)
-    return (
-      <td ref={node => (this.cell = node)} {...restProps}>
-        {editable ? (
-          <EditableContext.Consumer>
-            {(form) => {
-              this.form = form;
-              return (
-                editing ? (
-                  <FormItem style={{ margin: 0 }}>
-                    {form.getFieldDecorator(dataIndex, {
-                      rules: [{
-                        required: true,
-                        message: `${title} is required.`,
-                      }],
-                      initialValue: record[dataIndex],
-                    })(
-                      <Input
-                        ref={node => (this.input = node)}
-                        onPressEnter={this.save}
-                      />
-                    )}
-                  </FormItem>
-                ) : (
-                  <div
-                    className="editable-cell-value-wrap"
-                    style={{ paddingRight: 24 }}
-                    onClick={this.toggleEdit}
-                  >
-                    {restProps.children}
-                  </div>
-                )
-              );
-            }}
-          </EditableContext.Consumer>
-        ) : restProps.children}
-      </td>
-    );
-  }
-}
-
-export default class EditTable extends React.Component {
-  constructor(props) {
-    super(props);
-    this.columns =[
-      ...this.props.columns,
-      {
-        title: '操作',
-        dataIndex: 'operation',
-        render: (text, record) => {
-          return (
-            this.state.dataSource.length >= 1
-              ? (
-                <Popconfirm title="确认删除?" okText="确认" cancelText="取消" onConfirm={() => this.handleDelete(record.key)}>
-                  <a href="javascript:;">删除</a>
-                </Popconfirm>
-              ) : null
-          );
-        },
-      }
-  ]
-
-    this.state = {
-      dataSource:this.props.dataSource,
-      count: 1,
-    };
-  }
 
   handleDelete = (key) => {
-    const dataSource = [...this.state.dataSource];
-    this.setState({ dataSource: dataSource.filter(item => item.key !== key) });
-  }
-
-  handleAdd = () => {
-    const { count, dataSource } = this.state;
-    const newData = {
-      key: count,
-      '拥有书籍.书名': `Edward King ${count}`,
-      '拥有书籍.价格': 32,
-      '拥有书籍.ISBN': `London, Park Lane no. ${count}`,
-      '拥有书籍.封面': `London, Park Lane no. ${count}`,
-    };
-    this.setState({
-      dataSource: [...dataSource, newData],
-      count: count + 1,
-    });
-  }
-
-  handleSave = (row) => {
-    const newData = [...this.state.dataSource];
-    const index = newData.findIndex(item => row.key === item.key);
-    const item = newData[index];
-    newData.splice(index, 1, {
-      ...item,
-      ...row,
-    });
-    this.setState({ dataSource: newData });
-  }
-
+    const dataSource = [...this.props.dataSource];
+    const newSource=[]
+    if(key.length==0){
+        message.info("请选择")
+    }else{
+        key.map((key)=>{
+            //this.setState({ dataSource: dataSource.filter(item => item.key !== key) });
+        })
+    }      
+}
   render() {
-    const { dataSource } = this.state;
-    const components = {
-      body: {
-        row: EditableFormRow,
-        cell: EditableCell,
+    const rowSelection = {
+      type: 'radio',
+      onChange: (selectedRowKeys, selectedRows) => {
+        console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+        this.setState({
+          selectedRowKeys
+        })
       },
     };
-    const columns = this.columns.map((col) => {
-      if (!col.editable) {
-        return col;
-      }
-      return {
-        ...col,
-        onCell: record => ({
-          record,
-          editable: col.editable,
-          dataIndex: col.dataIndex,
-          title: col.title,
-          handleSave: this.handleSave,
-        }),
-      };
-    });
     return (
       <div>
-        <Button onClick={this.handleAdd} type="primary" style={{ marginBottom: 16 }}>
-          Add a row
-        </Button>
-        <Table
-          components={components}
-          rowClassName={() => 'editable-row'}
-          bordered
-          dataSource={dataSource}
-          columns={columns}
-        />
+        <div>
+            <Button type='primary' icon="plus" onClick={()=>{this.handleAdd()}} style={{marginBottom:10,marginRight:10}}>新增</Button>
+            <Button type='danger' icon="delete" onClick={()=>{this.handleDelete(this.state.selectedRowKeys)}} style={{marginBottom:10}}>删除</Button>
+        </div>
+        
+          <Table
+            rowSelection={rowSelection}
+            bordered
+            dataSource={this.state.dataSource}
+            columns={this.props.columns}
+            pagination={false}
+          />
+        
+        
       </div>
     );
   }
 }
+
+export default Form.create()(EditTable)
