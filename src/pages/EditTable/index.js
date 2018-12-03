@@ -3,53 +3,50 @@ import { Table, Input, Button, message, Form } from 'antd';
 import './index.css'
 const FormItem = Form.Item;
 
+
 class EditTable extends React.Component {
  
   state={
+    count:this.props.count,
     selectedRowKeys:"",
     dataSource:this.props.dataSource,
-    columns:this.props.columns
+    columns:this.props.columns,
+    item:this.props.item,
   }
   componentDidMount(){
-    console.log(this.props.dataSource)
+    console.log(this.state.dataSource)
   }
-  handleAdd=(data)=> {
-    // const { count } = this.state;
-    // console.log(count)
-    // const { getFieldDecorator } = this.props.form;
-    // const newDataSource = this.state.dataSource 
-    // let list={}    
-    // data.map((item,index)=>{
-    //     let fieldName=item.fieldName;
-    //     let fieldId=item.fieldId;
-    //     list["key"]=count
-    //     //list[fieldId]=<Input type="text" style={{width:165}} key={Date.now()}/>        
-    //     list[fieldId]=<FormItem key={Date.now()} className='labelcss'>
-    //                         {getFieldDecorator([fieldName+count])(
-    //                             <Input type="text" placeholder={`请输入${fieldName}`}/>
-    //                         )}
-    //                     </FormItem>
-                              
-    // })
-    // newDataSource.push(list)
-    // this.setState({
-    //     dataSource:newDataSource ,
-    //     count: count + 1,
-    // });
-    console.log(111)
-    }
-
-  handleDelete = (key) => {
-    const dataSource = [...this.props.dataSource];
-    const newSource=[]
-    if(key.length==0){
-        message.info("请选择")
-    }else{
-        key.map((key)=>{
-            //this.setState({ dataSource: dataSource.filter(item => item.key !== key) });
+ 
+  handleAdd=(item)=> {
+        const count = this.state.count;
+        const newDataSource = this.state.dataSource 
+        let list={}    
+        item.map((item,index)=>{
+            let fieldName=item.fieldName;
+            let fieldId=item.fieldId;
+            list["key"]=count
+            list[fieldName]=<Input type="text" style={{width:185}} key={[fieldName+count]} placeholder={`请输入${fieldName}`}/>
+                                  
         })
-    }      
-}
+        newDataSource.push(list)
+        this.setState({
+            dataSource:newDataSource ,
+            count: count + 1,
+        });
+          console.log(this.state.dataSource)
+  }
+
+    handleDelete = (key) => {
+      const dataSource = [...this.state.dataSource];
+      if(key.length==0){
+          message.info("请选择")
+      }else{
+          console.log(dataSource)
+          key.map((key)=>{
+              this.setState({ dataSource: dataSource.filter(item => item.key !== key) });
+          })
+      }      
+  }
   render() {
     const rowSelection = {
       type: 'radio',
@@ -63,15 +60,20 @@ class EditTable extends React.Component {
     return (
       <div>
         <div>
-            <Button type='primary' icon="plus" onClick={()=>{this.handleAdd()}} style={{marginBottom:10,marginRight:10}}>新增</Button>
-            <Button type='danger' icon="delete" onClick={()=>{this.handleDelete(this.state.selectedRowKeys)}} style={{marginBottom:10}}>删除</Button>
+            {
+              this.props.type=="edit"?<div>
+                                          <Button type='primary' icon="plus" onClick={()=>{this.handleAdd(this.props.item)}} style={{marginBottom:10,marginRight:10}}>新增</Button>
+                                          <Button type='danger' icon="delete" onClick={()=>{this.handleDelete(this.state.selectedRowKeys)}} style={{marginBottom:10}}>删除</Button>
+                                      </div>
+              :""
+            }
         </div>
         
           <Table
-            rowSelection={rowSelection}
+            rowSelection={this.props.type=="edit"?rowSelection:""}
             bordered
             dataSource={this.state.dataSource}
-            columns={this.props.columns}
+            columns={this.state.columns}
             pagination={false}
           />
         
@@ -81,4 +83,5 @@ class EditTable extends React.Component {
   }
 }
 
-export default Form.create()(EditTable)
+const WrappedHorizontalLoginForm = Form.create()(EditTable);
+export default WrappedHorizontalLoginForm

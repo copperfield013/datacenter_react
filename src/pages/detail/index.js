@@ -6,6 +6,7 @@ import moment from 'moment';
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
 import EditTable from './../../pages/EditTable'
+import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 const Option = Select.Option;
 const FormItem=Form.Item
 
@@ -36,20 +37,29 @@ class Detail extends React.Component{
             }
         }).then((res)=>{
             let detailsList=res.entity.fieldGroups || "";          
-            console.log(res)
-           
-            detailsList.forEach((item)=>{
+            let formList=detailsList[0].fields
+            //console.log(res)
+            let itemDescs=[]
+            let columns=[]
+            let dataSource=[]
+            let cardTitle=[]
+            detailsList.map((item)=>{
                 if(item.descs){
-                    this.setState({
-                        itemDescs:item.descs,
-                        columns:this.renderColumns(item.descs),
-                        dataSource:this.requestList(item)
-                    })
+                    cardTitle.push(item.title)
+                    itemDescs.push(item.descs)
+                    columns.push(this.renderColumns(item.descs))
+                    dataSource.push(this.requestList(item))
                 }
-            })
+                this.setState({
+                    itemDescs,
+                    columns,
+                    dataSource,
+                    cardTitle
+                })
+            })           
             this.setState({
                 detailsList,
-                
+                formList,
             })
         })
       
@@ -68,125 +78,24 @@ class Detail extends React.Component{
               })
             },
           };
-        const props = {
-            name: 'file',
-            action: '//jsonplaceholder.typicode.com/posts/',
-            headers: {
-                authorization: 'authorization-text',
-            },
-            onChange(info) {
-                if (info.file.status !== 'uploading') {
-                console.log(info.file, info.fileList);
-                }
-                if (info.file.status === 'done') {
-                message.success(`${info.file.name} file uploaded successfully`);
-                } else if (info.file.status === 'error') {
-                message.error(`${info.file.name} file upload failed.`);
-                }
-            },
-        };
+       
         if(detailsList && detailsList.length>0){
-            detailsList.forEach((item)=>{
-                let cardTitle=item.title;
-                if(item.fields){
-                    const INPUT=<Card title={cardTitle} key={cardTitle}>
-                    {
-                        item.fields.map((item)=>{ 
-                            let type=item.type;
-                            //console.log(type)
-                            let fieldName=item.fieldName;
-                            let fieldValue=item.value; 
-                            if(type=="text"){
-                                return <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
-                                            {
-                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                                getFieldDecorator([fieldName],{
-                                                initialValue:fieldValue
-                                            })(
-                                                <Input type="text" style={{width:220}}/>
-                                            )}
-                                        </FormItem> 
-                            }else if(type=="file"){
-                                return <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
-                                            {
-                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}><Avatar src={item.fieldId}/></span>:
-                                                getFieldDecorator([fieldName])(
-                                                    <Upload {...props}>
-                                                        <Button style={{width:220}}>
-                                                            <Icon type="upload" /> Click to Upload
-                                                        </Button>
-                                                    </Upload>
-                                            )}
-                                        </FormItem>  
-                            }else if(type=="select"){
-                                return <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
-                                            {
-                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                                getFieldDecorator([fieldName])(
-                                                        <Select style={{width:220}}>
-                                                            <Option value="1">男</Option>
-                                                            <Option value="2">女</Option>
-                                                        </Select>
-                                            )}
-                                        </FormItem>  
-                            }else if(type=="date"){
-                                return <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
-                                            {
-                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                                getFieldDecorator([fieldName])(
-                                                    <DatePicker style={{width:220}} locale={locale}/>
-                                            )}
-                                        </FormItem>  
-                            }else if(type=="label"){
-                                return <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
-                                            {
-                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                                getFieldDecorator([fieldName])(
-                                                    <Select mode="multiple" style={{width:220}}>
-                                                        <Option value="1">游泳</Option>
-                                                        <Option value="2">唱歌</Option>
-                                                        <Option value="3">旅游</Option>
-                                                        <Option value="4">逛街</Option>
-                                                        <Option value="5">跳舞</Option>
-                                                        <Option value="6">爬山</Option>
-                                                    </Select>
-                                            )}
-                                        </FormItem>  
-                            }
+            this.state.itemDescs.map((item,index)=>{
+                let cardTitle=this.state.cardTitle[index]
+                const RANGE=<Card title={cardTitle} key={cardTitle}>
+                        <EditTable 
+                            type={this.props.type}
+                            pagination={false}
+                            bordered
+                            columns={this.state.columns[index]}
+                            dataSource={this.state.dataSource[index]}
+                            item={item}
+                            count={this.state.count}
                         
-                        })    
-                    }                   
+                        />
                     </Card>
-                    detailsItemList.push(INPUT)
-                }else if(this.state.itemDescs){
-                    const RANGE=<Card title={cardTitle} key={cardTitle}>
-                                    {
-                                        this.state.type=="edit"?<div>
-                                                                    <Button type='primary' icon="plus" onClick={()=>{this.handleAdd(item)}} style={{marginBottom:10,marginRight:10}}>新增</Button>
-                                                                    <Button type='danger' icon="delete" onClick={()=>{this.handleDelete(this.state.selectedRowKeys)}} style={{marginBottom:10}}>删除</Button>
-                                                                </div>
-                                        :""
-                                    }
-                                    <Table
-                                        rowKey="index"
-                                        rowSelection={this.state.type=="edit"?rowSelection:""}
-                                        pagination={false}
-                                        bordered
-                                        columns={this.state.columns}
-                                        dataSource={this.state.dataSource}
-                                    />                  
-                                    {/* <EditTable 
-                                        rowKey="index"
-                                        rowSelection={this.state.type=="edit"?rowSelection:""}
-                                        pagination={false}
-                                        bordered
-                                        columns={this.state.columns}
-                                        dataSource={this.state.dataSource}
-                                    /> */}
-                                </Card>
-                    detailsItemList.push(RANGE)
-                }
-            })          
+                detailsItemList.push(RANGE)
+            })         
         }
         if(this.state.type=="edit"){
             let btn=<Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="submitBtn" htmlType="submit">提交</Button>
@@ -197,8 +106,8 @@ class Detail extends React.Component{
     renderColumns=(data)=>{
 		if(data){
 			data.map((item,index)=>{
-                let fieldId=item.fieldId;
-                item["dataIndex"]=fieldId;	
+                let fieldName=item.fieldName;
+                item["dataIndex"]=fieldName;	
                 item["key"]=index;       					
             })
             //console.log(data)
@@ -208,80 +117,31 @@ class Detail extends React.Component{
     requestList=(data)=>{
         let res=[]      
         const count = this.state.count;
+        this.setState({
+            count :this.state.count+data.array.length
+        })
         const { getFieldDecorator } = this.props.form;
         if(data.array){
             data.array.map((item)=>{
                 let code=item.code;
                 let list={};              
                 item.fields.map((it)=>{
-                    let fieldName=item.fieldName;
+                    let fieldName=it.fieldName;
                     let fieldValue=it.value;
                     let fieldId=it.fieldId;
                     list["key"]=count;
                     list["code"]=code;
-                    list[fieldId]=fieldValue;
+                    list[fieldName]=fieldValue;
                 })
-                res.push(list)              
+                res.push(list) 
+                //console.log(res)             
             })
             return res        
         }
     }
-    onInputChange(e) {
-        this.setState({ value: e.target.value } );
-        this.props.form.setFieldsValue({
-            value: "2222"
-          });
-    }
-    handleAdd=(data)=> {
-        const count = this.state.count+data.array.length;
-        const { getFieldDecorator } = this.props.form;
-        const newDataSource = this.state.dataSource 
-        let list={}    
-        data.descs.map((item,index)=>{
-            let fieldName=item.fieldName;
-            let fieldId=item.fieldId;
-            list["key"]=count
-            //list[fieldId]=<Input type="text" style={{width:165}} key={Date.now()}/>        
-            list[fieldId]=<FormItem key={Date.now()} className='labelcss'>
-                            {getFieldDecorator([fieldName+count])(
-                                <Input type="text" placeholder={`请输入${fieldName}`} onChange={this.state.onInputChange} key={[fieldName+count]}/>
-                            )}
-                        </FormItem>
-                                  
-        })
-        newDataSource.push(list)
-        this.setState({
-            dataSource:newDataSource ,
-            count: count + 1,
-        });
-        console.log(newDataSource)
-        }
-    handleDelete = (key) => {
-        const dataSource = [...this.state.dataSource];
-        const newSource=[]
-        if(key.length==0){
-            message.info("请选择")
-        }else{
-            // dataSource.map((item)=>{
-            //     key.map((key)=>{
-            //         if(item.key!==key){
-            //             return newSource.push(item)  
-            //         }
-            //     })
-                
-            // })
-            console.log(dataSource)
-            // this.setState({ 
-            //     dataSource: newSource,
-            //     selectedRowKeys:[]
-            //  });
-            key.map((key)=>{
-                this.setState({ dataSource: dataSource.filter(item => item.key !== key) });
-            })
-        }      
-    }
     handleOk = (e) => {
         e.preventDefault();
+        this.child.handleBaseInfoSubmit()
         let menuId=this.props.menuId;
         let code=this.props.code;
         this.props.form.validateFields((err, values) => {
@@ -297,9 +157,10 @@ class Detail extends React.Component{
             //      console.log(res)
             //       message.success("提交成功！")
             // })
-            console.log(values)
           }
         });
+        let data=JSON.parse(storage["baseInfo"])
+        console.log(data)
         this.setState({
           visible: false,
         });
@@ -315,12 +176,24 @@ class Detail extends React.Component{
             visible: true,
         });
     }
+    //调用子组件方法
+	onRef=(ref)=>{
+		this.child=ref
+	}
     render(){
         return(
             <div>
-                <h3>{this.props.detailsTitle}</h3>
+                <h3>{this.props.detailsTitle}</h3> 
+                <Card title="基本信息">
+                    <BaseInfoForm 
+                        formList={this.state.formList} 
+                        type={this.state.type} 
+                        onRef={this.onRef}
+                        />
+                </Card>
+                
                 <div>
-                    <Form layout="inline" onSubmit={this.handleSubmit}>
+                    <Form layout="inline">
                         {this.initDetailsList()}
                     </Form>
                 </div>
