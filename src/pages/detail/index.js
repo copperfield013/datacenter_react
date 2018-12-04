@@ -11,6 +11,7 @@ const Option = Select.Option;
 const FormItem=Form.Item
 
 var storage=window.localStorage;
+var totalcode=[]
 class Detail extends React.Component{
     state={
         type:this.props.type,
@@ -20,9 +21,6 @@ class Detail extends React.Component{
         selectedRowKeys:[],
         visible: false,
         value:{},
-    }
-    componentDidMount(){
-        this.props.onRef(this)
     }
     componentWillMount(){
         this.requestLists()
@@ -64,10 +62,12 @@ class Detail extends React.Component{
         })
       
     }
-    initDetailsList=()=>{      
+    initDetailsList=()=>{ 
         const { getFieldDecorator } = this.props.form;
         const detailsList=this.state.detailsList;
         const detailsItemList=[];
+        let btn=<Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn">提交</Button>
+        detailsItemList.push(btn)
 
         const rowSelection = {
             type: 'radio',
@@ -83,23 +83,32 @@ class Detail extends React.Component{
             this.state.itemDescs.map((item,index)=>{
                 let cardTitle=this.state.cardTitle[index]
                 const RANGE=<Card title={cardTitle} key={cardTitle}>
-                        <EditTable 
-                            type={this.props.type}
-                            pagination={false}
-                            bordered
-                            columns={this.state.columns[index]}
-                            dataSource={this.state.dataSource[index]}
-                            item={item}
-                            count={this.state.count}
-                        
-                        />
-                    </Card>
+                                <EditTable 
+                                    type={this.props.type}
+                                    pagination={false}
+                                    bordered
+                                    columns={this.state.columns[index]}
+                                    dataSource={this.state.dataSource[index]}
+                                    item={item}
+                                    count={this.state.count}
+                                />
+                            </Card>
                 detailsItemList.push(RANGE)
+                let submitcode=[];
+                this.state.dataSource[index].map((item)=>{
+                    if(item.code){
+                        submitcode.push(item.code);
+                    }  
+                    
+                    submitcode.map((it)=>{
+                        if(totalcode.indexOf(it)==-1){
+                            totalcode.push(it)
+                            storage[it]=JSON.stringify(item)
+                        }
+                    })  
+                })
+                              
             })         
-        }
-        if(this.state.type=="edit"){
-            let btn=<Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="submitBtn" htmlType="submit">提交</Button>
-            detailsItemList.push(btn)
         }
         return detailsItemList;
     }
@@ -159,8 +168,14 @@ class Detail extends React.Component{
             // })
           }
         });
-        let data=JSON.parse(storage["baseInfo"])
-        console.log(data)
+        totalcode.map((item)=>{
+        let data=JSON.parse(storage.getItem(item))
+            if(data){
+                console.log(data)
+            }
+        })
+        let newRecord=JSON.parse(storage.getItem("newRecord"))
+        console.log(newRecord)
         this.setState({
           visible: false,
         });
@@ -179,7 +194,7 @@ class Detail extends React.Component{
     //调用子组件方法
 	onRef=(ref)=>{
 		this.child=ref
-	}
+    }
     render(){
         return(
             <div>

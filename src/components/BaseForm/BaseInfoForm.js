@@ -22,9 +22,6 @@ class BaseInfoForm extends React.Component{
         let fieldsValue=this.props.form.getFieldsValue();
         storage["baseInfo"]=JSON.stringify(fieldsValue);
     }
-    // reset=()=>{
-    //     this.props.form.resetFields()
-    // }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
         const formList=this.props.formList;

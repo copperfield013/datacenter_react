@@ -341,7 +341,6 @@ export default class Admin extends React.Component{
 						type={this.state.type}
 						menuId={this.state.menuId}
 						code={this.state.code}
-						onRef={this.onRef}
 						changeKey={this.state.activeKey}
 			/>
 			default:
@@ -355,10 +354,6 @@ export default class Admin extends React.Component{
 						searchParams={this.searchList}
 						/>
 		}  	
-	}
-	//调用子组件方法
-	onRef=(ref)=>{
-		this.child=ref
 	}
 	render(){
 		return(
