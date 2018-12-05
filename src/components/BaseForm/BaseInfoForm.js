@@ -1,5 +1,6 @@
 import React from 'react'
 import { Radio, Input, Button, Card,message,Checkbox ,Form,Select,DatePicker,Avatar,Upload,Icon} from 'antd'
+import axios from "./../../axios"
 import Units from "../../units/unit";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
@@ -21,6 +22,30 @@ class BaseInfoForm extends React.Component{
     handleBaseInfoSubmit=()=>{
         let fieldsValue=this.props.form.getFieldsValue();
         storage["baseInfo"]=JSON.stringify(fieldsValue);
+    }
+    requestSelectOptions=(id)=>{
+        axios.ajax({
+            url:`/api/field/options?fieldIds=${id}`,
+            data:{
+                isShowLoading:false,
+            }
+        }).then((res)=>{
+            let key=res.keyPrefix+id;
+            this.setState({
+                list:res.optionsMap[key]
+            })
+        })
+    }
+    requestLinkage=(optionKey)=>{
+        let optGroupId=optionKey.split("@")[0]
+        axios.ajax({
+            url:`/api/field/cas_ops/${optGroupId}`,
+            data:{
+                isShowLoading:false,
+            }
+        }).then((res)=>{
+            console.log(res)
+        })
     }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
@@ -52,65 +77,70 @@ class BaseInfoForm extends React.Component{
                 let placeholder=item.placeholder || '';
                 let fieldValue=item.value;
                 if(item.type=="date"){
-                    const DATE= <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
-                                            {
-                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                                getFieldDecorator([fieldName])(
-                                                    <DatePicker style={{width:220}} locale={locale}/>
-                                            )}
-                                    </FormItem>
+                    const DATE= <FormItem label={fieldName} key={field} className='labelcss'>
+                                    {
+                                        this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                        getFieldDecorator([fieldName])(
+                                            <DatePicker style={{width:220}} locale={locale}/>
+                                    )}
+                                </FormItem>
                     formItemList.push(DATE)                
                 }else if(item.type=="text"){
                     const TEXT= <FormItem label={fieldName} key={field} className='labelcss'>
-                                            {
-                                                this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                                getFieldDecorator([fieldName],{
-                                                initialValue:fieldValue
-                                            })(
-                                                <Input type="text" style={{width:220}}/>
-                                            )}
+                                    {
+                                        this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                        getFieldDecorator([fieldName],{
+                                        initialValue:fieldValue
+                                    })(
+                                        <Input type="text" style={{width:220}}/>
+                                    )}
                                 </FormItem>   
                     formItemList.push(TEXT)                
                 }else if(item.type=="select"){
-                    const SELECT= <FormItem label={fieldName} key={[item.fieldId]} className='labelcss'>
-                                                 {
-                                                    this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                                    getFieldDecorator([fieldName])(
-                                                            <Select style={{width:220}} >
-                                                                <Option value="1">男</Option>
-                                                                <Option value="2">女</Option>
-                                                            </Select>
-                                                )}
-                                             </FormItem> 
+                    const SELECT= <FormItem label={fieldName} key={[field]} className='labelcss'>
+                                        {
+                                        this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                        getFieldDecorator([fieldName])(
+                                                <Select style={{width:220}} onMouseEnter={()=>this.requestSelectOptions(field)}>
+                                                     {Units.getSelectList(this.state.list)}
+                                                </Select>
+                                        )}
+                                    </FormItem> 
                     formItemList.push(SELECT)    
                 }else if(item.type=="label"){
-                    const LABEL= <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
-                                                 {
-                                                    this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                                    getFieldDecorator([fieldName])(
-                                                        <Select mode="multiple" style={{width:220}}>
-                                                            <Option value="1">游泳</Option>
-                                                            <Option value="2">唱歌</Option>
-                                                            <Option value="3">旅游</Option>
-                                                            <Option value="4">逛街</Option>
-                                                            <Option value="5">跳舞</Option>
-                                                            <Option value="6">爬山</Option>
-                                                        </Select>
-                                                )}
-                                            </FormItem>
+                    const LABEL= <FormItem label={fieldName} key={field} className='labelcss'>
+                                        {
+                                            this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                            getFieldDecorator([fieldName])(
+                                                <Select mode="multiple" style={{width:220}} onMouseEnter={()=>this.requestSelectOptions(field)}>
+                                                    
+                                                </Select>
+                                        )}
+                                </FormItem>
                     formItemList.push(LABEL)   
+                }else if(item.type=="caselect"){
+                    const CASELECT= <FormItem label={fieldName} key={field} className='labelcss'>
+                                        {
+                                            this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                            getFieldDecorator([fieldName])(
+                                                <Select mode="multiple" style={{width:220}} onMouseEnter={()=>this.requestLinkage(item.optionKey)}>
+                                                    {Units.getSelectList(this.state.list)}
+                                                </Select>
+                                        )}
+                                </FormItem>
+                    formItemList.push(CASELECT)   
                 }else if(item.type=="file"){
-                    const FILE= <FormItem label={fieldName} key={item.fieldId} className='labelcss'>
-                                                 {
-                                                    this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}><Avatar src={item.fieldId}/></span>:
-                                                    getFieldDecorator([fieldName])(
-                                                        <Upload {...props}>
-                                                            <Button style={{width:220}}>
-                                                                <Icon type="upload" /> Click to Upload
-                                                            </Button>
-                                                        </Upload>
-                                                )}
-                                            </FormItem>
+                    const FILE= <FormItem label={fieldName} key={field} className='labelcss'>
+                                        {
+                                        this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}><Avatar src={field}/></span>:
+                                        getFieldDecorator([fieldName])(
+                                            <Upload {...props}>
+                                                <Button style={{width:220}}>
+                                                    <Icon type="upload" /> 点击上传
+                                                </Button>
+                                            </Upload>
+                                        )}
+                                </FormItem>
                     formItemList.push(FILE)   
                 }
             })

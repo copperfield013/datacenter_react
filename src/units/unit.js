@@ -29,7 +29,7 @@ export default {
         } 
         let options=[]
         data.map((item)=>{
-            options.push(<Option value={item.id} key={item.id}>{item.name}</Option>)
+            options.push(<Option value={item.value} key={item.title}>{item.title}</Option>)
         })
         return options
     },

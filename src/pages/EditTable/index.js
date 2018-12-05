@@ -16,20 +16,20 @@ export default class EditTable extends React.Component {
     columns:this.props.columns,
     item:this.props.item,
   }
-  componentDidMount(){
-
+  componentWillMount(){
+     totalRecord=[]//切换清空原有数据
+    storage.removeItem("newRecord")
   }
   
   update=(e,name)=>{
     let record={}
     record[name]=e.target.value
     if(totalRecord.length<1){
-      totalRecord.push(record)
+      newRecord=totalRecord.push(record)
     }else{
       newRecord=Object.assign(...totalRecord, record)
     }
     storage["newRecord"]=JSON.stringify(newRecord)
-    console.log(storage["newRecord"])
   }
   handleAdd=(item)=> {
     const count = this.state.count;
@@ -77,22 +77,13 @@ export default class EditTable extends React.Component {
               })
               storage["newRecord"]=JSON.stringify(newRecord)
             }
-
-         
-       
-          
-          // keys.map((item)=>{
-          //   if(storage.getItem(item)){
-          //     storage.removeItem(item)
-          //   }
-          // })
       }      
   }
   render() {
     const rowSelection = {
       type: 'radio',
       onChange: (selectedRowKeys, selectedRows) => {
-       console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+        //console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
         this.setState({
           selectedRowKeys,
           selectedRows

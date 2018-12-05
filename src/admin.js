@@ -214,7 +214,7 @@ export default class Admin extends React.Component{
 			panes, 
 			activeKey:code,
 			xqTitle,
-			menuId:record.menuId
+			menuId:record.menuId,
 		});
 		if(flag == false){
 			panes.push({ title:xqTitle, key:code });
@@ -222,23 +222,11 @@ export default class Admin extends React.Component{
 		//console.log(record.code)
 	} 	
 	requestDetailsTitle=(activeKey,type)=>{
-		axios.ajax({
-			url:`/api/entity/detail/${this.state.menuId}/${activeKey}`,
-			data:{
-				isShowLoading:true
-			}
-		}).then((res)=>{
-			if(res){
-				var obj = eval(res);
-				var code=type; 
-				code+=activeKey; 
-				storage.setItem("code",code)
-				storage[code]=JSON.stringify(obj); //存储一条数据
-			}
-			let data=JSON.parse(storage[code])
+		let typecode=type+activeKey; 
+		if(storage[typecode]){
+			let data=JSON.parse(storage[typecode])
 			this.toDetails(data,type)
-			//console.log(data)
-		})
+		}
 	}
 	toDetails=(data,type)=>{
 		let detailsTitle="";
@@ -260,13 +248,22 @@ export default class Admin extends React.Component{
 		this.setState({ activeKey });
 		if(activeKey.length>30){
 			activeKey.indexOf("detail")==0?type="detail":type="edit";
-			console.log(activeKey+"---"+type)
+			//console.log(activeKey+"---"+type)			
 			let data=JSON.parse(storage[activeKey]);
-
 			this.toDetails(data,type)
+
 			this.state.panes.map((item)=>{
 				if(item.key==activeKey){
-					this.setState({ xqTitle:item.title,type}) 
+					if(activeKey.indexOf("detail")==0){
+						activeKey=activeKey.slice(6)
+					}else{
+						activeKey=activeKey.slice(4)
+					}
+					this.setState({
+						 xqTitle:item.title,
+						 type,
+						 code:activeKey,
+					}) 
 				}
 			})
 		}else if(activeKey.length<=30 && activeKey!=0){
@@ -304,7 +301,7 @@ export default class Admin extends React.Component{
 			let data=JSON.parse(storage[activeKey])
 			this.editList(data)
 		}
-		}
+	}
 	//搜索和页码
 	searchList=(params)=>{
 		let key=storage.getItem("key");
@@ -337,11 +334,9 @@ export default class Admin extends React.Component{
 			case xqTitle:
 			return <Detail 
 						detailsTitle={this.state.detailsTitle}
-						// detailsList={this.state.detailsList}
 						type={this.state.type}
 						menuId={this.state.menuId}
 						code={this.state.code}
-						changeKey={this.state.activeKey}
 			/>
 			default:
 			return <ActTable 

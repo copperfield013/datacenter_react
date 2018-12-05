@@ -12,7 +12,7 @@ const FormItem=Form.Item
 
 var storage=window.localStorage;
 var totalcode=[]
-class Detail extends React.Component{
+export default class Detail extends React.Component{
     state={
         type:this.props.type,
         count:0,
@@ -24,19 +24,24 @@ class Detail extends React.Component{
     }
     componentWillMount(){
         this.requestLists()
+        totalcode=[] //切换清空原有数据
     }
     requestLists=()=>{
         let menuId=this.props.menuId;
         let code=this.props.code;
+        let typecode=this.state.type+this.props.code;
         axios.ajax({
             url:`/api/entity/detail/${menuId}/${code}`,
             data:{
                 isShowLoading:true
             }
         }).then((res)=>{
+            if(res){
+				var obj = eval(res); 
+				storage[typecode]=JSON.stringify(obj); //存储一条数据
+			}
             let detailsList=res.entity.fieldGroups || "";          
-            let formList=detailsList[0].fields
-            //console.log(res)
+            let formList=detailsList[0].fields;
             let itemDescs=[]
             let columns=[]
             let dataSource=[]
@@ -63,22 +68,13 @@ class Detail extends React.Component{
       
     }
     initDetailsList=()=>{ 
-        const { getFieldDecorator } = this.props.form;
         const detailsList=this.state.detailsList;
         const detailsItemList=[];
-        let btn=<Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn">提交</Button>
-        detailsItemList.push(btn)
+        if(this.props.type=="edit"){
+            let btn=<Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn">提交</Button>
+            detailsItemList.push(btn)
+        }
 
-        const rowSelection = {
-            type: 'radio',
-            onChange: (selectedRowKeys, selectedRows) => {
-              console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-              this.setState({
-                selectedRowKeys
-              })
-            },
-          };
-       
         if(detailsList && detailsList.length>0){
             this.state.itemDescs.map((item,index)=>{
                 let cardTitle=this.state.cardTitle[index]
@@ -129,7 +125,6 @@ class Detail extends React.Component{
         this.setState({
             count :this.state.count+data.array.length
         })
-        const { getFieldDecorator } = this.props.form;
         if(data.array){
             data.array.map((item)=>{
                 let code=item.code;
@@ -151,10 +146,9 @@ class Detail extends React.Component{
     handleOk = (e) => {
         e.preventDefault();
         this.child.handleBaseInfoSubmit()
+        let result=[]
         let menuId=this.props.menuId;
         let code=this.props.code;
-        this.props.form.validateFields((err, values) => {
-          if (!err) {
             // axios.ajax({
             //     url:`/api/entity/update/${menuId}`,
             //     data:{
@@ -166,16 +160,22 @@ class Detail extends React.Component{
             //      console.log(res)
             //       message.success("提交成功！")
             // })
-          }
-        });
+
+        let baseInfo=JSON.parse(storage.getItem("baseInfo"))
+        if(baseInfo){
+            result.push(baseInfo)
+        }
         totalcode.map((item)=>{
-        let data=JSON.parse(storage.getItem(item))
-            if(data){
-                console.log(data)
+        let record=JSON.parse(storage.getItem(item))
+            if(record){
+                result.push(record)
             }
         })
         let newRecord=JSON.parse(storage.getItem("newRecord"))
-        console.log(newRecord)
+        if(newRecord){
+            result.push(newRecord)
+        }
+        console.log(result)
         this.setState({
           visible: false,
         });
@@ -225,4 +225,3 @@ class Detail extends React.Component{
         )
     }
 }
-export default Form.create()(Detail)
