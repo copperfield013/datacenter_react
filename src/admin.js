@@ -12,7 +12,7 @@ const { Content } = Layout;
 const SubMenu = Menu.SubMenu;
 const TabPane = Tabs.TabPane;
 
-var storage=window.localStorage;
+var storage=window.sessionStorage;
 export default class Admin extends React.Component{
 	constructor(props) {
 		super(props);
@@ -68,7 +68,7 @@ export default class Admin extends React.Component{
 		  panes.push({ title: item.props.children, key });
 		}
 		this.requestList(key)
-		//console.log(key)
+		console.log(key)
 	}
 	handleOpen=(openKeys)=>{
 		if(openKeys.length>1){
@@ -77,20 +77,28 @@ export default class Admin extends React.Component{
 	}
 	requestList=(key)=>{
 		storage.setItem("menuId",key);
-		axios.ajax({
-			url:`/api/entity/list/${key}`,
-			data:{
-				isShowLoading:true
-			}
-		}).then((res)=>{
-			if(res){
-				var obj = eval(res);
-				storage[key]=JSON.stringify(obj); //存储一个列表数据
-			}
+		if(storage[key]){
+			//console.log("已存储")
 			let data=JSON.parse(storage[key])
 			this.editList(data)
-		//console.log(res)
-  })
+		}else{
+			//console.log("未存储")
+			axios.ajax({
+				url:`/api/entity/list/${key}`,
+				data:{
+					isShowLoading:true
+				}
+			}).then((res)=>{
+				if(res){
+					var obj = eval(res);
+					storage[key]=JSON.stringify(obj); //存储一个列表数据
+				}
+				let data=JSON.parse(storage[key])
+				this.editList(data)
+				//console.log(res)
+			  })
+		}
+		
 	}
 	editList=(data)=>{
 		var list=[]
@@ -294,7 +302,16 @@ export default class Admin extends React.Component{
 			this.toDetails(data,type)	
 			this.state.panes.map((item)=>{
 				if(item.key==activeKey){
-					this.setState({ xqTitle:item.title}) 
+					if(activeKey.indexOf("detail")==0){
+						activeKey=activeKey.slice(6)
+					}else{
+						activeKey=activeKey.slice(4)
+					}
+					this.setState({ 
+						xqTitle:item.title,
+						type,
+						code:activeKey,
+					}) 
 				}
 			})
 		}else if(this.state.activeKey==targetKey && activeKey!=0){
@@ -304,13 +321,11 @@ export default class Admin extends React.Component{
 	}
 	//搜索和页码
 	searchList=(params)=>{
-		let key=storage.getItem("key");
+		console.log(params)
+		let menuId=storage.getItem("menuId");
 		axios.ajax({
-			url:`/api/entity/list/${key}`,
-			data:{
-				isShowLoading:true,
-				params:isNaN(params)?params:{pageNo:params},		//判断是搜索还是页码	
-			}
+			url:`/api/entity/list/${menuId}`,
+			data:params
 		}).then((res)=>{
 			var list=[]
 			var code=[];	

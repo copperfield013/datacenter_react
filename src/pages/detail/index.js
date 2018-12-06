@@ -10,7 +10,7 @@ import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 const Option = Select.Option;
 const FormItem=Form.Item
 
-var storage=window.localStorage;
+var storage=window.sessionStorage;
 var totalcode=[]
 export default class Detail extends React.Component{
     state={
@@ -27,25 +27,36 @@ export default class Detail extends React.Component{
         totalcode=[] //切换清空原有数据
     }
     requestLists=()=>{
-        let menuId=this.props.menuId;
-        let code=this.props.code;
-        let typecode=this.state.type+this.props.code;
-        axios.ajax({
-            url:`/api/entity/detail/${menuId}/${code}`,
-            data:{
-                isShowLoading:true
-            }
-        }).then((res)=>{
-            if(res){
-				var obj = eval(res); 
-				storage[typecode]=JSON.stringify(obj); //存储一条数据
-			}
-            let detailsList=res.entity.fieldGroups || "";          
-            let formList=detailsList[0].fields;
-            let itemDescs=[]
-            let columns=[]
-            let dataSource=[]
-            let cardTitle=[]
+        let typecode=this.props.type+this.props.code;
+        if(!storage[typecode]){//判断是否存储数据
+            //console.log("未存")
+            let menuId=this.props.menuId;
+            let code=this.props.code;
+            axios.ajax({
+                url:`/api/entity/detail/${menuId}/${code}`,
+                data:{
+                    isShowLoading:true
+                }
+            }).then((res)=>{
+                let obj = eval(res); 
+                storage[typecode]=JSON.stringify(obj); //存储一条数据
+                let detailsList=res.entity.fieldGroups || "";          
+                this.renderList(detailsList)
+            })
+        }else{  
+            //console.log("已存") 
+            let data=JSON.parse(storage[typecode]);
+            let detailsList=data.entity.fieldGroups || "";
+            this.renderList(detailsList)
+        }     
+    }
+    renderList=(detailsList)=>{
+        //console.log("渲染")       
+        let itemDescs=[]
+        let columns=[]
+        let dataSource=[]
+        let cardTitle=[]
+        let formList=detailsList[0].fields;              
             detailsList.map((item)=>{
                 if(item.descs){
                     cardTitle.push(item.title)
@@ -64,8 +75,6 @@ export default class Detail extends React.Component{
                 detailsList,
                 formList,
             })
-        })
-      
     }
     initDetailsList=()=>{ 
         const detailsList=this.state.detailsList;

@@ -55,7 +55,10 @@ export default class Axios{
             axios({
                 method: 'post',
                 url: options.url,
-                headers:{"datamobile-token":tokenName},
+                headers:{
+                    "datamobile-token":tokenName,
+                    "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" 
+                },
                 timeout:10000,
                 data:options.data|| ''
             }).then((response)=>{

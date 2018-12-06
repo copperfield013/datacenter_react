@@ -1,17 +1,18 @@
 import React from 'react'
-import { Radio, Input, Button, Card,message,Checkbox ,Form,Select,DatePicker,Avatar,Upload,Icon} from 'antd'
+import {Radio,Input,Button,Cascader,message,Checkbox ,Form,Select,DatePicker,Avatar,Upload,Icon} from 'antd'
 import axios from "./../../axios"
 import Units from "../../units/unit";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
 import "./index.css"
+import moment from 'moment';
 const FormItem=Form.Item
 const RadioGroup = Radio.Group;
 const CheckboxGroup = Checkbox.Group;
 const {RangePicker} = DatePicker;
 const Option = Select.Option;
 
-var storage=window.localStorage;
+var storage=window.sessionStorage;
 class BaseInfoForm extends React.Component{
     state={
         type:this.props.type,
@@ -23,7 +24,7 @@ class BaseInfoForm extends React.Component{
         let fieldsValue=this.props.form.getFieldsValue();
         storage["baseInfo"]=JSON.stringify(fieldsValue);
     }
-    requestSelectOptions=(id)=>{
+    requestSelectOptions=(id)=>{//下拉框
         axios.ajax({
             url:`/api/field/options?fieldIds=${id}`,
             data:{
@@ -36,17 +37,68 @@ class BaseInfoForm extends React.Component{
             })
         })
     }
-    requestLinkage=(optionKey)=>{
+    requestLinkage=(optionKey)=>{ //第一级联动
         let optGroupId=optionKey.split("@")[0]
+        let time=optionKey.split("@")[1]
         axios.ajax({
             url:`/api/field/cas_ops/${optGroupId}`,
-            data:{
-                isShowLoading:false,
-            }
         }).then((res)=>{
-            console.log(res)
+            let ops=[]
+            res.options.map((item)=>{
+                let op={}
+                op["value"]=item.title
+                op["label"]=item.title
+                op["key"]=item.id
+                op["isLeaf"]= false
+                ops.push(op)
+            })
+            this.setState({
+                options:ops,
+                time
+            })
         })
     }
+    loadData = (selectedOptions) => { //子集联动
+        const targetOption = selectedOptions[selectedOptions.length - 1];
+        targetOption.loading = true;
+        //console.log(selectedOptions)
+        // load options lazily
+        this.setState({
+            time:this.state.time-1
+        })
+        if(selectedOptions && this.state.time>=1){
+            let id="";
+            selectedOptions.map((item)=>{
+                id=item.key
+            })
+            axios.ajax({
+                url:`/api/field/cas_ops/${id}`,
+            }).then((res)=>{
+                let ops=[]
+                let time=this.state.time
+                res.options.map((item)=>{
+                    let op={}
+                    op["value"]=item.title
+                    op["label"]=item.title
+                    op["key"]=item.id
+                    if(time==1){
+                        op["isLeaf"]= true
+                    }else{
+                        op["isLeaf"]= false
+                    }
+                    ops.push(op)
+                })
+                setTimeout(() => {
+                    targetOption.loading = false;
+                    targetOption.children =ops
+                    this.setState({
+                    options: [...this.state.options],
+                    });
+                }, 500);
+            })
+        }
+        
+      }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
         const formList=this.props.formList;
@@ -80,7 +132,9 @@ class BaseInfoForm extends React.Component{
                     const DATE= <FormItem label={fieldName} key={field} className='labelcss'>
                                     {
                                         this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                        getFieldDecorator([fieldName])(
+                                        getFieldDecorator([fieldName],{
+                                            initialValue:moment(fieldValue, 'YYYY-MM-DD')
+                                        })(
                                             <DatePicker style={{width:220}} locale={locale}/>
                                     )}
                                 </FormItem>
@@ -99,11 +153,13 @@ class BaseInfoForm extends React.Component{
                 }else if(item.type=="select"){
                     const SELECT= <FormItem label={fieldName} key={[field]} className='labelcss'>
                                         {
-                                        this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                        getFieldDecorator([fieldName])(
-                                                <Select style={{width:220}} onMouseEnter={()=>this.requestSelectOptions(field)}>
-                                                     {Units.getSelectList(this.state.list)}
-                                                </Select>
+                                            this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                            getFieldDecorator([fieldName],{
+                                            initialValue:fieldValue
+                                        })(
+                                            <Select style={{width:220}} onMouseEnter={()=>this.requestSelectOptions(field)}>
+                                                    {Units.getSelectList(this.state.list)}
+                                            </Select>
                                         )}
                                     </FormItem> 
                     formItemList.push(SELECT)    
@@ -111,10 +167,12 @@ class BaseInfoForm extends React.Component{
                     const LABEL= <FormItem label={fieldName} key={field} className='labelcss'>
                                         {
                                             this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                            getFieldDecorator([fieldName])(
-                                                <Select mode="multiple" style={{width:220}} onMouseEnter={()=>this.requestSelectOptions(field)}>
-                                                    
-                                                </Select>
+                                            getFieldDecorator([fieldName],{
+                                                initialValue:fieldValue
+                                            })(
+                                            <Select mode="multiple" style={{width:220}} onMouseEnter={()=>this.requestSelectOptions(field)}>
+                                                {Units.getSelectList(this.state.list)}
+                                            </Select>
                                         )}
                                 </FormItem>
                     formItemList.push(LABEL)   
@@ -123,9 +181,13 @@ class BaseInfoForm extends React.Component{
                                         {
                                             this.state.type=="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                             getFieldDecorator([fieldName])(
-                                                <Select mode="multiple" style={{width:220}} onMouseEnter={()=>this.requestLinkage(item.optionKey)}>
-                                                    {Units.getSelectList(this.state.list)}
-                                                </Select>
+                                                <Cascader
+                                                    onClick={()=>this.requestLinkage(item.optionKey)}
+                                                    style={{width:220}}
+                                                    options={this.state.options}
+                                                    loadData={this.loadData}
+                                                    changeOnSelect
+                                                />
                                         )}
                                 </FormItem>
                     formItemList.push(CASELECT)   

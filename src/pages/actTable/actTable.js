@@ -11,40 +11,6 @@ export default class actTable extends React.Component{
         //console.log(params)
         this.props.searchParams(params)
     }
-    // handleSubmit=()=>{
-    //     //let item=this.state.selectedItem;
-    //     //console.log(item)
-    //     this.setState({
-    //         loading: true,
-    //       });
-    //     setTimeout(() => {
-    //         this.setState({
-    //             isShowModal: false,
-    //             loading: false,
-    //         });          
-    //         this.request();
-    //         this.userForm.props.form.resetFields()          
-    //     }, 1000);
-    //     let data=this.userForm.props.form.getFieldsValue();
-    //     console.log(JSON.stringify(data));
-    //     axios.ajax({
-    //         url:this.state.type=="add"?'/table/add':'/table/edit',
-    //         data:{
-    //             params:data,
-    //             isShowLoading:false
-    //         }           
-    //     }).then((res)=>{
-    //         if(res.code=="0"){
-    //             message.success('操作成功')                               
-    //         }
-    //     })   
-    // }
-    // handleCancel=()=>{
-    //     this.setState({
-    //         isShowModal:false
-    //     })
-    //     this.userForm.props.form.resetFields()
-    // }
     onChange=(pageNumber)=> {
         this.props.callbackPage(pageNumber)
     }
@@ -65,14 +31,7 @@ export default class actTable extends React.Component{
                 <h3>{this.props.moduleTitle}</h3>
                 <Card>
                     <BaseForm formList={this.props.formList} filterSubmit={this.handleFilter}/>          
-                </Card>   
-                
-                {/* <div className="buttonDiv" style={{display:this.props.columns?"block":"none"}}>
-                    <Button type="primary" icon="plus" onClick={()=>this.handleOperate("add")}>新增</Button>
-                    <Button type="danger" icon="delete" onClick={()=>this.handleOperate("delete")}>删除</Button>
-                    <Button icon="edit" onClick={()=>this.handleOperate("edit")}>编辑</Button>
-                    <Button icon="align-left" onClick={()=>this.handleOperate("detail")}>详情</Button>
-                </div>   */}
+                </Card>
                 <div>
                     <Table
                         columns={this.props.columns}
