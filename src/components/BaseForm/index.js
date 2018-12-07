@@ -1,5 +1,5 @@
 import React from 'react'
-import { Radio, Input, Button, Card,message,Checkbox ,Form,Select,DatePicker } from 'antd'
+import { Radio, Input, Button,Checkbox ,Form,Select,DatePicker } from 'antd'
 import Units from "../../units/unit";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
@@ -23,24 +23,24 @@ class BaseForm extends React.Component{
         if(formList && formList.length>0){
             formList.forEach((item)=>{
                 let label=item.title;
-                let field=`criteria_${item.id}`||'';
+                let field=`criteria_${item.id}`;
                 let placeholder=item.placeholder || '';
                 let initialValue=item.defaultValue || '';
-                if(item.inputType=="daterange"){
+                if(item.inputType==="daterange"){
                     const TIMEPICKER= <FormItem label={label} key={field}>
                         {getFieldDecorator([field])(
                             <RangePicker locale={locale} style={{width:225}}/>
                         )}
                     </FormItem>   
                     formItemList.push(TIMEPICKER)                
-                }else if(item.inputType=="text"){
+                }else if(item.inputType==="text"){
                     const INPUT= <FormItem label={label} key={field}>
                         {getFieldDecorator([field])(
                             <Input type="text" placeholder={placeholder} style={{width:165}} />
                         )}
                     </FormItem>   
                     formItemList.push(INPUT)                
-                }else if(item.inputType=="select"){
+                }else if(item.inputType==="select"){
                     const SELECT= <FormItem label={label} key={field}>
                         {getFieldDecorator([field],{
                             initialValue:initialValue
@@ -51,7 +51,7 @@ class BaseForm extends React.Component{
                         )}
                     </FormItem>
                     formItemList.push(SELECT)    
-                }else if(item.inputType=="CHECKBOX"){
+                }else if(item.inputType==="CHECKBOX"){
                     const CHECKBOX= <FormItem label={label} key={field}>
                         {getFieldDecorator([field],{
                             valuePropName:'checked',
@@ -61,7 +61,7 @@ class BaseForm extends React.Component{
                         )}
                     </FormItem>
                     formItemList.push(CHECKBOX)   
-                }else if(item.inputType=="RADIO"){
+                }else if(item.inputType==="RADIO"){
                     const CHECKBOX= <FormItem label={label} key={field}>
                         {getFieldDecorator([field],{
                             initialValue:initialValue

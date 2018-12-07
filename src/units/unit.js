@@ -30,6 +30,7 @@ export default {
         let options=[]
         data.map((item)=>{
             options.push(<Option value={item.value} key={item.title}>{item.title}</Option>)
+            return false
         })
         return options
     },
@@ -40,6 +41,7 @@ export default {
         let options=[]
         data.map((item)=>{
             options.push(<Radio value={item.id} key={item.id}>{item.name}</Radio>)
+            return false
         })
         return options
     },

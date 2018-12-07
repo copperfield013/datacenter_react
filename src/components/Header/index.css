@@ -1,9 +1,10 @@
 .header-top{
-    height:60px;
-    line-height: 60px;
+    height:50px;
+    line-height: 50px;
     padding:0 20px;
     text-align:right;
-    background: #fff;
+    background: #002140;
+    color:#fff;
 }
 .header-top span{
     margin-right: 40px;

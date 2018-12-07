@@ -2,7 +2,7 @@
 
 import {type} from "./../action"
 const initialState={
-    menuName:"首页"
+    menuName:""
 }
 
 export default (state=initialState,action)=>{
@@ -12,7 +12,6 @@ export default (state=initialState,action)=>{
                ...state,//保留原有状态的state里面的值
                menuName:action.menuName
             }
-            break;
     
         default:
             break;

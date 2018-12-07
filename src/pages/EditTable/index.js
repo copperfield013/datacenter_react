@@ -1,11 +1,10 @@
 import React from 'react'
-import { Table, Input, Button, message, Form } from 'antd';
+import { Table, Input, Button, message } from 'antd';
 import './index.css'
-const FormItem = Form.Item;
 
-var storage=window.localStorage;
-var totalRecord=[]
-var newRecord=[]
+let storage=window.localStorage;
+let totalRecord=[]
+let newRecord=[]
 
 export default class EditTable extends React.Component {
  
@@ -37,14 +36,15 @@ export default class EditTable extends React.Component {
     let list={}    
     item.map((item,index)=>{
         let fieldName=item.fieldName;
-        let fieldId=item.fieldId;
+        //let fieldId=item.fieldId;
         list["key"]=count
         list[fieldName]=<Input type="text" 
                           style={{width:185}} 
                           key={[fieldName+count]} 
                           placeholder={`请输入${fieldName}`}
                           onBlur={(e)=>this.update(e,[count+fieldName])}
-                          />                               
+                          />   
+        return false                            
     })
     newDataSource.push(list)
     this.setState({
@@ -61,6 +61,7 @@ export default class EditTable extends React.Component {
       }else{
           key.map((key)=>{
               this.setState({ dataSource: dataSource.filter(item => item.key !== key) });
+              return false
           })
           var keys=[];
           rows.map((item)=>{ 
@@ -68,19 +69,21 @@ export default class EditTable extends React.Component {
               for(var k in item){
                 keys.push(key+k)
               }
+              return false
           })
             for(var k in newRecord){
               keys.map((it)=>{
-                if(k==it){
+                if(k===it){
                   delete(newRecord[k])
                 }
+                return false
               })
               storage["newRecord"]=JSON.stringify(newRecord)
             }
       }      
   }
   render() {
-    const rowSelection = {
+    const rowSelection =this.props.type==="edit"?{
       type: 'radio',
       onChange: (selectedRowKeys, selectedRows) => {
         //console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
@@ -89,12 +92,12 @@ export default class EditTable extends React.Component {
           selectedRows
         })
       },
-    };
+    }:'';
     return (
       <div>
         <div>
             {
-              this.props.type=="edit"?<div>
+              this.props.type==="edit"?<div>
                                           <Button type='primary' icon="plus" onClick={()=>{this.handleAdd(this.props.item)}} style={{marginBottom:10,marginRight:10}}>新增</Button>
                                           <Button type='danger' icon="delete" onClick={()=>{this.handleDelete(this.state.selectedRowKeys,this.state.selectedRows)}} style={{marginBottom:10}}>删除</Button>
                                       </div>
@@ -103,7 +106,7 @@ export default class EditTable extends React.Component {
         </div>
         
           <Table
-            rowSelection={this.props.type=="edit"?rowSelection:""}
+            rowSelection={rowSelection}
             bordered
             dataSource={this.state.dataSource}
             columns={this.state.columns}

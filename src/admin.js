@@ -3,16 +3,17 @@ import {Row,Col,Menu,Tabs,Layout,Button,Modal,message} from 'antd'
 import "antd/dist/antd.css"
 import Header from './components/Header'
 import Footer from './components/Footer'
-import axios from "./axios/index"
 import "./style/common.css"
+import "./style/coverstyle.css"
 import Home from './pages/home'
 import ActTable from './pages/actTable/actTable'
 import Detail from './pages/detail'
+import Super from "./super"
 const { Content } = Layout;
 const SubMenu = Menu.SubMenu;
 const TabPane = Tabs.TabPane;
 
-var storage=window.sessionStorage;
+let storage=window.localStorage;
 export default class Admin extends React.Component{
 	constructor(props) {
 		super(props);
@@ -23,21 +24,24 @@ export default class Admin extends React.Component{
 		this.state = {
 			activeKey: panes[0].key,
 			panes,
-			isChange:false
+			isChange:false,
 		};
 	  }
 	componentWillMount(){
 		this.request()
 	}
-	request=()=>{		
-		axios.ajax({
-			url:'/api/menu/getMenu',
+	request=()=>{
+		Super.super({
+			url:'/api/menu/getMenu',  
+			data:{
+				isShowLoading:true
+			}                 
 		}).then((res)=>{
 			const menuTreeNode = this.renderMenu(res.menus)
 			this.setState({
 				menuTreeNode
-			})      
-  		})	
+			})
+		})	
 	}
 	renderMenu=(data)=>{
 		return data.map((item)=>{
@@ -54,21 +58,22 @@ export default class Admin extends React.Component{
 		})
 	}
 	handleMenu=({item, key})=>{
+		storage.setItem("menuId",key);
 		const panes = this.state.panes;
 		let flag = false;
 		for(let ops of panes){
-		  if(ops.key == key){
+		  if(ops.key === key){
 			flag = true;
 			break;
 		  }
 		  continue;
 		}
 		this.setState({ panes, activeKey:key,menuId:key});
-		if(flag == false){
+		if(flag === false){
 		  panes.push({ title: item.props.children, key });
 		}
 		this.requestList(key)
-		console.log(key)
+		//console.log(key)
 	}
 	handleOpen=(openKeys)=>{
 		if(openKeys.length>1){
@@ -76,46 +81,42 @@ export default class Admin extends React.Component{
 		}
 	}
 	requestList=(key)=>{
-		storage.setItem("menuId",key);
 		if(storage[key]){
 			//console.log("已存储")
 			let data=JSON.parse(storage[key])
 			this.editList(data)
 		}else{
 			//console.log("未存储")
-			axios.ajax({
-				url:`/api/entity/list/${key}`,
+			Super.super({
+				url:`/api/entity/list/${key}`,  
 				data:{
 					isShowLoading:true
-				}
+				}                 
 			}).then((res)=>{
 				if(res){
-					var obj = eval(res);
+					let obj = eval(res);
 					storage[key]=JSON.stringify(obj); //存储一个列表数据
 				}
 				let data=JSON.parse(storage[key])
 				this.editList(data)
-				//console.log(res)
-			  })
-		}
-		
+			})
+		}		
 	}
+
 	editList=(data)=>{
-		var list=[]
-		var codes=[];	
+		let list=[]
+		let codes=[];	
 		data.entities.map((item)=>{			
-			return codes.push(item.code)
-		})
-		this.setState({codes}) //不能写一起，不然第一次code取不到
-		data.entities.map((item)=>{			
-			return list.push(item.fields)
+			codes.push(item.code)
+			list.push(item.fields)
+			return false
 		})
 		this.setState({
 			formList:data.criterias,
-			list:this.renderLists(list,storage.getItem("menuId")),
+			list:this.renderLists(list,storage.getItem("menuId"),codes),
 			moduleTitle:data.module.title,
 		})
-		if(data.entities.length!=0){
+		if(data.entities.length!==0){
 			this.setState({
 				columns:this.renderColumns(data.entities[0].fields),
 				pageCount:data.pageInfo.count,
@@ -128,19 +129,21 @@ export default class Admin extends React.Component{
 		}
 	}
 	//list数据转换
-	renderLists=(data,menuId)=>{
+	renderLists=(data,menuId,codes)=>{
 			let result=[];
 			data.map((item,index)=>{
 				let list={};
 				list['key']=index;//每一项添加key值
-				list['code']={...this.state.codes}[index];//添加code
+				list['code']=codes[index];//添加code
 				list['menuId']=menuId;
 				item.map((item)=>{
 					let key=item.title
 					let value=item.value
 					list[key]=value
+					return false
 				})
 			result.push(list)
+			return false
 		})
 		return result
 	}
@@ -148,7 +151,8 @@ export default class Admin extends React.Component{
 		if(data){
 			data.map((item)=>{
 				let value=item.title;
-				item["dataIndex"]=value;								
+				item["dataIndex"]=value;
+				return false								
 			})
 			var act={
 				title: '操作',
@@ -173,44 +177,47 @@ export default class Admin extends React.Component{
 			code
 		})
 		//console.log(code)
-        if(type=="delete"){
+        if(type==="delete"){
             Modal.confirm({
 				title:"删除提示",
 				content:`您确定删除这些数据吗？`,
 				okText:"确认",
 				cancelText:"取消",
 				onOk:()=>{
-					axios.ajax({
-						url:`/api/entity/remove/${menuId}/${code}`,          
+					Super.super({
+						url:`/api/entity/remove/${menuId}/${code}`,  
+						data:{
+							isShowLoading:true
+						}                 
 					}).then((res)=>{
-						if(res.status=="suc"){
+						if(res.status==="suc"){
 							message.success('删除成功！')                               
 						}
 						this.requestList(menuId);//刷新页面
 					})
 				}
 			})
-		}else if(type=="detail"){	
+		}else if(type==="detail"){	
 			this.handleDetail({record},"detail")
-		}else if(type=="edit"){
+		}else if(type==="edit"){
 			this.handleDetail({record},"edit")
 		}
 	}  
 	handleDetail=({record},type)=>{		
 		const panes = this.state.panes;
 		let flag = false;
-		var code=type; 
+		let code=type; 
 		code+=record.code;  //为了打开新页面，加入detail和eidt的code
 		//console.log(record.code)
 		for(let ops of panes){			
-		  if(ops.key == code){
+		  if(ops.key === code){
 			flag = true;
 			break;
 		  }
 		  continue;
 		}
 		let xqTitle="";
-		if(type=="detail"){
+		if(type==="detail"){
 			xqTitle=record["姓名"]?`详情-${record["姓名"]}`:"详情"
 			this.setState({type:"detail"})
 		}else{
@@ -224,7 +231,7 @@ export default class Admin extends React.Component{
 			xqTitle,
 			menuId:record.menuId,
 		});
-		if(flag == false){
+		if(flag === false){
 			panes.push({ title:xqTitle, key:code });
 		}		
 		//console.log(record.code)
@@ -241,7 +248,7 @@ export default class Admin extends React.Component{
 		let moduleTitle=data.module.title || "";
 		let entityTitle=data.entity.title || "";
 		//console.log(detailsList)
-		if(type=="detail"){
+		if(type==="detail"){
 			detailsTitle=entityTitle?moduleTitle+"-"+entityTitle+"-详情":moduleTitle+"-详情";
 		}else{
 			detailsTitle=entityTitle?moduleTitle+"-修改-"+entityTitle:moduleTitle+"-修改";
@@ -255,14 +262,14 @@ export default class Admin extends React.Component{
 		let type="";
 		this.setState({ activeKey });
 		if(activeKey.length>30){
-			activeKey.indexOf("detail")==0?type="detail":type="edit";
+			activeKey.indexOf("detail")===0?type="detail":type="edit";
 			//console.log(activeKey+"---"+type)			
 			let data=JSON.parse(storage[activeKey]);
 			this.toDetails(data,type)
 
 			this.state.panes.map((item)=>{
-				if(item.key==activeKey){
-					if(activeKey.indexOf("detail")==0){
+				if(item.key===activeKey){
+					if(activeKey.indexOf("detail")===0){
 						activeKey=activeKey.slice(6)
 					}else{
 						activeKey=activeKey.slice(4)
@@ -273,10 +280,13 @@ export default class Admin extends React.Component{
 						 code:activeKey,
 					}) 
 				}
+				return false
 			})
-		}else if(activeKey.length<=30 && activeKey!=0){
-			let data=JSON.parse(storage[activeKey]);
-			this.editList(data)
+		}else if(activeKey.length<=30 && activeKey!==0){
+			if(storage[activeKey]){				
+				let data=JSON.parse(storage[activeKey]);
+				this.editList(data)
+			}
 		}	
 	}
 	onEdit = (targetKey, action) => {
@@ -297,12 +307,12 @@ export default class Admin extends React.Component{
 		}
 		this.setState({ panes, activeKey });
 		if(activeKey.length>30){
-			activeKey.indexOf("detail")==0?type="detail":type="edit";
+			activeKey.indexOf("detail")===0?type="detail":type="edit";
 			let data=JSON.parse(storage[activeKey])
 			this.toDetails(data,type)	
 			this.state.panes.map((item)=>{
-				if(item.key==activeKey){
-					if(activeKey.indexOf("detail")==0){
+				if(item.key===activeKey){
+					if(activeKey.indexOf("detail")===0){
 						activeKey=activeKey.slice(6)
 					}else{
 						activeKey=activeKey.slice(4)
@@ -313,30 +323,38 @@ export default class Admin extends React.Component{
 						code:activeKey,
 					}) 
 				}
+				return false
 			})
-		}else if(this.state.activeKey==targetKey && activeKey!=0){
+		}else if(this.state.activeKey===targetKey && activeKey!==0){
 			let data=JSON.parse(storage[activeKey])
 			this.editList(data)
 		}
 	}
 	//搜索和页码
 	searchList=(params)=>{
-		console.log(params)
 		let menuId=storage.getItem("menuId");
-		axios.ajax({
-			url:`/api/entity/list/${menuId}`,
-			data:params
+		let data=""
+		if(isNaN(params)){
+			data={...params}
+		}else{
+			data={pageNo:params}
+		}
+		Super.super({
+			url:`/api/entity/list/${menuId}`,  
+			data:{
+				...data,
+				isShowLoading:true
+			}                 
 		}).then((res)=>{
-			var list=[]
-			var code=[];	
+			let list=[]
+			let code=[];	
 			res.entities.map((item)=>{			
-				return code.push(item.code)
-			})
-			res.entities.map((item)=>{
-				return list.push(item.fields)
+				code.push(item.code)
+				list.push(item.fields)
+				return false
 			})
 			this.setState({
-				list:this.renderLists(list),
+				list:this.renderLists(list,storage.getItem("menuId"),code),
 				code,
 				pageCount:res.pageInfo.count,
 			})
@@ -352,7 +370,7 @@ export default class Admin extends React.Component{
 						type={this.state.type}
 						menuId={this.state.menuId}
 						code={this.state.code}
-			/>
+					/>
 			default:
 			return <ActTable 
 						formList={this.state.formList} 
@@ -362,8 +380,21 @@ export default class Admin extends React.Component{
 						callbackPage={this.searchList}
 						moduleTitle={this.state.moduleTitle}
 						searchParams={this.searchList}
-						/>
+					/>
 		}  	
+	}
+	//固定tab
+	handleScroll=(e)=>{		
+		let scrollTop  = e.target.scrollTop;  //滚动条滚动高度
+		let obj =document.getElementsByClassName("ant-tabs-bar")[0]
+		if(scrollTop>=50){
+			obj.style.position = 'fixed';
+			obj.style.top = '0';	
+			obj.style.background='#002140'	
+			obj.style.width='100%'		
+		}else{
+			obj.style.position = 'static';
+		}
 	}
 	render(){
 		return(
@@ -373,9 +404,7 @@ export default class Admin extends React.Component{
 						<img src="/asset/logo.svg" alt="" />
 						<h1>系统</h1>
 					</div>
-					<Menu 
-					  	//defaultSelectedKeys={['1']}
-						//defaultOpenKeys={['1']}
+					<Menu
 						mode="inline"
 						theme="dark"
 						onClick={this.handleMenu}
@@ -384,17 +413,18 @@ export default class Admin extends React.Component{
 						{this.state.menuTreeNode}
 				 </Menu>
 				</Col>
-				<Col span="20" className="main">
+				<Col span="20" className="main" onScroll={this.handleScroll}>
 					<Header title={this.state.title}/>
 					<Content className="content">
-						<Tabs
+						<Tabs 
 							hideAdd
 							onChange={this.onChange}
 							activeKey={this.state.activeKey}
 							type="editable-card"
 							onEdit={this.onEdit}
+							tabBarStyle={{background:"#002140",padding:"0 20px"}}
 						>
-							{this.state.panes.map(pane => <TabPane 
+							{this.state.panes.map(pane => <TabPane
 																tab={pane.title} 
 																key={pane.key} 
 																closable={pane.closable}

@@ -1,17 +1,13 @@
 import React from 'react'
-import {Card,Table,Form,Input,Button,message,Modal,Avatar,Upload,Icon,Select,DatePicker,Popconfirm} from 'antd'
-import axios from "./../../axios"
+import {Card,Form,Button,Modal,message} from 'antd'
+import Super from "./../../super"
 import './index.css'
-import moment from 'moment';
 import 'moment/locale/zh-cn';
-import locale from 'antd/lib/date-picker/locale/zh_CN';
 import EditTable from './../../pages/EditTable'
 import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
-const Option = Select.Option;
-const FormItem=Form.Item
 
-var storage=window.sessionStorage;
-var totalcode=[]
+let storage=window.localStorage;
+let totalcode=[]
 export default class Detail extends React.Component{
     state={
         type:this.props.type,
@@ -32,11 +28,11 @@ export default class Detail extends React.Component{
             //console.log("未存")
             let menuId=this.props.menuId;
             let code=this.props.code;
-            axios.ajax({
-                url:`/api/entity/detail/${menuId}/${code}`,
+            Super.super({
+                url:`/api/entity/detail/${menuId}/${code}`,  
                 data:{
                     isShowLoading:true
-                }
+                }                 
             }).then((res)=>{
                 let obj = eval(res); 
                 storage[typecode]=JSON.stringify(obj); //存储一条数据
@@ -57,29 +53,29 @@ export default class Detail extends React.Component{
         let dataSource=[]
         let cardTitle=[]
         let formList=detailsList[0].fields;              
-            detailsList.map((item)=>{
-                if(item.descs){
-                    cardTitle.push(item.title)
-                    itemDescs.push(item.descs)
-                    columns.push(this.renderColumns(item.descs))
-                    dataSource.push(this.requestList(item))
-                }
-                this.setState({
-                    itemDescs,
-                    columns,
-                    dataSource,
-                    cardTitle
-                })
-            })           
-            this.setState({
-                detailsList,
-                formList,
-            })
+        detailsList.map((item)=>{
+            if(item.descs){
+                cardTitle.push(item.title)
+                itemDescs.push(item.descs)
+                columns.push(this.renderColumns(item.descs))
+                dataSource.push(this.requestList(item))
+            }
+            return false
+        })           
+        this.setState({
+            detailsList,
+            formList,
+            
+            itemDescs,
+            columns,
+            dataSource,
+            cardTitle
+        })
     }
     initDetailsList=()=>{ 
         const detailsList=this.state.detailsList;
         const detailsItemList=[];
-        if(this.props.type=="edit"){
+        if(this.props.type==="edit"){
             let btn=<Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn">提交</Button>
             detailsItemList.push(btn)
         }
@@ -104,15 +100,16 @@ export default class Detail extends React.Component{
                     if(item.code){
                         submitcode.push(item.code);
                     }  
-                    
                     submitcode.map((it)=>{
-                        if(totalcode.indexOf(it)==-1){
-                            totalcode.push(it)
+                        if(totalcode.indexOf(it)===-1){
                             storage[it]=JSON.stringify(item)
+                            totalcode.push(it)
                         }
-                    })  
+                        return false
+                    })
+                    return false
                 })
-                              
+                return false            
             })         
         }
         return detailsItemList;
@@ -122,7 +119,8 @@ export default class Detail extends React.Component{
 			data.map((item,index)=>{
                 let fieldName=item.fieldName;
                 item["dataIndex"]=fieldName;	
-                item["key"]=index;       					
+                item["key"]=index; 
+                return false      					
             })
             //console.log(data)
             return data
@@ -141,12 +139,13 @@ export default class Detail extends React.Component{
                 item.fields.map((it)=>{
                     let fieldName=it.fieldName;
                     let fieldValue=it.value;
-                    let fieldId=it.fieldId;
                     list["key"]=count;
                     list["code"]=code;
                     list[fieldName]=fieldValue;
+                    return false
                 })
                 res.push(list) 
+                return false
                 //console.log(res)             
             })
             return res        
@@ -155,36 +154,37 @@ export default class Detail extends React.Component{
     handleOk = (e) => {
         e.preventDefault();
         this.child.handleBaseInfoSubmit()
-        let result=[]
+        let records=[]
         let menuId=this.props.menuId;
-        let code=this.props.code;
-            // axios.ajax({
-            //     url:`/api/entity/update/${menuId}`,
-            //     data:{
-            //         isShowLoading:true,
-            //         "唯一编码":code,
-            //         "实体字段":values			
-            //     }
-            // }).then((res)=>{
-            //      console.log(res)
-            //       message.success("提交成功！")
-            // })
-
-        let baseInfo=JSON.parse(storage.getItem("baseInfo"))
-        if(baseInfo){
-            result.push(baseInfo)
+        let code=this.props.code;          
+        let baseInfo={}
+        let newRecord={}
+        if(storage.getItem("baseInfo")){
+            baseInfo=JSON.parse(storage.getItem("baseInfo"))
         }
         totalcode.map((item)=>{
-        let record=JSON.parse(storage.getItem(item))
-            if(record){
-                result.push(record)
+            if(storage.getItem(item)){
+                let record=JSON.parse(storage.getItem(item))
+                records.push(record)
             }
+            return false
         })
-        let newRecord=JSON.parse(storage.getItem("newRecord"))
-        if(newRecord){
-            result.push(newRecord)
+        if(storage.getItem("newRecord")){
+            newRecord=JSON.parse(storage.getItem("newRecord"))
         }
-        console.log(result)
+        let values=Object.assign(baseInfo, ...records, newRecord)
+        console.log(values)
+        Super.super({
+            url:`/api/entity/update/${menuId}`,  
+            data:{
+                isShowLoading:true,
+                "唯一编码":code,
+                ...values,
+            }                 
+        }).then((res)=>{
+            console.log(res)
+            message.success("提交成功！")
+        })
         this.setState({
           visible: false,
         });
