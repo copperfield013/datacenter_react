@@ -2,7 +2,7 @@ import React from 'react'
 import {Row,Col} from 'antd'
 import "./index.css"
 
-var storage=window.localStorage;
+var storage=window.sessionStorage;
 export default class Header extends React.Component{
 		
 	componentWillMount(){

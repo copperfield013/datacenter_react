@@ -1,30 +1,30 @@
 import React from 'react'
-import { Menu, Icon, Switch } from 'antd';
-import { NavLink } from 'react-router-dom'
-import axios from "./../../axios/index"
+import { Menu} from 'antd';
+import Super from "./../../super"
 import './index.css'
 const SubMenu = Menu.SubMenu;
 
-var storage=window.localStorage;
+let storage=window.sessionStorage;
 export default class NavLeft extends React.Component{
-	state = {
-		collapsed: false,
+	state={
+		menuTreeNode:[]
 	}
 	componentWillMount(){
 		this.request()
 	}
-	request=()=>{		
-		axios.ajax({
-			url:'/api/menu/getMenu',
+	request=()=>{
+		Super.super({
+			url:'/api/menu/getMenu',  
+			data:{
+				isShowLoading:true
+			}                 
 		}).then((res)=>{
 			const menuTreeNode = this.renderMenu(res.menus)
 			this.setState({
 				menuTreeNode
 			})
-      
-        })
-		
-    }
+		})	
+	}
 	renderMenu=(data)=>{
 		return data.map((item)=>{
 			if(item.level2s){
@@ -34,33 +34,33 @@ export default class NavLeft extends React.Component{
 					</SubMenu>
 				)
 			}
-			return  <Menu.Item key={item.templateGroupId}>
+			return  <Menu.Item key={item.id}>
 						{item.title}
 				    </Menu.Item>
 		})
-	}
-	
-	handleMenu=({item, key, keyPath})=>{
-		const panes = this.state.panes;
+	}	
+	handleMenu=({item, key})=>{
+		storage.setItem("menuId",key);
+		let panes=this.props.panes;
 		let flag = false;
 		for(let ops of panes){
-		  if(ops.key == key){
+		  if(ops.key === key){
 			flag = true;
 			break;
 		  }
 		  continue;
 		}
-		if(flag == true){
-		  //console.log("打开原来的")
-		  this.setState({ panes, activeKey:key });
-		}else{
-		  //console.log("新增加一个")
-		  panes.push({ title: item.props.children, content: "sadasd", key });
-		  this.setState({ panes, activeKey:key });
+		this.setState({ panes, activeKey:key,menuId:key});
+		if(flag === false){
+		  panes.push({ title: item.props.children, key });
 		}
-		// const activeKey = `newTab${this.newTabIndex++}`;
-		
-		console.log(key);
+		this.props.callBackAdmin(panes,key)
+		//console.log(key)
+	}
+	handleOpen=(openKeys)=>{
+		if(openKeys.length>1){
+			openKeys.splice(0,1);
+		}
 	}
 	render(){
 		return (
@@ -70,12 +70,10 @@ export default class NavLeft extends React.Component{
 					<h1>系统</h1>
 				</div>
 				 <Menu 
-					defaultSelectedKeys={['1']}
-					defaultOpenKeys={['sub1']}
 					mode="inline"
 					theme="dark"
-					inlineCollapsed={this.state.collapsed}
 					onClick={this.handleMenu}
+					onOpenChange={this.handleOpen} //手风琴
 				 >
 					{this.state.menuTreeNode}
 				 </Menu>

@@ -6,24 +6,19 @@ import 'moment/locale/zh-cn';
 import EditTable from './../../pages/EditTable'
 import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 
-let storage=window.localStorage;
+let storage=window.sessionStorage;
 let totalcode=[]
 export default class Detail extends React.Component{
     state={
         type:this.props.type,
-        count:0,
-        columns:[],
-        dataSource:[],
-        selectedRowKeys:[],
         visible: false,
-        value:{},
     }
     componentWillMount(){
         this.requestLists()
         totalcode=[] //切换清空原有数据
     }
     requestLists=()=>{
-        let typecode=this.props.type+this.props.code;
+        let typecode=this.props.type+this.props.code;		
         if(!storage[typecode]){//判断是否存储数据
             //console.log("未存")
             let menuId=this.props.menuId;
@@ -36,16 +31,32 @@ export default class Detail extends React.Component{
             }).then((res)=>{
                 let obj = eval(res); 
                 storage[typecode]=JSON.stringify(obj); //存储一条数据
-                let detailsList=res.entity.fieldGroups || "";          
+                let detailsList=res.entity.fieldGroups; 
+                this.toDetails(res,this.props.type)
                 this.renderList(detailsList)
             })
         }else{  
             //console.log("已存") 
             let data=JSON.parse(storage[typecode]);
-            let detailsList=data.entity.fieldGroups || "";
+            let detailsList=data.entity.fieldGroups;
             this.renderList(detailsList)
+            this.toDetails(data,this.props.type)
         }     
     }
+    toDetails=(data,type)=>{
+		let detailsTitle="";
+		let moduleTitle=data.module.title;
+		let entityTitle=data.entity.title;
+		//console.log(detailsList)
+		if(type==="detail"){
+			detailsTitle=entityTitle?moduleTitle+"-"+entityTitle+"-详情":moduleTitle+"-详情";
+		}else{
+			detailsTitle=entityTitle?moduleTitle+"-修改-"+entityTitle:moduleTitle+"-修改";
+		}			
+		this.setState({ 
+			detailsTitle,
+		});
+	}
     renderList=(detailsList)=>{
         //console.log("渲染")       
         let itemDescs=[]
@@ -64,8 +75,7 @@ export default class Detail extends React.Component{
         })           
         this.setState({
             detailsList,
-            formList,
-            
+            formList,           
             itemDescs,
             columns,
             dataSource,
@@ -173,7 +183,7 @@ export default class Detail extends React.Component{
             newRecord=JSON.parse(storage.getItem("newRecord"))
         }
         let values=Object.assign(baseInfo, ...records, newRecord)
-        console.log(values)
+        //console.log(values)
         Super.super({
             url:`/api/entity/update/${menuId}`,  
             data:{
@@ -207,7 +217,7 @@ export default class Detail extends React.Component{
     render(){
         return(
             <div>
-                <h3>{this.props.detailsTitle}</h3> 
+                <h3>{this.state.detailsTitle}</h3> 
                 <Card title="基本信息">
                     <BaseInfoForm 
                         formList={this.state.formList} 

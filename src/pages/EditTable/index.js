@@ -2,7 +2,7 @@ import React from 'react'
 import { Table, Input, Button, message } from 'antd';
 import './index.css'
 
-let storage=window.localStorage;
+let storage=window.sessionStorage;
 let totalRecord=[]
 let newRecord=[]
 

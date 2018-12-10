@@ -3,7 +3,7 @@ import { message } from 'antd';
 
 let storage=window.localStorage;
 export default class Superagent{
-    static super(options,query){
+    static super(options){
         let tokenName=storage.getItem('tokenName')
         let loading;
         if(options.data && options.data.isShowLoading!==false){

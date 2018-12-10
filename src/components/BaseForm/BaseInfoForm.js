@@ -7,7 +7,7 @@ import locale from 'antd/lib/date-picker/locale/zh_CN';
 import moment from 'moment';
 const FormItem=Form.Item
 
-var storage=window.localStorage;
+var storage=window.sessionStorage;
 class BaseInfoForm extends React.Component{
     state={
         type:this.props.type,

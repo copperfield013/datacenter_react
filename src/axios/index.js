@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { message } from 'antd';
 
-let storage=window.localStorage;
+let storage=window.sessionStorage;
 export default class Axios{
     static ajax(options){
         let tokenName=storage.getItem('tokenName')

@@ -5,7 +5,7 @@ import "./style/common.css"
 import Super from "./super"
 const FormItem = Form.Item;
 
-var storage=window.localStorage;
+var storage=window.sessionStorage;
 class Loginit extends React.Component{
 	handleSubmit =()=>{       
         this.props.form.validateFields((err,values)=>{            

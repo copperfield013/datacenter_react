@@ -7,7 +7,7 @@
 .login form .ant-form-item{
 	margin-bottom: 14px
 }
-.ant-form-item,.ant-form label,.ant-card-head,.ant-table,.ant-input{
+.ant-form-item,.ant-form label,.ant-card-head,.ant-table,.ant-input,.ant-tabs-nav-container{
     font-size: 16px
 }
 .ant-menu-vertical .ant-menu-item, .ant-menu-vertical-left .ant-menu-item, .ant-menu-vertical-right .ant-menu-item, .ant-menu-inline .ant-menu-item, .ant-menu-vertical .ant-menu-submenu-title, .ant-menu-vertical-left .ant-menu-submenu-title, .ant-menu-vertical-right .ant-menu-submenu-title, .ant-menu-inline .ant-menu-submenu-title{
@@ -15,5 +15,8 @@
 }
 .ant-tabs .ant-tabs-top-content, .ant-tabs .ant-tabs-bottom-content{
 	padding:0 20px 20px;
+}
+.ant-tabs-tab-btn-disabled, .ant-tabs-tab-btn-disabled:hover{
+	color:#fff;
 }
 
