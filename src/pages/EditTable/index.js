@@ -11,7 +11,7 @@ export default class EditTable extends React.Component {
   state={
     count:this.props.count,
     selectedRowKeys:"",
-    dataSource:this.props.dataSource,
+    dataSource:this.props.dataSource?this.props.dataSource:[],
     columns:this.props.columns,
     item:this.props.item,
   }
@@ -33,6 +33,7 @@ export default class EditTable extends React.Component {
   handleAdd=(item)=> {
     const count = this.state.count;
     const newDataSource = this.state.dataSource 
+    console.log(newDataSource)
     let list={}    
     item.map((item,index)=>{
         let fieldName=item.fieldName;
@@ -83,16 +84,19 @@ export default class EditTable extends React.Component {
       }      
   }
   render() {
-    const rowSelection =this.props.type==="edit"?{
-      type: 'radio',
-      onChange: (selectedRowKeys, selectedRows) => {
-        //console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-        this.setState({
-          selectedRowKeys,
-          selectedRows
-        })
-      },
-    }:'';
+    let rowSelection=""
+    if(this.props.type==="edit"){
+      rowSelection ={
+        type: 'radio',
+        onChange: (selectedRowKeys, selectedRows) => {
+          //console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+          this.setState({
+            selectedRowKeys,
+            selectedRows
+          })
+        },
+      }
+    }
     return (
       <div>
         <div>

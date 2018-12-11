@@ -1,7 +1,7 @@
 import superagent from 'superagent'
 import { message } from 'antd';
 
-let storage=window.localStorage;
+let storage=window.sessionStorage;
 export default class Superagent{
     static super(options){
         let tokenName=storage.getItem('tokenName')

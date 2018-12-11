@@ -25,6 +25,9 @@ export default class actTable extends React.Component{
 			//console.log("已存储")
 			let data=JSON.parse(storage[key])
             this.editList(data)
+            this.setState({
+                newRecordCode:data.entities[0].code
+            })
 		}else{
 			//console.log("未存储")
 			Super.super({
@@ -37,7 +40,10 @@ export default class actTable extends React.Component{
 					let obj = eval(res);
                     storage[key]=JSON.stringify(obj); //存储一个列表数据
                     //console.log(res)
-					this.editList(res)
+                    this.editList(res)
+                    this.setState({
+                        newRecordCode:res.entities[0].code
+                    })
 				}
 			})
 		}		
@@ -137,17 +143,33 @@ export default class actTable extends React.Component{
 				pageCount:res.pageInfo.count,
 			})
 		})			
-	}
+    }
+    fresh=()=>{
+        let key=this.props.activeKey
+        Super.super({
+            url:`/api/entity/list/${key}`,  
+            data:{
+                isShowLoading:true
+            }                 
+        }).then((res)=>{
+            if(res){
+                let obj = eval(res);
+                storage[key]=JSON.stringify(obj); //存储一个列表数据
+                //console.log(res)
+                this.editList(res)
+            }
+        })
+    }
     render(){
         return(
             <div>
                 <h3>
                     {this.state.moduleTitle}
                     <div className="fr">
-                        <Button className="hoverbig" title="创建"><Icon type="plus" onClick={this.props.handleNew}/></Button>
+                        <Button className="hoverbig" title="创建" onClick={()=>this.props.handleNew(this.state.moduleTitle,this.state.newRecordCode)}><Icon type="plus"/></Button>
                         <Button className="hoverbig" title="导入"><Icon type="download" /></Button>
                         <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
-                        <Button className="hoverbig" title="刷新"><Icon type="sync" /></Button>
+                        <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
                     </div>
                 </h3>
                 <Card>

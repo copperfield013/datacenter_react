@@ -1,5 +1,5 @@
 import React from 'react'
-import {Card,Form,Button,Modal,message} from 'antd'
+import {Card,Form,Button,Modal,message,Icon} from 'antd'
 import Super from "./../../super"
 import './index.css'
 import 'moment/locale/zh-cn';
@@ -29,6 +29,7 @@ export default class Detail extends React.Component{
                     isShowLoading:true
                 }                 
             }).then((res)=>{
+                //console.log(res)
                 let obj = eval(res); 
                 storage[typecode]=JSON.stringify(obj); //存储一条数据
                 let detailsList=res.entity.fieldGroups; 
@@ -41,7 +42,8 @@ export default class Detail extends React.Component{
             let detailsList=data.entity.fieldGroups;
             this.renderList(detailsList)
             this.toDetails(data,this.props.type)
-        }     
+        }               
+ 
     }
     toDetails=(data,type)=>{
 		let detailsTitle="";
@@ -54,7 +56,8 @@ export default class Detail extends React.Component{
 			detailsTitle=entityTitle?moduleTitle+"-修改-"+entityTitle:moduleTitle+"-修改";
 		}			
 		this.setState({ 
-			detailsTitle,
+            detailsTitle,
+            moduleTitle,
 		});
 	}
     renderList=(detailsList)=>{
@@ -63,13 +66,16 @@ export default class Detail extends React.Component{
         let columns=[]
         let dataSource=[]
         let cardTitle=[]
-        let formList=detailsList[0].fields;              
+        let formList=detailsList[0].fields;    
+        let firstCard=""          
         detailsList.map((item)=>{
             if(item.descs){
                 cardTitle.push(item.title)
                 itemDescs.push(item.descs)
                 columns.push(this.renderColumns(item.descs))
                 dataSource.push(this.requestList(item))
+            }else if(item.fields){
+                firstCard=item.title
             }
             return false
         })           
@@ -78,8 +84,9 @@ export default class Detail extends React.Component{
             formList,           
             itemDescs,
             columns,
-            dataSource,
-            cardTitle
+            dataSource:this.props.flag?"":dataSource,
+            cardTitle,
+            firstCard,
         })
     }
     initDetailsList=()=>{ 
@@ -106,19 +113,21 @@ export default class Detail extends React.Component{
                             </Card>
                 detailsItemList.push(RANGE)
                 let submitcode=[];
-                this.state.dataSource[index].map((item)=>{
-                    if(item.code){
-                        submitcode.push(item.code);
-                    }  
-                    submitcode.map((it)=>{
-                        if(totalcode.indexOf(it)===-1){
-                            storage[it]=JSON.stringify(item)
-                            totalcode.push(it)
-                        }
+                if(this.state.dataSource){
+                    this.state.dataSource[index].map((item)=>{
+                        if(item.code){
+                            submitcode.push(item.code);
+                        }  
+                        submitcode.map((it)=>{
+                            if(totalcode.indexOf(it)===-1){
+                                storage[it]=JSON.stringify(item)
+                                totalcode.push(it)
+                            }
+                            return false
+                        })
                         return false
                     })
-                    return false
-                })
+                }               
                 return false            
             })         
         }
@@ -160,6 +169,12 @@ export default class Detail extends React.Component{
             })
             return res        
         }
+    }
+    handleHistory=()=>{
+
+    }
+    fresh=()=>{
+        
     }
     handleOk = (e) => {
         e.preventDefault();
@@ -217,12 +232,31 @@ export default class Detail extends React.Component{
     render(){
         return(
             <div>
-                <h3>{this.state.detailsTitle}</h3> 
-                <Card title="基本信息">
+                <h3>
+                    {
+                        this.props.flag?this.state.moduleTitle+"--创建":this.state.detailsTitle
+                    }   
+                    {
+                        this.state.type==="detail"?
+                        <div className="fr">
+                            <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
+                            <Button className="hoverbig" title="查看历史" onClick={this.handleHistory}><Icon type="schedule" /></Button>
+                            <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
+                        </div>
+                        :
+                        <div className="fr">
+                            <Button className="hoverbig" title="融合模式"><Icon type="bulb" /></Button>
+                            <Button className="hoverbig" title="刷新"><Icon type="sync" /></Button>
+                        </div>
+                    }               
+                    
+                </h3> 
+                <Card title={this.state.firstCard}>
                     <BaseInfoForm 
                         formList={this.state.formList} 
                         type={this.state.type} 
                         onRef={this.onRef}
+                        flag={this.props.flag}
                         />
                 </Card>
                 

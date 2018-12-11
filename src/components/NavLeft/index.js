@@ -28,13 +28,11 @@ export default class NavLeft extends React.Component{
 	renderMenu=(data)=>{
 		return data.map((item)=>{
 			if(item.level2s){
-				return (
-					<SubMenu title={item.title} key={item.id}>
+				return <SubMenu title={item.title} key={item.id}>
 						{ this.renderMenu(item.level2s) }
-					</SubMenu>
-				)
+					</SubMenu>				
 			}
-			return  <Menu.Item key={item.id}>
+			return  <Menu.Item key={item.id} >
 						{item.title}
 				    </Menu.Item>
 		})

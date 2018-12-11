@@ -66,3 +66,15 @@ table{
 .ant-tabs-bar{
 	z-index: 99;
 }
+.hoverbig:hover{
+    -ms-transform:scale(1.2,1.2); /* IE 9 */
+    -webkit-transform: scale(1.2,1.2); /* Safari */
+    transform: scale(1.2,1.2); /* 标准语法 */
+    transition: all .5s;
+    z-index: 99;
+}
+.fr{
+    position: relative;
+    top:-4px;
+    float: right;
+}

@@ -1,5 +1,5 @@
 import React from 'react'
-import {Row,Col,Menu,Tabs,Layout,Button,Modal,message} from 'antd'
+import {Row,Col,Tabs,Layout,Modal,message} from 'antd'
 import "antd/dist/antd.css"
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -51,7 +51,6 @@ export default class Admin extends React.Component{
 						if(res.status==="suc"){
 							message.success('删除成功！')                               
 						}
-						this.requestList(menuId);//刷新页面
 					})
 				}
 			})
@@ -93,11 +92,10 @@ export default class Admin extends React.Component{
 		}		
 		//console.log(record.code)
 	}
-	handleNew=()=>{
-		console.log(999)
+	handleNew=(title,newRecordCode)=>{
 		const panes = this.state.panes;
 		let flag = false;
-		let newcode="abc"
+		let newcode=title+"--创建"
 		for(let ops of panes){			
 			if(ops.key === newcode){
 			  flag = true;
@@ -108,14 +106,16 @@ export default class Admin extends React.Component{
 		this.setState({ 
 			panes, 
 			activeKey:newcode,
+			newcode,
+			newRecordCode,
 		});
 		if(flag === false){
-			panes.push({ title:"abc", key:newcode });
+			panes.push({ title:newcode, key:newcode });
 		}
 	}
 	onChange = (activeKey) => {
 		let type="";
-		this.setState({ activeKey });
+		this.setState({ activeKey });	
 		if(activeKey.length>30){
 			activeKey.indexOf("detail")===0?type="detail":type="edit";
 			//console.log(activeKey+"---"+type)			
@@ -173,7 +173,7 @@ export default class Admin extends React.Component{
 		}
 	}
 	
-	Welcome = (title,xqTitle) => {
+	Welcome = (title,xqTitle,newcode) => {
 		switch(title){
 			case "主页":
 			return <Home />
@@ -183,13 +183,17 @@ export default class Admin extends React.Component{
 						menuId={this.state.menuId}
 						code={this.state.code}
 					/>
-			case "abc":
-			return <Home />
+			case newcode:
+			return <Detail
+						type="edit"
+						menuId={this.state.menuId}
+						code={this.state.newRecordCode}
+						flag="creatNewRecord"
+					/>
 			default:
 			return <ActTable 
 						handleOperate={this.handleOperate}
 						activeKey={this.state.activeKey}
-						handleDetail={this.handleDetail}
 						handleNew={this.handleNew}
 					/>
 		}  	
@@ -221,7 +225,6 @@ export default class Admin extends React.Component{
 			<Row className="container">
 				<Col span="4" className="nav-left">
 					<NavLeft
-						//editList={this.editList}
 						callBackAdmin={this.setPanes}
 						panes={this.state.panes}
 						activeKey={this.state.activeKey}
@@ -247,7 +250,7 @@ export default class Admin extends React.Component{
 																key={pane.key} 
 																closable={pane.closable}
 																>
-																{this.Welcome(pane.title,this.state.xqTitle)}
+																{this.Welcome(pane.title,this.state.xqTitle,this.state.newcode)}
 														</TabPane>)}
 						</Tabs>
 					</Content>					

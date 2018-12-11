@@ -125,13 +125,13 @@ class BaseInfoForm extends React.Component{
                 let fieldName=item.fieldName;
                 let field=item.fieldId
                 //let placeholder=item.placeholder || '';
-                let fieldValue=item.value;
+                let fieldValue=this.props.flag?"":item.value;
                 if(item.type==="date"){
                     const DATE= <FormItem label={fieldName} key={field} className='labelcss'>
                                     {
                                         this.state.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                         getFieldDecorator([fieldName],{
-                                            initialValue:moment(fieldValue, 'YYYY-MM-DD')
+                                            initialValue:fieldValue===""?"":moment(fieldValue, 'YYYY-MM-DD')
                                         })(
                                             <DatePicker style={{width:220}} locale={locale}/>
                                     )}
