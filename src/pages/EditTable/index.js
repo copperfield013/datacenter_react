@@ -9,14 +9,11 @@ let newRecord=[]
 export default class EditTable extends React.Component {
  
   state={
-    count:this.props.count,
     selectedRowKeys:"",
     dataSource:this.props.dataSource?this.props.dataSource:[],
-    columns:this.props.columns,
-    item:this.props.item,
   }
   componentWillMount(){
-     totalRecord=[]//切换清空原有数据
+    totalRecord=[]//切换清空原有数据
     storage.removeItem("newRecord")
   }
   
@@ -31,9 +28,8 @@ export default class EditTable extends React.Component {
     storage["newRecord"]=JSON.stringify(newRecord)
   }
   handleAdd=(item)=> {
-    const count = this.state.count;
-    const newDataSource = this.state.dataSource 
-    console.log(newDataSource)
+    const count = this.props.count;
+    const newDataSource = this.state.dataSource
     let list={}    
     item.map((item,index)=>{
         let fieldName=item.fieldName;
@@ -113,7 +109,7 @@ export default class EditTable extends React.Component {
             rowSelection={rowSelection}
             bordered
             dataSource={this.state.dataSource}
-            columns={this.state.columns}
+            columns={this.props.columns}
             pagination={false}
           />
         

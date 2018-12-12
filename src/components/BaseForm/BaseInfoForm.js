@@ -1,5 +1,5 @@
 import React from 'react'
-import {Input,Button,Cascader,message,Form,Select,DatePicker,Avatar,Upload,Icon} from 'antd'
+import {Input,Button,Cascader,Form,Select,DatePicker,Avatar,Upload,Icon} from 'antd'
 import axios from "./../../axios"
 import Units from "../../units/unit";
 import 'moment/locale/zh-cn';
@@ -10,7 +10,7 @@ const FormItem=Form.Item
 var storage=window.sessionStorage;
 class BaseInfoForm extends React.Component{
     state={
-        type:this.props.type,
+        fileList:[],
     }
     componentDidMount(){
         this.props.onRef(this)
@@ -92,7 +92,7 @@ class BaseInfoForm extends React.Component{
                     this.setState({
                     options: [...this.state.options],
                     });
-                }, 500);
+                }, 300);
             })
         }
         
@@ -100,24 +100,28 @@ class BaseInfoForm extends React.Component{
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
         const formList=this.props.formList;
-        //console.log(formList)
         const formItemList=[];
+        const { fileList } = this.state;
         const props = {
-            name: 'file',
-            action: '//jsonplaceholder.typicode.com/posts/',
-            headers: {
-                authorization: 'authorization-text',
+            accept:"image/*",
+            listType: 'picture',
+            onRemove: (file) => {
+                this.setState((state) => {
+                const index = state.fileList.indexOf(file);
+                const newFileList = state.fileList.slice();
+                newFileList.splice(index, 1);
+                return {
+                    fileList: newFileList,
+                };
+                });
             },
-            onChange(info) {
-                if (info.file.status !== 'uploading') {
-                console.log(info.file, info.fileList);
-                }
-                if (info.file.status === 'done') {
-                message.success(`${info.file.name} file uploaded successfully`);
-                } else if (info.file.status === 'error') {
-                message.error(`${info.file.name} file upload failed.`);
-                }
+            beforeUpload: (file) => {
+                this.setState(state => ({
+                fileList: [...state.fileList, file],
+                }));
+                return false;
             },
+            defaultFileList: [...fileList],
         };
         if(formList && formList.length>0){
             formList.forEach((item)=>{
@@ -129,9 +133,12 @@ class BaseInfoForm extends React.Component{
                 if(item.type==="date"){
                     const DATE= <FormItem label={fieldName} key={field} className='labelcss'>
                                     {
-                                        this.state.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                        this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                         getFieldDecorator([fieldName],{
-                                            initialValue:fieldValue===""?"":moment(fieldValue, 'YYYY-MM-DD')
+                                            initialValue:fieldValue===""?"":moment(fieldValue, 'YYYY-MM-DD'),
+                                            rules:item.validators==="required"?[{
+                                                    required: true, message: `请输入${item.title}`,
+                                                  }]:"",
                                         })(
                                             <DatePicker style={{width:220}} locale={locale}/>
                                     )}
@@ -140,9 +147,12 @@ class BaseInfoForm extends React.Component{
                 }else if(item.type==="text"){
                     const TEXT= <FormItem label={fieldName} key={field} className='labelcss'>
                                     {
-                                        this.state.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                        this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                         getFieldDecorator([fieldName],{
-                                        initialValue:fieldValue
+                                        initialValue:fieldValue,
+                                        rules:item.validators==="required"?[{
+                                                required: true, message: `请输入${item.title}`,
+                                              }]:"",
                                     })(
                                         <Input type="text" style={{width:220}}/>
                                     )}
@@ -151,9 +161,12 @@ class BaseInfoForm extends React.Component{
                 }else if(item.type==="select"){
                     const SELECT= <FormItem label={fieldName} key={[field]} className='labelcss'>
                                         {
-                                            this.state.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                            this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                             getFieldDecorator([fieldName],{
-                                            initialValue:fieldValue
+                                                initialValue:fieldValue,
+                                                rules:item.validators==="required"?[{
+                                                        required: true, message: `请输入${item.title}`,
+                                                      }]:"",
                                         })(
                                             <Select style={{width:220}} onMouseEnter={()=>this.requestSelectOptions(field)}>
                                                     {Units.getSelectList(this.state.list)}
@@ -162,11 +175,15 @@ class BaseInfoForm extends React.Component{
                                     </FormItem> 
                     formItemList.push(SELECT)    
                 }else if(item.type==="label"){
+                    let result=fieldValue?fieldValue.split(','):[];                    
                     const LABEL= <FormItem label={fieldName} key={field} className='labelcss'>
                                         {
-                                            this.state.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                            this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                             getFieldDecorator([fieldName],{
-                                                initialValue:fieldValue
+                                                initialValue:result,
+                                                rules:item.validators==="required"?[{
+                                                        required: true, message: `请输入${item.title}`,
+                                                      }]:"",
                                             })(
                                             <Select mode="multiple" style={{width:220}} onMouseEnter={()=>this.requestSelectOptions(field)}>
                                                 {Units.getSelectList(this.state.list)}
@@ -177,14 +194,15 @@ class BaseInfoForm extends React.Component{
                 }else if(item.type==="caselect"){
                     const CASELECT= <FormItem label={fieldName} key={field} className='labelcss'>
                                         {
-                                            this.state.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                            this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                             getFieldDecorator([fieldName])(
                                                 <Cascader
                                                     onClick={()=>this.requestLinkage(item.optionKey)}
+                                                    placeholder="请选择"
                                                     style={{width:220}}
                                                     options={this.state.options}
                                                     loadData={this.loadData}
-                                                    changeOnSelect
+                                                    displayRender={label=>label.join('->')}
                                                 />
                                         )}
                                 </FormItem>
@@ -192,7 +210,7 @@ class BaseInfoForm extends React.Component{
                 }else if(item.type==="file"){
                     const FILE= <FormItem label={fieldName} key={field} className='labelcss'>
                                         {
-                                        this.state.type==="detail"?<span style={{width:220,display:"inline-block"}}><Avatar src={field}/></span>:
+                                        this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}><Avatar src={field}/></span>:
                                         getFieldDecorator([fieldName])(
                                             <Upload {...props}>
                                                 <Button style={{width:220}}>

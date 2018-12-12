@@ -5,7 +5,11 @@
     text-align:right;
     background: #002140;
     color:#fff;
+    font-size: 16px
 }
 .header-top span{
-    margin-right: 40px;
+    margin-right: 30px
+}
+.ant-dropdown-menu-item, .ant-dropdown-menu-submenu-title{
+    font-size: 16px
 }

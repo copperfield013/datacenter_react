@@ -19,4 +19,7 @@
 .ant-tabs-tab-btn-disabled, .ant-tabs-tab-btn-disabled:hover{
 	color:#fff;
 }
+.ant-upload-list{
+	width:220px
+}
 

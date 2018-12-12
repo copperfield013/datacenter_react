@@ -1,6 +1,7 @@
 import React from 'react'
-import {Card,Form,Button,Modal,message,Icon} from 'antd'
+import {Card,Form,Button,Modal,message,Icon,Drawer,Timeline} from 'antd'
 import Super from "./../../super"
+import Units from './../../units/unit'
 import './index.css'
 import 'moment/locale/zh-cn';
 import EditTable from './../../pages/EditTable'
@@ -10,8 +11,9 @@ let storage=window.sessionStorage;
 let totalcode=[]
 export default class Detail extends React.Component{
     state={
-        type:this.props.type,
-        visible: false,
+        count:0,
+        visibleModal: false,
+        visibleDrawer:false,
     }
     componentWillMount(){
         this.requestLists()
@@ -35,15 +37,61 @@ export default class Detail extends React.Component{
                 let detailsList=res.entity.fieldGroups; 
                 this.toDetails(res,this.props.type)
                 this.renderList(detailsList)
+                if(res.history){                   
+                    let detailHistory=this.renderHistoryList(res.history);
+                    this.setState({
+                        detailHistory
+                    }) 
+                }
             })
         }else{  
             //console.log("已存") 
             let data=JSON.parse(storage[typecode]);
             let detailsList=data.entity.fieldGroups;
             this.renderList(detailsList)
-            this.toDetails(data,this.props.type)
+            this.toDetails(data,this.props.type) 
+            if(data.history){
+                let detailHistory=this.renderHistoryList(data.history);
+                this.setState({
+                    detailHistory
+                })
+            }          
         }               
- 
+    }
+    renderHistoryList=(data)=>{
+		return data.map((item)=>{
+            let color=item.current?"red":"blue";
+			return <Timeline.Item color={color}>
+                        {Units.formateDate(item.time)}<br/>
+                        {`操作人`+item.userName}
+                        {
+                          item.current?"":<Button style={{marginLeft:10}} id={item.id} type="primary" size="small" onClick={this.toHistory}>查看</Button>
+                        }                   
+				    </Timeline.Item>
+		})
+    }
+    toHistory=(e)=>{
+        let historyId=e.target.getAttribute("id");
+        let menuId=this.props.menuId;
+        let code=this.props.code;
+        Super.super({
+            url:`/api/entity/detail/${menuId}/${code}`,  
+            data:{
+                isShowLoading:true,
+                historyId,
+            }                 
+        }).then((res)=>{
+            let detailsList=res.entity.fieldGroups; 
+            this.toDetails(res,this.props.type)
+            this.renderList(detailsList)
+            if(res.history){                   
+                let detailHistory=this.renderHistoryList(res.history);
+                this.setState({
+                    detailHistory
+                }) 
+            }
+        })
+
     }
     toDetails=(data,type)=>{
 		let detailsTitle="";
@@ -78,7 +126,7 @@ export default class Detail extends React.Component{
                 firstCard=item.title
             }
             return false
-        })           
+        })        
         this.setState({
             detailsList,
             formList,           
@@ -146,8 +194,7 @@ export default class Detail extends React.Component{
 		}		
     }
     requestList=(data)=>{
-        let res=[]      
-        const count = this.state.count;
+        let res=[]
         this.setState({
             count :this.state.count+data.array.length
         })
@@ -155,10 +202,10 @@ export default class Detail extends React.Component{
             data.array.map((item)=>{
                 let code=item.code;
                 let list={};              
-                item.fields.map((it)=>{
+                item.fields.map((it,index)=>{
                     let fieldName=it.fieldName;
                     let fieldValue=it.value;
-                    list["key"]=count;
+                    list["key"]=index;
                     list["code"]=code;
                     list[fieldName]=fieldValue;
                     return false
@@ -170,8 +217,15 @@ export default class Detail extends React.Component{
             return res        
         }
     }
-    handleHistory=()=>{
-
+    showHistory=()=>{
+        this.setState({
+            visibleDrawer: true,
+        });
+    }
+    onClose = () => {
+        this.setState({
+            visibleDrawer: false,
+        });
     }
     fresh=()=>{
         
@@ -198,7 +252,7 @@ export default class Detail extends React.Component{
             newRecord=JSON.parse(storage.getItem("newRecord"))
         }
         let values=Object.assign(baseInfo, ...records, newRecord)
-        //console.log(values)
+        console.log(values)
         Super.super({
             url:`/api/entity/update/${menuId}`,  
             data:{
@@ -211,18 +265,18 @@ export default class Detail extends React.Component{
             message.success("提交成功！")
         })
         this.setState({
-          visible: false,
+            visibleModal: false,
         });
       }
     
     handleCancel = (e) => {
         this.setState({
-            visible: false,
+            visibleModal: false,
         });
     }
     showModal = () => {
         this.setState({
-            visible: true,
+            visibleModal: true,
         });
     }
     //调用子组件方法
@@ -237,10 +291,10 @@ export default class Detail extends React.Component{
                         this.props.flag?this.state.moduleTitle+"--创建":this.state.detailsTitle
                     }   
                     {
-                        this.state.type==="detail"?
+                        this.props.type==="detail"?
                         <div className="fr">
                             <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
-                            <Button className="hoverbig" title="查看历史" onClick={this.handleHistory}><Icon type="schedule" /></Button>
+                            <Button className="hoverbig" title="查看历史" onClick={this.showHistory}><Icon type="schedule" /></Button>                                                      
                             <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
                         </div>
                         :
@@ -254,7 +308,7 @@ export default class Detail extends React.Component{
                 <Card title={this.state.firstCard}>
                     <BaseInfoForm 
                         formList={this.state.formList} 
-                        type={this.state.type} 
+                        type={this.props.type} 
                         onRef={this.onRef}
                         flag={this.props.flag}
                         />
@@ -266,7 +320,7 @@ export default class Detail extends React.Component{
                     </Form>
                 </div>
                 <Modal
-                    visible={this.state.visible}
+                    visible={this.state.visibleModal}
                     onOk={this.handleOk}
                     onCancel={this.handleCancel}
                     okText="确认"
@@ -274,6 +328,17 @@ export default class Detail extends React.Component{
                     >
                     <p>确认提交数据吗</p>
                 </Modal>
+                <Drawer
+                    title="查看历史"
+                    closable={false}
+                    onClose={this.onClose}
+                    visible={this.state.visibleDrawer}
+                    width={400}
+                    >
+                    <Timeline mode="alternate" pending="没有更多了...">
+                        {this.state.detailHistory}
+                    </Timeline>
+                </Drawer>
             </div>
         )
     }

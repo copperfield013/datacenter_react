@@ -10,7 +10,7 @@ import ActTable from './pages/actTable/actTable'
 import Detail from './pages/detail'
 import Super from "./super"
 import NavLeft from './components/NavLeft'
-import Cont from "./components/Content"
+//import Cont from "./components/Content"
 const { Content } = Layout;
 const TabPane = Tabs.TabPane;
 
@@ -18,7 +18,6 @@ let storage=window.sessionStorage;
 export default class Admin extends React.Component{
 	constructor(props) {
 		super(props);
-		this.newTabIndex = 0;
 		const panes = [
 		  { title: '主页', key: '0',closable: false },
 		];
