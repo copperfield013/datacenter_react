@@ -134,7 +134,7 @@ class BaseInfoForm extends React.Component{
                     const DATE= <FormItem label={fieldName} key={field} className='labelcss'>
                                     {
                                         this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                        getFieldDecorator([fieldName],{
+                                        getFieldDecorator(fieldName,{
                                             initialValue:fieldValue===""?"":moment(fieldValue, 'YYYY-MM-DD'),
                                             rules:item.validators==="required"?[{
                                                     required: true, message: `请输入${item.title}`,
@@ -148,7 +148,7 @@ class BaseInfoForm extends React.Component{
                     const TEXT= <FormItem label={fieldName} key={field} className='labelcss'>
                                     {
                                         this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                        getFieldDecorator([fieldName],{
+                                        getFieldDecorator(fieldName,{
                                         initialValue:fieldValue,
                                         rules:item.validators==="required"?[{
                                                 required: true, message: `请输入${item.title}`,
@@ -162,7 +162,7 @@ class BaseInfoForm extends React.Component{
                     const SELECT= <FormItem label={fieldName} key={[field]} className='labelcss'>
                                         {
                                             this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                            getFieldDecorator([fieldName],{
+                                            getFieldDecorator(fieldName,{
                                                 initialValue:fieldValue,
                                                 rules:item.validators==="required"?[{
                                                         required: true, message: `请输入${item.title}`,
@@ -179,7 +179,7 @@ class BaseInfoForm extends React.Component{
                     const LABEL= <FormItem label={fieldName} key={field} className='labelcss'>
                                         {
                                             this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                            getFieldDecorator([fieldName],{
+                                            getFieldDecorator(fieldName,{
                                                 initialValue:result,
                                                 rules:item.validators==="required"?[{
                                                         required: true, message: `请输入${item.title}`,
@@ -195,7 +195,7 @@ class BaseInfoForm extends React.Component{
                     const CASELECT= <FormItem label={fieldName} key={field} className='labelcss'>
                                         {
                                             this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
-                                            getFieldDecorator([fieldName])(
+                                            getFieldDecorator(fieldName)(
                                                 <Cascader
                                                     onClick={()=>this.requestLinkage(item.optionKey)}
                                                     placeholder="请选择"
@@ -211,7 +211,7 @@ class BaseInfoForm extends React.Component{
                     const FILE= <FormItem label={fieldName} key={field} className='labelcss'>
                                         {
                                         this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}><Avatar src={field}/></span>:
-                                        getFieldDecorator([fieldName])(
+                                        getFieldDecorator(fieldName)(
                                             <Upload {...props}>
                                                 <Button style={{width:220}}>
                                                     <Icon type="upload" /> 点击上传

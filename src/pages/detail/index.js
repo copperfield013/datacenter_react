@@ -1,10 +1,11 @@
 import React from 'react'
-import {Card,Form,Button,Modal,message,Icon,Drawer,Timeline} from 'antd'
+import {Card,Button,Modal,message,Icon,Drawer,Timeline} from 'antd'
 import Super from "./../../super"
 import Units from './../../units/unit'
 import './index.css'
 import 'moment/locale/zh-cn';
-import EditTable from './../../pages/EditTable'
+//import EditTable from './../../pages/EditTable'
+import EditTable from './../../pages/EditTable/editTable'
 import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 
 let storage=window.sessionStorage;
@@ -20,6 +21,10 @@ export default class Detail extends React.Component{
         totalcode=[] //切换清空原有数据
     }
     requestLists=()=>{
+        if(!this.props.code){
+            console.log("无效的模板")
+            return
+        }
         let typecode=this.props.type+this.props.code;		
         if(!storage[typecode]){//判断是否存储数据
             //console.log("未存")
@@ -59,9 +64,9 @@ export default class Detail extends React.Component{
         }               
     }
     renderHistoryList=(data)=>{
-		return data.map((item)=>{
+		return data.map((item,index)=>{
             let color=item.current?"red":"blue";
-			return <Timeline.Item color={color}>
+			return <Timeline.Item color={color} key={index}>
                         {Units.formateDate(item.time)}<br/>
                         {`操作人`+item.userName}
                         {
@@ -121,12 +126,12 @@ export default class Detail extends React.Component{
                 cardTitle.push(item.title)
                 itemDescs.push(item.descs)
                 columns.push(this.renderColumns(item.descs))
-                dataSource.push(this.requestList(item))
+                dataSource.push(this.requestTableList(item))
             }else if(item.fields){
                 firstCard=item.title
             }
             return false
-        })        
+        })   
         this.setState({
             detailsList,
             formList,           
@@ -136,50 +141,6 @@ export default class Detail extends React.Component{
             cardTitle,
             firstCard,
         })
-    }
-    initDetailsList=()=>{ 
-        const detailsList=this.state.detailsList;
-        const detailsItemList=[];
-        if(this.props.type==="edit"){
-            let btn=<Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn">提交</Button>
-            detailsItemList.push(btn)
-        }
-
-        if(detailsList && detailsList.length>0){
-            this.state.itemDescs.map((item,index)=>{
-                let cardTitle=this.state.cardTitle[index]
-                const RANGE=<Card title={cardTitle} key={cardTitle}>
-                                <EditTable 
-                                    type={this.props.type}
-                                    pagination={false}
-                                    bordered
-                                    columns={this.state.columns[index]}
-                                    dataSource={this.state.dataSource[index]}
-                                    item={item}
-                                    count={this.state.count}
-                                />
-                            </Card>
-                detailsItemList.push(RANGE)
-                let submitcode=[];
-                if(this.state.dataSource){
-                    this.state.dataSource[index].map((item)=>{
-                        if(item.code){
-                            submitcode.push(item.code);
-                        }  
-                        submitcode.map((it)=>{
-                            if(totalcode.indexOf(it)===-1){
-                                storage[it]=JSON.stringify(item)
-                                totalcode.push(it)
-                            }
-                            return false
-                        })
-                        return false
-                    })
-                }               
-                return false            
-            })         
-        }
-        return detailsItemList;
     }
     renderColumns=(data)=>{
 		if(data){
@@ -193,7 +154,7 @@ export default class Detail extends React.Component{
             return data
 		}		
     }
-    requestList=(data)=>{
+    requestTableList=(data)=>{
         let res=[]
         this.setState({
             count :this.state.count+data.array.length
@@ -211,8 +172,8 @@ export default class Detail extends React.Component{
                     return false
                 })
                 res.push(list) 
-                return false
-                //console.log(res)             
+                //console.log(res)
+                return false             
             })
             return res        
         }
@@ -269,7 +230,7 @@ export default class Detail extends React.Component{
         });
       }
     
-    handleCancel = (e) => {
+    handleCancel = () => {
         this.setState({
             visibleModal: false,
         });
@@ -282,6 +243,9 @@ export default class Detail extends React.Component{
     //调用子组件方法
 	onRef=(ref)=>{
 		this.child=ref
+    }
+    callbacktotalcode=(data)=>{
+        totalcode=data
     }
     render(){
         return(
@@ -299,6 +263,7 @@ export default class Detail extends React.Component{
                         </div>
                         :
                         <div className="fr">
+                            <Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn">提交</Button>
                             <Button className="hoverbig" title="融合模式"><Icon type="bulb" /></Button>
                             <Button className="hoverbig" title="刷新"><Icon type="sync" /></Button>
                         </div>
@@ -313,12 +278,17 @@ export default class Detail extends React.Component{
                         flag={this.props.flag}
                         />
                 </Card>
-                
-                <div>
-                    <Form layout="inline">
-                        {this.initDetailsList()}
-                    </Form>
-                </div>
+                <EditTable 
+                    detailsList={this.state.detailsList}
+                    type={this.props.type}
+                    columns={this.state.columns}
+                    dataSource={this.state.dataSource}
+                    count={this.state.count}
+                    cardTitle={this.state.cardTitle}
+                    itemDescs={this.state.itemDescs}
+                    dataSource={this.state.dataSource}
+                    callback={this.callbacktotalcode}
+                />
                 <Modal
                     visible={this.state.visibleModal}
                     onOk={this.handleOk}

@@ -28,21 +28,21 @@ class BaseForm extends React.Component{
                 let initialValue=item.defaultValue || '';
                 if(item.inputType==="daterange"){
                     const TIMEPICKER= <FormItem label={label} key={field}>
-                        {getFieldDecorator([field])(
+                        {getFieldDecorator(field)(
                             <RangePicker locale={locale} style={{width:225}}/>
                         )}
                     </FormItem>   
                     formItemList.push(TIMEPICKER)                
                 }else if(item.inputType==="text"){
                     const INPUT= <FormItem label={label} key={field}>
-                        {getFieldDecorator([field])(
+                        {getFieldDecorator(field)(
                             <Input type="text" placeholder={placeholder} style={{width:165}} />
                         )}
                     </FormItem>   
                     formItemList.push(INPUT)                
                 }else if(item.inputType==="select"){
                     const SELECT= <FormItem label={label} key={field}>
-                        {getFieldDecorator([field],{
+                        {getFieldDecorator(field,{
                             initialValue:initialValue
                         })(
                             <Select placeholder={placeholder} style={{width:120}}>
@@ -53,7 +53,7 @@ class BaseForm extends React.Component{
                     formItemList.push(SELECT)    
                 }else if(item.inputType==="CHECKBOX"){
                     const CHECKBOX= <FormItem label={label} key={field}>
-                        {getFieldDecorator([field],{
+                        {getFieldDecorator(field,{
                             valuePropName:'checked',
                             initialValue:initialValue
                         })(
@@ -63,7 +63,7 @@ class BaseForm extends React.Component{
                     formItemList.push(CHECKBOX)   
                 }else if(item.inputType==="RADIO"){
                     const CHECKBOX= <FormItem label={label} key={field}>
-                        {getFieldDecorator([field],{
+                        {getFieldDecorator(field,{
                             initialValue:initialValue
                         })(
                             <RadioGroup>

@@ -25,9 +25,11 @@ export default class actTable extends React.Component{
 			//console.log("已存储")
 			let data=JSON.parse(storage[key])
             this.editList(data)
-            this.setState({
-                newRecordCode:data.entities[0].code
-            })
+            if(data.entities.length>0){
+                this.setState({
+                    newRecordCode:data.entities[0].code
+                })
+            }
 		}else{
 			//console.log("未存储")
 			Super.super({
@@ -41,9 +43,11 @@ export default class actTable extends React.Component{
                     storage[key]=JSON.stringify(obj); //存储一个列表数据
                     //console.log(res)
                     this.editList(res)
-                    this.setState({
-                        newRecordCode:res.entities[0].code
-                    })
+                    if(res.entities.length>0){
+                        this.setState({
+                            newRecordCode:res.entities[0].code
+                        })
+                    }
 				}
 			})
 		}		
@@ -175,24 +179,22 @@ export default class actTable extends React.Component{
                 <Card>
                     <BaseForm formList={this.state.formList} filterSubmit={this.searchList}/>          
                 </Card>
-                <div>
-                    <Table
-                        columns={this.state.columns}
-                        dataSource={this.state.list}
-                        bordered
-                        pagination={false}
-                        style={{display:this.state.columns?"block":"none"}}
-                    >
-                    </Table>
-                    <Pagination 
-                        showQuickJumper 
-                        defaultCurrent={1} 
-                        total={this.state.pageCount} 
-                        onChange={this.searchList} 
-                        hideOnSinglePage={true}
-                        showTotal={()=>this.showTotal(this.state.pageCount)}
-                        />
-                </div>
+                <Table
+                    columns={this.state.columns}
+                    dataSource={this.state.list}
+                    bordered
+                    pagination={false}
+                    style={{display:this.state.columns?"block":"none"}}
+                >
+                </Table>
+                <Pagination 
+                    showQuickJumper 
+                    defaultCurrent={1} 
+                    total={this.state.pageCount} 
+                    onChange={this.searchList} 
+                    hideOnSinglePage={true}
+                    showTotal={()=>this.showTotal(this.state.pageCount)}
+                    />
             </div>
            
         )

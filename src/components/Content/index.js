@@ -8,7 +8,7 @@ import './index.css'
 const TabPane = Tabs.TabPane;
 
 let storage=window.sessionStorage;
-export default class NavLeft extends React.Component{
+export default class Con extends React.Component{
 	constructor(props) {
 		super(props);
 		this.newTabIndex = 0;
@@ -19,16 +19,6 @@ export default class NavLeft extends React.Component{
 			activeKey: panes[0].key,
 			panes,
 		};
-      }
-      componentWillMount(){
-          console.log(this.props.activeKey)
-          //this.editList(this.props.listdata)
-      }
-      componentDidMount(){
-        console.log(this.props.keyi)
-        let panes=this.state.panes;
-        let activeKey=this.state.activeKey
-        this.props.contenttoadmin(panes,activeKey)
       }
       onChange = (activeKey) => {
 		let type="";
