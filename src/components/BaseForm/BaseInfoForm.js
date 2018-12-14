@@ -15,6 +15,9 @@ class BaseInfoForm extends React.Component{
     componentDidMount(){
         this.props.onRef(this)
     }
+    reSet=()=>{
+        this.props.form.resetFields();
+    }
     handleBaseInfoSubmit=()=>{
         let fieldsValue=this.props.form.getFieldsValue();
         storage["baseInfo"]=JSON.stringify(fieldsValue);
@@ -135,7 +138,7 @@ class BaseInfoForm extends React.Component{
                                     {
                                         this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
-                                            initialValue:fieldValue===""?"":moment(fieldValue, 'YYYY-MM-DD'),
+                                            initialValue:fieldValue===""?moment([], 'YYYY-MM-DD'):moment(fieldValue, 'YYYY-MM-DD'),
                                             rules:item.validators==="required"?[{
                                                     required: true, message: `请输入${item.title}`,
                                                   }]:"",

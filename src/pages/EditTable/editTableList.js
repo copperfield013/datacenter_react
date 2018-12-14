@@ -54,45 +54,46 @@ export default class EditTableList extends React.Component {
 
   handleDelete = () => {
     const dataSource = [...this.state.dataSource];
-    if(!this.state.selectedRowKeys){
+    let skeys=this.state.selectedRowKeys
+    let len=this.state.selectedRowKeys.length
+    if(len===0){
         message.info("请选择一条数据")
     }else{
-        //   this.state.selectedRowKeys.map((it)=>{
-        //       dataSource.filter(item => item.key===it)
-            
-        //   })
-        
-        // console.log(dataSource)
+      skeys.map((key)=>{
         this.setState({ 
-          dataSource: dataSource,
+          dataSource:dataSource.filter(item => item.key !== key),
           selectedRowKeys: [],
-        });
-        let keys=[];
-        this.state.selectedRows.map((item)=>{ 
-            storage.removeItem(item.code)//在storage里面删除对应数据
-            for(let k in item){
-              keys.push(this.state.selectedRowKeys+k)
-            }
-            return false
         })
-        for(let k in newRecord){
-          keys.map((it)=>{
-            if(k===it){
-              delete(newRecord[k])
-            }
-            return false
-          })
-          storage["newRecord"]=JSON.stringify(newRecord)
-        }
-      }      
+        return false
+      })
+      //console.log(news)
+      let keys=[];
+      this.state.selectedRows.map((item)=>{ 
+          storage.removeItem(item.code)//在storage里面删除对应数据
+          for(let k in item){
+            keys.push(skeys+k)
+          }
+          return false
+      })
+      for(let k in newRecord){
+        keys.map((it)=>{
+          if(k===it){
+            delete newRecord[k]
+          }
+          return false
+        })
+        storage["newRecord"]=JSON.stringify(newRecord)
+      }
+    }      
   }
   render() {
-       const { selectedRowKeys } = this.state;
+      const { selectedRowKeys } = this.state;
       const rowSelection ={
+        type:"radio",
         selectedRowKeys,
         onChange: (selectedRowKeys, selectedRows) => {
-          console.log('selectedRows: ', selectedRows);
-          console.log(`selectedRowKeys: ${selectedRowKeys}`);
+          //console.log('selectedRows: ', selectedRows);
+          console.log(selectedRowKeys);
           this.setState({
             selectedRowKeys,
             selectedRows

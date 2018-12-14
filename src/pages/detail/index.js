@@ -4,7 +4,6 @@ import Super from "./../../super"
 import Units from './../../units/unit'
 import './index.css'
 import 'moment/locale/zh-cn';
-//import EditTable from './../../pages/EditTable'
 import EditTable from './../../pages/EditTable/editTable'
 import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 
@@ -37,8 +36,7 @@ export default class Detail extends React.Component{
                 }                 
             }).then((res)=>{
                 //console.log(res)
-                let obj = eval(res); 
-                storage[typecode]=JSON.stringify(obj); //存储一条数据
+                storage[typecode]=JSON.stringify(res); //存储一条数据
                 let detailsList=res.entity.fieldGroups; 
                 this.toDetails(res,this.props.type)
                 this.renderList(detailsList)
@@ -129,7 +127,7 @@ export default class Detail extends React.Component{
                 dataSource.push(this.requestTableList(item))
             }else if(item.fields){
                 firstCard=item.title
-            }
+            }     
             return false
         })   
         this.setState({
@@ -137,7 +135,7 @@ export default class Detail extends React.Component{
             formList,           
             itemDescs,
             columns,
-            dataSource:this.props.flag?"":dataSource,
+            dataSource:this.props.flag?[]:dataSource,
             cardTitle,
             firstCard,
         })
@@ -189,7 +187,9 @@ export default class Detail extends React.Component{
         });
     }
     fresh=()=>{
-        
+        console.log("刷新")
+        this.child.reSet() //重置baseInfoForm
+        this.children.initDetailsList()//无效，待解决
     }
     handleOk = (e) => {
         e.preventDefault();
@@ -244,9 +244,18 @@ export default class Detail extends React.Component{
 	onRef=(ref)=>{
 		this.child=ref
     }
+    onRef2=(ref)=>{
+		this.children=ref
+    }
     callbacktotalcode=(data)=>{
         totalcode=data
     }
+    scrollToAnchor = (anchorName) => {
+        if (anchorName) {
+            let anchorElement = document.getElementById(anchorName);
+            if(anchorElement) { anchorElement.scrollIntoView({behavior: 'smooth'})}
+        }
+      }
     render(){
         return(
             <div>
@@ -265,12 +274,12 @@ export default class Detail extends React.Component{
                         <div className="fr">
                             <Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn">提交</Button>
                             <Button className="hoverbig" title="融合模式"><Icon type="bulb" /></Button>
-                            <Button className="hoverbig" title="刷新"><Icon type="sync" /></Button>
+                            <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
                         </div>
                     }               
                     
                 </h3> 
-                <Card title={this.state.firstCard}>
+                <Card title={this.state.firstCard} id={this.state.firstCard}>
                     <BaseInfoForm 
                         formList={this.state.formList} 
                         type={this.props.type} 
@@ -286,8 +295,8 @@ export default class Detail extends React.Component{
                     count={this.state.count}
                     cardTitle={this.state.cardTitle}
                     itemDescs={this.state.itemDescs}
-                    dataSource={this.state.dataSource}
                     callback={this.callbacktotalcode}
+                    onRef2={this.onRef2}
                 />
                 <Modal
                     visible={this.state.visibleModal}
@@ -309,6 +318,19 @@ export default class Detail extends React.Component{
                         {this.state.detailHistory}
                     </Timeline>
                 </Drawer>
+                <div className="rightBar">
+                    <ul>
+                        <li onClick={()=>this.scrollToAnchor(this.state.firstCard)} key={this.state.firstCard}>
+                            {this.state.firstCard}
+                        </li>
+                        {
+                            this.state.cardTitle?
+                            this.state.cardTitle.map((item)=>{
+                                return <li onClick={()=>this.scrollToAnchor(item)} key={item}>{item}</li>
+                            }):""
+                        }
+                    </ul>
+                </div>
             </div>
         )
     }

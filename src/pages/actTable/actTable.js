@@ -1,13 +1,18 @@
 import React from 'react'
-import { Pagination ,Card,Table,Button,Icon,} from 'antd';
+import { Pagination ,Card,Table,Button,Icon,Popover,} from 'antd';
 import BaseForm from "./../../components/BaseForm"
 import Super from "./../../super"
 import './index.css'
+import ExportFrame from './../exportFrame/exportFrame'
 
 let storage=window.sessionStorage;
 export default class actTable extends React.Component{
     state={
         loading: false,
+        radioValue:1,
+    }
+    componentDidMount(){
+        this.props.onRef(this)
     }
     componentWillMount(){
         this.requestList()
@@ -39,8 +44,7 @@ export default class actTable extends React.Component{
 				}                 
 			}).then((res)=>{
 				if(res){
-					let obj = eval(res);
-                    storage[key]=JSON.stringify(obj); //存储一个列表数据
+                    storage[key]=JSON.stringify(res); //存储一个列表数据
                     //console.log(res)
                     this.editList(res)
                     if(res.entities.length>0){
@@ -157,14 +161,14 @@ export default class actTable extends React.Component{
             }                 
         }).then((res)=>{
             if(res){
-                let obj = eval(res);
-                storage[key]=JSON.stringify(obj); //存储一个列表数据
+                storage[key]=JSON.stringify(res); //存储一个列表数据
                 //console.log(res)
                 this.editList(res)
             }
         })
     }
     render(){
+        const content = <ExportFrame />
         return(
             <div>
                 <h3>
@@ -172,7 +176,9 @@ export default class actTable extends React.Component{
                     <div className="fr">
                         <Button className="hoverbig" title="创建" onClick={()=>this.props.handleNew(this.state.moduleTitle,this.state.newRecordCode)}><Icon type="plus"/></Button>
                         <Button className="hoverbig" title="导入"><Icon type="download" /></Button>
-                        <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
+                        <Popover content={content} title="导出" placement="bottomRight" trigger="click">
+                            <Button className="hoverbig" title="导出" onClick={this.showUpload}><Icon type="upload" /></Button>
+                        </Popover>                       
                         <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
                     </div>
                 </h3>

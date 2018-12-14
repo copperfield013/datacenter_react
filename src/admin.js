@@ -45,10 +45,13 @@ export default class Admin extends React.Component{
 						url:`/api/entity/remove/${menuId}/${code}`,  
 						data:{
 							isShowLoading:true
-						}                 
+						},                
 					}).then((res)=>{
 						if(res.status==="suc"){
-							message.success('删除成功！')                               
+							message.success('删除成功！')  
+							this.child.fresh()     //刷新列表，调用子组件方法                        
+						}else{
+							message.info('删除失败！')  
 						}
 					})
 				}
@@ -194,15 +197,19 @@ export default class Admin extends React.Component{
 						handleOperate={this.handleOperate}
 						activeKey={this.state.activeKey}
 						handleNew={this.handleNew}
+						onRef={this.onRef}
 					/>
 		}  	
 	}
+	onRef = (ref) => {
+        this.child = ref
+    }
 	//固定tab
 	handleScroll=(e)=>{		
 		let scrollTop  = e.target.scrollTop;  //滚动条滚动高度
 		let scrollHeight = e.target.scrollHeight
 		let obj =document.getElementsByClassName("ant-tabs-bar")[0]
-		if(scrollTop>55 && scrollHeight>705){
+		if(scrollTop>50 && scrollHeight>705){
 			obj.style.position = 'fixed';
 			obj.style.top = '0';	
 			obj.style.background='#002140'	

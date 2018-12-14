@@ -8,14 +8,15 @@ export default class EditTable extends React.Component{
 
     componentDidMount(){
         this.props.callback(totalcode)
+        this.props.onRef2(this)
     }
-    initDetailsList=()=>{ 
+    initDetailsList=()=>{
         const detailsList=this.props.detailsList;
         const detailsItemList=[];
         if(detailsList && detailsList.length>0){
             this.props.itemDescs.map((item,index)=>{
                 let cardTitle=this.props.cardTitle[index]
-                const RANGE=<Card title={cardTitle} key={cardTitle}>
+                const RANGE=<Card title={cardTitle} key={cardTitle} id={cardTitle}>
                                 <EditTableList 
                                     type={this.props.type}
                                     pagination={false}
@@ -28,7 +29,7 @@ export default class EditTable extends React.Component{
                             </Card>
                 detailsItemList.push(RANGE)
                 let submitcode=[];
-                if(this.props.dataSource){
+                if(this.props.dataSource.length>1){
                     this.props.dataSource[index].map((item)=>{
                         if(item.code){
                             submitcode.push(item.code);

@@ -73,7 +73,7 @@ class Loginit extends React.Component{
                                 })(
                                     <Checkbox>记住密码</Checkbox>
                             )}
-                            <a style={{float:'right'}} href="javascript:;">忘记密码</a> 
+                            <span>忘记密码</span>
                             <Button style={{width:'100%'}} type="primary" onClick={this.handleSubmit}>登录</Button>
                         </FormItem>
 
