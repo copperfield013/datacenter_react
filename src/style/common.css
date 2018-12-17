@@ -78,3 +78,7 @@ table{
     top:-4px;
     float: right;
 }
+.hoverable:hover{
+    box-shadow: 4px 4px 10px rgba(0,0,0,.09);
+    border-color: rgba(0,0,0,.09);
+}

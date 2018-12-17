@@ -279,7 +279,7 @@ export default class Detail extends React.Component{
                     }               
                     
                 </h3> 
-                <Card title={this.state.firstCard} id={this.state.firstCard}>
+                <Card title={this.state.firstCard} id={this.state.firstCard} className="hoverable" headStyle={{background:"#f2f4f5"}}>
                     <BaseInfoForm 
                         formList={this.state.formList} 
                         type={this.props.type} 

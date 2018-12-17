@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pagination ,Card,Table,Button,Icon,Popover,} from 'antd';
+import { Pagination ,Card,Table,Button,Icon,Popover,Modal,message} from 'antd';
 import BaseForm from "./../../components/BaseForm"
 import Super from "./../../super"
 import './index.css'
@@ -25,10 +25,10 @@ export default class actTable extends React.Component{
         return `共 ${total} 条`;
       }
     requestList=()=>{ 
-        let key=this.props.activeKey
-		if(storage[key]){
+        let menuId=this.props.menuId
+		if(storage[menuId]){
 			//console.log("已存储")
-			let data=JSON.parse(storage[key])
+			let data=JSON.parse(storage[menuId])
             this.editList(data)
             if(data.entities.length>0){
                 this.setState({
@@ -38,13 +38,13 @@ export default class actTable extends React.Component{
 		}else{
 			//console.log("未存储")
 			Super.super({
-				url:`/api/entity/list/${key}`,  
+				url:`/api/entity/list/${menuId}`,  
 				data:{
 					isShowLoading:true
 				}                 
 			}).then((res)=>{
 				if(res){
-                    storage[key]=JSON.stringify(res); //存储一个列表数据
+                    storage[menuId]=JSON.stringify(res); //存储一个列表数据
                     //console.log(res)
                     this.editList(res)
                     if(res.entities.length>0){
@@ -74,7 +74,7 @@ export default class actTable extends React.Component{
 				columns:'',
 				pageCount:'',
 			})
-        }        
+        }    
 		this.setState({
 			formList:data.criterias,
 			list:this.renderLists(list,storage.getItem("menuId"),codes),
@@ -112,16 +112,75 @@ export default class actTable extends React.Component{
                 key: 'action',
                 render: (text, record) => (
                 <span>
-                    <Button type="primary" icon="align-left" size="small" onClick={()=>this.props.handleOperate("detail",record)}>详情</Button>
-                    <Button type="dashed" icon="edit" size="small" onClick={()=>this.props.handleOperate("edit",record)}>修改</Button>
-                    <Button type="danger" icon="delete" size="small" onClick={()=>this.props.handleOperate("delete",record)}>删除</Button>
+                    <Button type="primary" icon="align-left" size="small" onClick={()=>this.handleOperate("detail",record)}>详情</Button>
+                    <Button type="dashed" icon="edit" size="small" onClick={()=>this.handleOperate("edit",record)}>修改</Button>
+                    <Button type="danger" icon="delete" size="small" onClick={()=>this.handleOperate("delete",record)}>删除</Button>
                 </span>
                 ),
             }
             data.push(act)
             return data
         }		
+    } 
+    handleOperate=(type,record)=>{
+		let menuId=this.props.menuId
+		let code=record.code
+		//console.log(code)
+        if(type==="delete"){
+            Modal.confirm({
+				title:"删除提示",
+				content:`您确定删除这些数据吗？`,
+				okText:"确认",
+				cancelText:"取消",
+				onOk:()=>{
+					Super.super({
+						url:`/api/entity/remove/${menuId}/${code}`,  
+						data:{
+							isShowLoading:true
+						},                
+					}).then((res)=>{
+						if(res.status==="suc"){
+							message.success('删除成功！')  
+							this.fresh()     //刷新列表，调用子组件方法                        
+						}else{
+							message.info('删除失败！')  
+						}
+					})
+				}
+			})
+		}else if(type==="detail"){	
+			this.handleDetail({record},"detail")
+		}else if(type==="edit"){
+			this.handleDetail({record},"edit")
+		}
     }   
+    handleDetail=({record},type)=>{
+		const panes = this.props.panes;
+		let flag = false;
+        let dcode=type; 
+        let code=record.code
+        let menuId=record.menuId;
+		dcode+=record.code;  //为了打开新页面，加入detail和eidt的code
+		//console.log(record.code)
+		for(let ops of panes){			
+		  if(ops.key === dcode){
+			flag = true;
+			break;
+		  }
+		  continue;
+		}
+		let xqTitle="";
+		if(type==="detail"){
+			xqTitle=record["姓名"]?`详情-${record["姓名"]}`:"详情"
+		}else{
+			xqTitle=record["姓名"]?`修改-${record["姓名"]}`:"修改"
+		}
+		if(flag === false){
+			panes.push({ title:xqTitle, key:dcode });
+        }		
+        this.props.actCallBackAdmin(panes,dcode,xqTitle,menuId,code,type)
+		//console.log(record.code)
+	} 
     //搜索和页码
 	searchList=(params)=>{
 		let menuId=storage.getItem("menuId");
@@ -152,37 +211,54 @@ export default class actTable extends React.Component{
 			})
 		})			
     }
+    handleNew=(title,newRecordCode)=>{
+		const panes = this.props.panes;
+		let flag = false;
+		let newcode=title+"--创建"
+		let newK=title+","+newRecordCode
+		for(let ops of panes){			
+			if(ops.key === newK){
+			  flag = true;
+			  break;
+			}
+			continue;
+          }
+		if(flag === false){
+			panes.push({ title:newcode, key:newK });
+        }
+        this.props.newRecordCallback(panes,newK,newcode,newRecordCode)
+	}
     fresh=()=>{
-        let key=this.props.activeKey
+        let menuId=this.props.menuId
         Super.super({
-            url:`/api/entity/list/${key}`,  
+            url:`/api/entity/list/${menuId}`,  
             data:{
                 isShowLoading:true
             }                 
         }).then((res)=>{
             if(res){
-                storage[key]=JSON.stringify(res); //存储一个列表数据
+                storage[menuId]=JSON.stringify(res); //存储一个列表数据
                 //console.log(res)
                 this.editList(res)
             }
         })
     }
     render(){
-        const content = <ExportFrame />
+        const content = <ExportFrame /> //导出组件
         return(
             <div>
                 <h3>
                     {this.state.moduleTitle}
                     <div className="fr">
-                        <Button className="hoverbig" title="创建" onClick={()=>this.props.handleNew(this.state.moduleTitle,this.state.newRecordCode)}><Icon type="plus"/></Button>
+                        <Button className="hoverbig" title="创建" onClick={()=>this.handleNew(this.state.moduleTitle,this.state.newRecordCode)}><Icon type="plus"/></Button>
                         <Button className="hoverbig" title="导入"><Icon type="download" /></Button>
                         <Popover content={content} title="导出" placement="bottomRight" trigger="click">
-                            <Button className="hoverbig" title="导出" onClick={this.showUpload}><Icon type="upload" /></Button>
+                            <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
                         </Popover>                       
                         <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
                     </div>
                 </h3>
-                <Card>
+                <Card className="hoverable" headStyle={{background:"#f2f4f5"}}>
                     <BaseForm formList={this.state.formList} filterSubmit={this.searchList}/>          
                 </Card>
                 <Table

@@ -138,9 +138,9 @@ class BaseInfoForm extends React.Component{
                                     {
                                         this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
-                                            initialValue:fieldValue===""?moment([], 'YYYY-MM-DD'):moment(fieldValue, 'YYYY-MM-DD'),
+                                            initialValue:fieldValue===""?null:moment(fieldValue, 'YYYY-MM-DD'),
                                             rules:item.validators==="required"?[{
-                                                    required: true, message: `请输入${item.title}`,
+                                                    required: true, message: `请输入${fieldName}`,
                                                   }]:"",
                                         })(
                                             <DatePicker style={{width:220}} locale={locale}/>
@@ -154,7 +154,7 @@ class BaseInfoForm extends React.Component{
                                         getFieldDecorator(fieldName,{
                                         initialValue:fieldValue,
                                         rules:item.validators==="required"?[{
-                                                required: true, message: `请输入${item.title}`,
+                                                required: true, message: `请输入${fieldName}`,
                                               }]:"",
                                     })(
                                         <Input type="text" style={{width:220}}/>
@@ -168,10 +168,13 @@ class BaseInfoForm extends React.Component{
                                             getFieldDecorator(fieldName,{
                                                 initialValue:fieldValue,
                                                 rules:item.validators==="required"?[{
-                                                        required: true, message: `请输入${item.title}`,
+                                                        required: true, message: `请输入${fieldName}`,
                                                       }]:"",
                                         })(
-                                            <Select style={{width:220}} onMouseEnter={()=>this.requestSelectOptions(field)}>
+                                            <Select style={{width:220}} 
+                                                    onMouseEnter={()=>this.requestSelectOptions(field)}
+                                                    placeholder={`请输入${fieldName}`}
+                                                    >
                                                     {Units.getSelectList(this.state.list)}
                                             </Select>
                                         )}
@@ -185,10 +188,13 @@ class BaseInfoForm extends React.Component{
                                             getFieldDecorator(fieldName,{
                                                 initialValue:result,
                                                 rules:item.validators==="required"?[{
-                                                        required: true, message: `请输入${item.title}`,
+                                                        required: true, message: `请输入${fieldName}`,
                                                       }]:"",
                                             })(
-                                            <Select mode="multiple" style={{width:220}} onMouseEnter={()=>this.requestSelectOptions(field)}>
+                                            <Select mode="multiple" style={{width:220}} 
+                                                    onMouseEnter={()=>this.requestSelectOptions(field)}
+                                                    placeholder={`请输入${fieldName}`}
+                                                    >
                                                 {Units.getSelectList(this.state.list)}
                                             </Select>
                                         )}
@@ -201,7 +207,7 @@ class BaseInfoForm extends React.Component{
                                             getFieldDecorator(fieldName)(
                                                 <Cascader
                                                     onClick={()=>this.requestLinkage(item.optionKey)}
-                                                    placeholder="请选择"
+                                                    placeholder={`请选择${fieldName}`}
                                                     style={{width:220}}
                                                     options={this.state.options}
                                                     loadData={this.loadData}

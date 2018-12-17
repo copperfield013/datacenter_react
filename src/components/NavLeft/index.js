@@ -30,7 +30,7 @@ export default class NavLeft extends React.Component{
 			if(item.level2s){
 				return <SubMenu title={item.title} key={item.id}>
 						{ this.renderMenu(item.level2s) }
-					</SubMenu>				
+						</SubMenu>				
 			}
 			return  <Menu.Item key={item.id} >
 						{item.title}
@@ -39,6 +39,7 @@ export default class NavLeft extends React.Component{
 	}	
 	handleMenu=({item, key})=>{
 		storage.setItem("menuId",key);
+		console.log(item)
 		let panes=this.props.panes;
 		let flag = false;
 		for(let ops of panes){
@@ -48,7 +49,7 @@ export default class NavLeft extends React.Component{
 		  }
 		  continue;
 		}
-		this.setState({ panes, activeKey:key,menuId:key});
+		this.setState({openKeys:item.props.openKeys});
 		if(flag === false){
 		  panes.push({ title: item.props.children, key });
 		}
@@ -56,6 +57,7 @@ export default class NavLeft extends React.Component{
 		//console.log(key)
 	}
 	handleOpen=(openKeys)=>{
+		//console.log(openKeys)
 		if(openKeys.length>1){
 			openKeys.splice(0,1);
 		}
@@ -72,6 +74,7 @@ export default class NavLeft extends React.Component{
 					theme="dark"
 					onClick={this.handleMenu}
 					onOpenChange={this.handleOpen} //手风琴
+					selectedKeys={[this.props.activeKey]}
 				 >
 					{this.state.menuTreeNode}
 				 </Menu>

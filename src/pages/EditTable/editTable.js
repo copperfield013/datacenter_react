@@ -16,7 +16,7 @@ export default class EditTable extends React.Component{
         if(detailsList && detailsList.length>0){
             this.props.itemDescs.map((item,index)=>{
                 let cardTitle=this.props.cardTitle[index]
-                const RANGE=<Card title={cardTitle} key={cardTitle} id={cardTitle}>
+                const RANGE=<Card title={cardTitle} key={cardTitle} id={cardTitle} className="hoverable" headStyle={{background:"#f2f4f5"}}>
                                 <EditTableList 
                                     type={this.props.type}
                                     pagination={false}

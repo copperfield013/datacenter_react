@@ -11,7 +11,6 @@ export default class ExportFrame extends React.Component{
     }
     
     onChangeRadio=(e)=>{
-        console.log('radio checked', e.target.value);
         this.setState({
             radioValue: e.target.value,
         });

@@ -16,7 +16,7 @@
     border:1px solid #e8e8e8;
     border-radius: 4px;
     z-index: 100;
-    box-shadow: 2px 2px 10px #97a3ad
+    box-shadow: 2px 2px 10px rgba(0,0,0,.2)
 }
 .rightBar ul{
     padding:0;

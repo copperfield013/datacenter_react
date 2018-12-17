@@ -1,11 +1,9 @@
 import React from 'react'
-import { Radio, Input, Button,Checkbox ,Form,Select,DatePicker } from 'antd'
+import {Input,Button,Form,Select,DatePicker,InputNumber} from 'antd'
 import Units from "../../units/unit";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
 const FormItem=Form.Item
-const RadioGroup = Radio.Group;
-const CheckboxGroup = Checkbox.Group;
 const {RangePicker} = DatePicker;
 
 class BaseForm extends React.Component{
@@ -24,19 +22,32 @@ class BaseForm extends React.Component{
             formList.forEach((item)=>{
                 let label=item.title;
                 let field=`criteria_${item.id}`;
-                let placeholder=item.placeholder || '';
-                let initialValue=item.defaultValue || '';
+                let initialValue=item.defaultValue;
                 if(item.inputType==="daterange"){
                     const TIMEPICKER= <FormItem label={label} key={field}>
                         {getFieldDecorator(field)(
-                            <RangePicker locale={locale} style={{width:225}}/>
+                            <RangePicker placeholder={`请输入${label}`} locale={locale} style={{width:225}}/>
+                        )}
+                    </FormItem>   
+                    formItemList.push(TIMEPICKER)                
+                }else if(item.inputType==="date"){
+                    const TIMEPICKER= <FormItem label={label} key={field}>
+                        {getFieldDecorator(field)(
+                            <DatePicker locale={locale} style={{width:225}}/>
+                        )}
+                    </FormItem>   
+                    formItemList.push(TIMEPICKER)                
+                }else if(item.inputType==="decimal"){
+                    const TIMEPICKER= <FormItem label={label} key={field}>
+                        {getFieldDecorator(field)(
+                            <InputNumber placeholder={`请输入${label}`} style={{width:160}} min={0}/>
                         )}
                     </FormItem>   
                     formItemList.push(TIMEPICKER)                
                 }else if(item.inputType==="text"){
                     const INPUT= <FormItem label={label} key={field}>
                         {getFieldDecorator(field)(
-                            <Input type="text" placeholder={placeholder} style={{width:165}} />
+                            <Input type="text" placeholder={`请输入${label}`} style={{width:160}} />
                         )}
                     </FormItem>   
                     formItemList.push(INPUT)                
@@ -45,33 +56,12 @@ class BaseForm extends React.Component{
                         {getFieldDecorator(field,{
                             initialValue:initialValue
                         })(
-                            <Select placeholder={placeholder} style={{width:120}}>
+                            <Select style={{width:120}} placeholder={`请输入${label}`}>
                                 {Units.getSelectList(item.list)}
                             </Select>
                         )}
                     </FormItem>
                     formItemList.push(SELECT)    
-                }else if(item.inputType==="CHECKBOX"){
-                    const CHECKBOX= <FormItem label={label} key={field}>
-                        {getFieldDecorator(field,{
-                            valuePropName:'checked',
-                            initialValue:initialValue
-                        })(
-                            <CheckboxGroup options={item.list} />
-                        )}
-                    </FormItem>
-                    formItemList.push(CHECKBOX)   
-                }else if(item.inputType==="RADIO"){
-                    const CHECKBOX= <FormItem label={label} key={field}>
-                        {getFieldDecorator(field,{
-                            initialValue:initialValue
-                        })(
-                            <RadioGroup>
-                                {Units.getRadioList(item.list)}
-                            </RadioGroup>
-                        )}
-                    </FormItem>
-                    formItemList.push(CHECKBOX)   
                 }
             })
         }
