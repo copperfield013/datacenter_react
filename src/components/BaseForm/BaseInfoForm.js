@@ -1,6 +1,6 @@
 import React from 'react'
 import {Input,Button,Cascader,Form,Select,DatePicker,Avatar,Upload,Icon} from 'antd'
-import axios from "./../../axios"
+import Super from "./../../super"
 import Units from "../../units/unit";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
@@ -19,29 +19,26 @@ class BaseInfoForm extends React.Component{
         this.props.form.resetFields();
     }
     handleBaseInfoSubmit=()=>{
-        let fieldsValue=this.props.form.getFieldsValue();
-        storage["baseInfo"]=JSON.stringify(fieldsValue);
+        let fieldsValue=this.props.form.getFieldsValue()
+        storage["baseInfo"]=JSON.stringify(fieldsValue)
     }
     requestSelectOptions=(id)=>{//下拉框
-        axios.ajax({
-            url:`/api/field/options?fieldIds=${id}`,
-            data:{
-                isShowLoading:false,
-            }
-        }).then((res)=>{
-            let key=res.keyPrefix+id;
+        Super.super({
+			url:`/api/field/options?fieldIds=${id}`,                
+		}).then((res)=>{
+			let key=res.keyPrefix+id
             this.setState({
                 list:res.optionsMap[key]
             })
-        })
+		})
     }
     requestLinkage=(optionKey)=>{ //第一级联动
         let optGroupId=optionKey.split("@")[0]
         let time=optionKey.split("@")[1]
-        axios.ajax({
-            url:`/api/field/cas_ops/${optGroupId}`,
-        }).then((res)=>{
-            let ops=[]
+        Super.super({
+			url:`/api/field/cas_ops/${optGroupId}`,                
+		}).then((res)=>{
+			let ops=[]
             res.options.map((item)=>{
                 let op={}
                 op["value"]=item.title
@@ -55,11 +52,11 @@ class BaseInfoForm extends React.Component{
                 options:ops,
                 time
             })
-        })
+		})
     }
     loadData = (selectedOptions) => { //子集联动
-        const targetOption = selectedOptions[selectedOptions.length - 1];
-        targetOption.loading = true;
+        const targetOption = selectedOptions[selectedOptions.length - 1]
+        targetOption.loading = true
         //console.log(selectedOptions)
         // load options lazily
         this.setState({
@@ -71,8 +68,8 @@ class BaseInfoForm extends React.Component{
                 id=item.key
                 return false
             })
-            axios.ajax({
-                url:`/api/field/cas_ops/${id}`,
+            Super.super({
+                url:`/api/field/cas_ops/${id}`,                
             }).then((res)=>{
                 let ops=[]
                 let time=this.state.time
@@ -97,8 +94,7 @@ class BaseInfoForm extends React.Component{
                     });
                 }, 300);
             })
-        }
-        
+        }       
       }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
@@ -143,7 +139,7 @@ class BaseInfoForm extends React.Component{
                                                     required: true, message: `请输入${fieldName}`,
                                                   }]:"",
                                         })(
-                                            <DatePicker style={{width:220}} locale={locale}/>
+                                            <DatePicker style={{width:220}} locale={locale} getCalendarContainer={trigger => trigger.parentNode}/>
                                     )}
                                 </FormItem>
                     formItemList.push(DATE)                
@@ -174,6 +170,7 @@ class BaseInfoForm extends React.Component{
                                             <Select style={{width:220}} 
                                                     onMouseEnter={()=>this.requestSelectOptions(field)}
                                                     placeholder={`请输入${fieldName}`}
+                                                    getPopupContainer={trigger => trigger.parentNode}
                                                     >
                                                     {Units.getSelectList(this.state.list)}
                                             </Select>
@@ -194,6 +191,7 @@ class BaseInfoForm extends React.Component{
                                             <Select mode="multiple" style={{width:220}} 
                                                     onMouseEnter={()=>this.requestSelectOptions(field)}
                                                     placeholder={`请输入${fieldName}`}
+                                                    getPopupContainer={trigger => trigger.parentNode}
                                                     >
                                                 {Units.getSelectList(this.state.list)}
                                             </Select>
@@ -212,6 +210,7 @@ class BaseInfoForm extends React.Component{
                                                     options={this.state.options}
                                                     loadData={this.loadData}
                                                     displayRender={label=>label.join('->')}
+                                                    getPopupContainer={trigger => trigger.parentNode}
                                                 />
                                         )}
                                 </FormItem>

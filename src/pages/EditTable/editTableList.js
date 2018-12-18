@@ -35,7 +35,7 @@ export default class EditTableList extends React.Component {
     this.props.item.map((item)=>{
         let fieldName=item.fieldName;
         //let fieldId=item.fieldId;
-        list["key"]=count
+        list["key"]=fieldName+count
         list[fieldName]=<Input type="text" 
                           style={{width:185}} 
                           key={[fieldName+count]} 
@@ -93,7 +93,7 @@ export default class EditTableList extends React.Component {
         selectedRowKeys,
         onChange: (selectedRowKeys, selectedRows) => {
           //console.log('selectedRows: ', selectedRows);
-          console.log(selectedRowKeys);
+          //console.log(selectedRowKeys);
           this.setState({
             selectedRowKeys,
             selectedRows

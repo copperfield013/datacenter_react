@@ -5,11 +5,11 @@ let storage=window.sessionStorage;
 export default class Superagent{
     static super(options){
         let tokenName=storage.getItem('tokenName')
-        let loading;
-        if(options.data && options.data.isShowLoading!==false){
-            loading=document.getElementById('ajaxLoading')
-            loading.style.display="block"
-        }
+        // let loading;
+        // if(options.data && options.data.isShowLoading!==false){
+        //     loading=document.getElementById('ajaxLoading')
+        //     loading.style.display="block"
+        // }
         return new Promise((resolve,reject)=>{
             superagent
                 .post(options.url)
@@ -18,10 +18,10 @@ export default class Superagent{
                 .query(options.query||'')
                 .send(options.data||'')
                 .end((req,res)=>{
-                    if(options.data && options.data.isShowLoading!==false){
-                        loading=document.getElementById('ajaxLoading')
-                        loading.style.display="none"
-                    } 
+                    // if(options.data && options.data.isShowLoading!==false){
+                    //     loading=document.getElementById('ajaxLoading')
+                    //     loading.style.display="none"
+                    // } 
                     //console.log(res.body)
                     if(res.status===200){
                         resolve(res.body)

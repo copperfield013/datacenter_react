@@ -5,7 +5,6 @@ import EditTableList from './editTableList'
 let storage=window.sessionStorage;
 let totalcode=[]
 export default class EditTable extends React.Component{
-
     componentDidMount(){
         this.props.callback(totalcode)
         this.props.onRef2(this)
@@ -16,7 +15,12 @@ export default class EditTable extends React.Component{
         if(detailsList && detailsList.length>0){
             this.props.itemDescs.map((item,index)=>{
                 let cardTitle=this.props.cardTitle[index]
-                const RANGE=<Card title={cardTitle} key={cardTitle} id={cardTitle} className="hoverable" headStyle={{background:"#f2f4f5"}}>
+                const RANGE=<Card title={cardTitle} 
+                                key={cardTitle} 
+                                id={cardTitle} 
+                                className="hoverable" 
+                                headStyle={{background:"#f2f4f5"}}
+                                >
                                 <EditTableList 
                                     type={this.props.type}
                                     pagination={false}

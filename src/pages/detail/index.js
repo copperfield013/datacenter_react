@@ -1,5 +1,5 @@
 import React from 'react'
-import {Card,Button,Modal,message,Icon,Drawer,Timeline} from 'antd'
+import {Card,Button,Modal,message,Icon,Drawer,Timeline,Switch} from 'antd'
 import Super from "./../../super"
 import Units from './../../units/unit'
 import './index.css'
@@ -14,6 +14,7 @@ export default class Detail extends React.Component{
         count:0,
         visibleModal: false,
         visibleDrawer:false,
+        loading:false,
     }
     componentWillMount(){
         this.requestLists()
@@ -24,16 +25,14 @@ export default class Detail extends React.Component{
             console.log("无效的模板")
             return
         }
+        this.setState({loading:true})
         let typecode=this.props.type+this.props.code;		
         if(!storage[typecode]){//判断是否存储数据
             //console.log("未存")
             let menuId=this.props.menuId;
             let code=this.props.code;
             Super.super({
-                url:`/api/entity/detail/${menuId}/${code}`,  
-                data:{
-                    isShowLoading:true
-                }                 
+                url:`/api/entity/detail/${menuId}/${code}`,                 
             }).then((res)=>{
                 //console.log(res)
                 storage[typecode]=JSON.stringify(res); //存储一条数据
@@ -46,6 +45,7 @@ export default class Detail extends React.Component{
                         detailHistory
                     }) 
                 }
+                this.setState({loading:false})
             })
         }else{  
             //console.log("已存") 
@@ -58,7 +58,8 @@ export default class Detail extends React.Component{
                 this.setState({
                     detailHistory
                 })
-            }          
+            }
+            this.setState({loading:false})          
         }               
     }
     renderHistoryList=(data)=>{
@@ -74,13 +75,13 @@ export default class Detail extends React.Component{
 		})
     }
     toHistory=(e)=>{
+        this.setState({loading:true})
         let historyId=e.target.getAttribute("id");
         let menuId=this.props.menuId;
         let code=this.props.code;
         Super.super({
             url:`/api/entity/detail/${menuId}/${code}`,  
             data:{
-                isShowLoading:true,
                 historyId,
             }                 
         }).then((res)=>{
@@ -93,6 +94,7 @@ export default class Detail extends React.Component{
                     detailHistory
                 }) 
             }
+            this.setState({loading:false})
         })
 
     }
@@ -164,7 +166,7 @@ export default class Detail extends React.Component{
                 item.fields.map((it,index)=>{
                     let fieldName=it.fieldName;
                     let fieldValue=it.value;
-                    list["key"]=index;
+                    list["key"]=index+code;
                     list["code"]=code;
                     list[fieldName]=fieldValue;
                     return false
@@ -193,6 +195,7 @@ export default class Detail extends React.Component{
     }
     handleOk = (e) => {
         e.preventDefault();
+        this.setState({loading:true})
         this.child.handleBaseInfoSubmit()
         let records=[]
         let menuId=this.props.menuId;
@@ -205,6 +208,7 @@ export default class Detail extends React.Component{
         totalcode.map((item)=>{
             if(storage.getItem(item)){
                 let record=JSON.parse(storage.getItem(item))
+                delete(record.key)//删除不必要传递的key
                 records.push(record)
             }
             return false
@@ -217,12 +221,12 @@ export default class Detail extends React.Component{
         Super.super({
             url:`/api/entity/update/${menuId}`,  
             data:{
-                isShowLoading:true,
                 "唯一编码":code,
                 ...values,
             }                 
         }).then((res)=>{
             console.log(res)
+            this.setState({loading:false})
             message.success("提交成功！")
         })
         this.setState({
@@ -273,13 +277,18 @@ export default class Detail extends React.Component{
                         :
                         <div className="fr">
                             <Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn">提交</Button>
-                            <Button className="hoverbig" title="融合模式"><Icon type="bulb" /></Button>
+                            <Switch checkedChildren="开" unCheckedChildren="关" style={{marginRight:10}} title="融合模式"/>
                             <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
                         </div>
                     }               
                     
                 </h3> 
-                <Card title={this.state.firstCard} id={this.state.firstCard} className="hoverable" headStyle={{background:"#f2f4f5"}}>
+                <Card title={this.state.firstCard} 
+                    id={this.state.firstCard} 
+                    className="hoverable" 
+                    headStyle={{background:"#f2f4f5"}}
+                    loading={this.state.loading}
+                    >
                     <BaseInfoForm 
                         formList={this.state.formList} 
                         type={this.props.type} 

@@ -10,6 +10,7 @@ export default class actTable extends React.Component{
     state={
         loading: false,
         radioValue:1,
+        currentPage:1,
     }
     componentDidMount(){
         this.props.onRef(this)
@@ -25,11 +26,13 @@ export default class actTable extends React.Component{
         return `共 ${total} 条`;
       }
     requestList=()=>{ 
-        let menuId=this.props.menuId
+        let menuId=this.props.menuId;
+        this.setState({loading:true})
 		if(storage[menuId]){
 			//console.log("已存储")
 			let data=JSON.parse(storage[menuId])
             this.editList(data)
+            this.setState({loading:false})
             if(data.entities.length>0){
                 this.setState({
                     newRecordCode:data.entities[0].code
@@ -38,12 +41,10 @@ export default class actTable extends React.Component{
 		}else{
 			//console.log("未存储")
 			Super.super({
-				url:`/api/entity/list/${menuId}`,  
-				data:{
-					isShowLoading:true
-				}                 
+				url:`/api/entity/list/${menuId}`,                
 			}).then((res)=>{
 				if(res){
+                    this.setState({loading:false})
                     storage[menuId]=JSON.stringify(res); //存储一个列表数据
                     //console.log(res)
                     this.editList(res)
@@ -125,7 +126,8 @@ export default class actTable extends React.Component{
     handleOperate=(type,record)=>{
 		let menuId=this.props.menuId
 		let code=record.code
-		//console.log(code)
+        //console.log(code)
+        this.setState({loading:true})
         if(type==="delete"){
             Modal.confirm({
 				title:"删除提示",
@@ -134,11 +136,9 @@ export default class actTable extends React.Component{
 				cancelText:"取消",
 				onOk:()=>{
 					Super.super({
-						url:`/api/entity/remove/${menuId}/${code}`,  
-						data:{
-							isShowLoading:true
-						},                
+						url:`/api/entity/remove/${menuId}/${code}`,               
 					}).then((res)=>{
+                        this.setState({loading:false})
 						if(res.status==="suc"){
 							message.success('删除成功！')  
 							this.fresh()     //刷新列表，调用子组件方法                        
@@ -146,7 +146,10 @@ export default class actTable extends React.Component{
 							message.info('删除失败！')  
 						}
 					})
-				}
+                },
+                onCancel:()=>{
+                    this.setState({loading:false})
+                }
 			})
 		}else if(type==="detail"){	
 			this.handleDetail({record},"detail")
@@ -178,13 +181,15 @@ export default class actTable extends React.Component{
 		if(flag === false){
 			panes.push({ title:xqTitle, key:dcode });
         }		
+        this.setState({loading:false})
         this.props.actCallBackAdmin(panes,dcode,xqTitle,menuId,code,type)
 		//console.log(record.code)
 	} 
     //搜索和页码
 	searchList=(params)=>{
 		let menuId=storage.getItem("menuId");
-		let data=""
+        let data="";
+        this.setState({loading:true})
 		if(isNaN(params)){
 			data={...params}
 		}else{
@@ -194,7 +199,6 @@ export default class actTable extends React.Component{
 			url:`/api/entity/list/${menuId}`,  
 			data:{
 				...data,
-				isShowLoading:true
 			}                 
 		}).then((res)=>{
 			let list=[]
@@ -203,11 +207,13 @@ export default class actTable extends React.Component{
 				code.push(item.code)
 				list.push(item.fields)
 				return false
-			})
+            })
 			this.setState({
+                loading:false,
 				list:this.renderLists(list,storage.getItem("menuId"),code),
 				code,
-				pageCount:res.pageInfo.count,
+                pageCount:res.pageInfo.count,
+                currentPage:res.pageInfo.pageNo
 			})
 		})			
     }
@@ -229,14 +235,13 @@ export default class actTable extends React.Component{
         this.props.newRecordCallback(panes,newK,newcode,newRecordCode)
 	}
     fresh=()=>{
-        let menuId=this.props.menuId
+        let menuId=this.props.menuId;
+        this.setState({loading:true})
         Super.super({
-            url:`/api/entity/list/${menuId}`,  
-            data:{
-                isShowLoading:true
-            }                 
+            url:`/api/entity/list/${menuId}`,                
         }).then((res)=>{
             if(res){
+                this.setState({loading:false,currentPage:1})
                 storage[menuId]=JSON.stringify(res); //存储一个列表数据
                 //console.log(res)
                 this.editList(res)
@@ -258,7 +263,7 @@ export default class actTable extends React.Component{
                         <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
                     </div>
                 </h3>
-                <Card className="hoverable" headStyle={{background:"#f2f4f5"}}>
+                <Card className="hoverable" headStyle={{background:"#f2f4f5"}} loading={this.state.loading}>
                     <BaseForm formList={this.state.formList} filterSubmit={this.searchList}/>          
                 </Card>
                 <Table
@@ -267,11 +272,13 @@ export default class actTable extends React.Component{
                     bordered
                     pagination={false}
                     style={{display:this.state.columns?"block":"none"}}
+                    loading={this.state.loading}
                 >
                 </Table>
                 <Pagination 
                     showQuickJumper 
                     defaultCurrent={1} 
+                    current={this.state.currentPage}
                     total={this.state.pageCount} 
                     onChange={this.searchList} 
                     hideOnSinglePage={true}

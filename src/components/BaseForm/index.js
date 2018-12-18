@@ -26,14 +26,14 @@ class BaseForm extends React.Component{
                 if(item.inputType==="daterange"){
                     const TIMEPICKER= <FormItem label={label} key={field}>
                         {getFieldDecorator(field)(
-                            <RangePicker placeholder={`请输入${label}`} locale={locale} style={{width:225}}/>
+                            <RangePicker locale={locale} style={{width:225}}/>
                         )}
                     </FormItem>   
                     formItemList.push(TIMEPICKER)                
                 }else if(item.inputType==="date"){
                     const TIMEPICKER= <FormItem label={label} key={field}>
                         {getFieldDecorator(field)(
-                            <DatePicker locale={locale} style={{width:225}}/>
+                            <DatePicker locale={locale} style={{width:225}} getCalendarContainer={trigger => trigger.parentNode}/>
                         )}
                     </FormItem>   
                     formItemList.push(TIMEPICKER)                
@@ -56,7 +56,7 @@ class BaseForm extends React.Component{
                         {getFieldDecorator(field,{
                             initialValue:initialValue
                         })(
-                            <Select style={{width:120}} placeholder={`请输入${label}`}>
+                            <Select style={{width:120}} placeholder={`请输入${label}`} getPopupContainer={trigger => trigger.parentNode}>
                                 {Units.getSelectList(item.list)}
                             </Select>
                         )}

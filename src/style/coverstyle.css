@@ -22,4 +22,6 @@
 .ant-upload-list{
 	width:220px
 }
-
+:root .ant-tabs-tab-prev-icon-target, :root .ant-tabs-tab-next-icon-target{
+	font-size: 20px;
+}

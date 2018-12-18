@@ -7,8 +7,13 @@ const SubMenu = Menu.SubMenu;
 let storage=window.sessionStorage;
 export default class NavLeft extends React.Component{
 	state={
-		menuTreeNode:[]
+		menuTreeNode:[],
+		openKeys:[]
 	}
+	
+    componentDidMount(){
+        this.props.onRef2(this)
+    }
 	componentWillMount(){
 		this.request()
 	}
@@ -20,8 +25,14 @@ export default class NavLeft extends React.Component{
 			}                 
 		}).then((res)=>{
 			const menuTreeNode = this.renderMenu(res.menus)
+			let objKey={}
+			res.menus.map((item)=>{
+				objKey[item.id]=item.level2s
+				return false
+			})
 			this.setState({
-				menuTreeNode
+				menuTreeNode,
+				objKey
 			})
 		})	
 	}
@@ -39,7 +50,6 @@ export default class NavLeft extends React.Component{
 	}	
 	handleMenu=({item, key})=>{
 		storage.setItem("menuId",key);
-		console.log(item)
 		let panes=this.props.panes;
 		let flag = false;
 		for(let ops of panes){
@@ -61,6 +71,22 @@ export default class NavLeft extends React.Component{
 		if(openKeys.length>1){
 			openKeys.splice(0,1);
 		}
+		this.setState({openKeys})		
+	}
+	handleOpenKey=(activeKey)=>{
+		if(activeKey){
+			let objKey=this.state.objKey;
+			for(let key in objKey){
+				objKey[key].map((item)=>{
+					let itemId=item.id.toString()
+					if(itemId===activeKey){
+						this.setState({openKeys:[key]})
+					}
+					return false
+				})
+			}
+		}
+		return false
 	}
 	render(){
 		return (
@@ -72,9 +98,10 @@ export default class NavLeft extends React.Component{
 				 <Menu 
 					mode="inline"
 					theme="dark"
+					openKeys={this.state.openKeys}
 					onClick={this.handleMenu}
 					onOpenChange={this.handleOpen} //手风琴
-					selectedKeys={[this.props.activeKey]}
+					selectedKeys={this.props.activeKey}
 				 >
 					{this.state.menuTreeNode}
 				 </Menu>
