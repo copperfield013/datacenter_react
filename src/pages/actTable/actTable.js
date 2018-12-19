@@ -9,6 +9,7 @@ const storage=window.sessionStorage;
 export default class actTable extends React.Component{
     state={
         loading: false,
+        Loading:false,
         radioValue:1,
         currentPage:1,
     }
@@ -27,12 +28,12 @@ export default class actTable extends React.Component{
     }
     requestList=()=>{ 
         const menuId=this.props.menuId;
-        this.setState({loading:true})
+        this.setState({loading:true,Loading:true,})
 		if(storage[menuId]){
 			//console.log("已存储")
 			const data=JSON.parse(storage[menuId])
             this.editList(data)
-            this.setState({loading:false})
+            this.setState({loading:false,Loading:false})
             if(data.entities.length>0){
                 this.setState({
                     newRecordCode:data.entities[0].code
@@ -44,7 +45,7 @@ export default class actTable extends React.Component{
 				url:`/api/entity/list/${menuId}`,                
 			}).then((res)=>{
 				if(res){
-                    this.setState({loading:false})
+                    this.setState({loading:false,Loading:false})
                     storage[menuId]=JSON.stringify(res); //存储一个列表数据
                     //console.log(res)
                     this.editList(res)
@@ -127,7 +128,7 @@ export default class actTable extends React.Component{
 		const menuId=this.props.menuId
 		const code=record.code
         //console.log(code)
-        this.setState({loading:true})
+        this.setState({loading:true,Loading:true})
         if(type==="delete"){
             Modal.confirm({
 				title:"删除提示",
@@ -138,7 +139,7 @@ export default class actTable extends React.Component{
 					Super.super({
 						url:`/api/entity/remove/${menuId}/${code}`,               
 					}).then((res)=>{
-                        this.setState({loading:false})
+                        this.setState({loading:false,Loading:false})
 						if(res.status==="suc"){
 							message.success('删除成功！')  
 							this.fresh()     //刷新列表，调用子组件方法                        
@@ -148,7 +149,7 @@ export default class actTable extends React.Component{
 					})
                 },
                 onCancel:()=>{
-                    this.setState({loading:false})
+                    this.setState({loading:false,Loading:false})
                 }
 			})
 		}else if(type==="detail"){	
@@ -181,7 +182,7 @@ export default class actTable extends React.Component{
 		if(flag === false){
 			panes.push({ title:xqTitle, key:dcode });
         }		
-        this.setState({loading:false})
+        this.setState({loading:false,Loading:false})
         this.props.actCallBackAdmin(panes,dcode,xqTitle,menuId,code,type)
 		//console.log(record.code)
 	} 
@@ -189,7 +190,7 @@ export default class actTable extends React.Component{
 	searchList=(params)=>{
 		const menuId=storage.getItem("menuId");
         let data="";
-        this.setState({loading:true})
+        this.setState({Loading:true})
 		if(isNaN(params)){
 			data={...params}
 		}else{
@@ -209,7 +210,7 @@ export default class actTable extends React.Component{
 				return false
             })
 			this.setState({
-                loading:false,
+                Loading:false,
 				list:this.renderLists(list,storage.getItem("menuId"),code),
 				code,
                 pageCount:res.pageInfo.count,
@@ -236,15 +237,15 @@ export default class actTable extends React.Component{
 	}
     fresh=()=>{
         const menuId=this.props.menuId;
-        this.setState({loading:true})
+        this.setState({loading:true,Loading:true})
         Super.super({
             url:`/api/entity/list/${menuId}`,                
         }).then((res)=>{
             if(res){
-                this.setState({loading:false,currentPage:1})
+                this.setState({loading:false,currentPage:1,Loading:false})
                 storage[menuId]=JSON.stringify(res); //存储一个列表数据
-                //console.log(res)
                 this.editList(res)
+                message.success("刷新成功")
             }
         })
     }
@@ -272,7 +273,7 @@ export default class actTable extends React.Component{
                     bordered
                     pagination={false}
                     style={{display:this.state.columns?"block":"none"}}
-                    loading={this.state.loading}
+                    loading={this.state.Loading}
                 >
                 </Table>
                 <Pagination 

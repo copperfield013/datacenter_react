@@ -7,7 +7,6 @@ const totalcode=[]
 export default class EditTable extends React.Component{
     componentDidMount(){
         this.props.callback(totalcode)
-        this.props.onRef2(this)
     }
     initDetailsList=()=>{
         const detailsList=this.props.detailsList;

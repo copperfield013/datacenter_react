@@ -166,7 +166,7 @@ export default class Detail extends React.Component{
                 item.fields.map((it,index)=>{
                     const fieldName=it.fieldName;
                     const fieldValue=it.value;
-                    list["key"]=index+code;
+                    list["key"]=code;
                     list["code"]=code;
                     list[fieldName]=fieldValue;
                     return false
@@ -189,9 +189,10 @@ export default class Detail extends React.Component{
         });
     }
     fresh=()=>{
-        console.log("刷新")
         this.child.reSet() //重置baseInfoForm
-        this.children.initDetailsList()//无效，待解决
+        //this.children.initDetailsList(true)//无效，待解决
+        this.renderList(this.state.detailsList)
+        message.success("刷新成功")
     }
     handleOk = (e) => {
         e.preventDefault();
@@ -248,9 +249,6 @@ export default class Detail extends React.Component{
 	onRef=(ref)=>{
 		this.child=ref
     }
-    onRef2=(ref)=>{
-		this.children=ref
-    }
     callbacktotalcode=(data)=>{
         totalcode=data
     }
@@ -305,7 +303,6 @@ export default class Detail extends React.Component{
                     cardTitle={this.state.cardTitle}
                     itemDescs={this.state.itemDescs}
                     callback={this.callbacktotalcode}
-                    onRef2={this.onRef2}
                 />
                 <Modal
                     visible={this.state.visibleModal}
