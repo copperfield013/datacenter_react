@@ -3,9 +3,9 @@ import { Pagination ,Card,Table,Button,Icon,Popover,Modal,message} from 'antd';
 import BaseForm from "./../../components/BaseForm"
 import Super from "./../../super"
 import './index.css'
-import ExportFrame from './../exportFrame/exportFrame'
+import ExportFrame from './../../components/exportFrame/exportFrame'
 
-let storage=window.sessionStorage;
+const storage=window.sessionStorage;
 export default class actTable extends React.Component{
     state={
         loading: false,
@@ -24,13 +24,13 @@ export default class actTable extends React.Component{
     }
     showTotal=(total)=>{
         return `共 ${total} 条`;
-      }
+    }
     requestList=()=>{ 
-        let menuId=this.props.menuId;
+        const menuId=this.props.menuId;
         this.setState({loading:true})
 		if(storage[menuId]){
 			//console.log("已存储")
-			let data=JSON.parse(storage[menuId])
+			const data=JSON.parse(storage[menuId])
             this.editList(data)
             this.setState({loading:false})
             if(data.entities.length>0){
@@ -58,8 +58,8 @@ export default class actTable extends React.Component{
 		}		
 	}
     editList=(data)=>{
-		let list=[]
-        let codes=[];
+		const list=[]
+        const codes=[];
 		if(data.entities && data.entities.length!==0){
 			this.setState({
 				columns:this.renderColumns(data.entities[0].fields),
@@ -84,18 +84,18 @@ export default class actTable extends React.Component{
     }
     //list数据转换
 	renderLists=(data,menuId,codes)=>{
-            let result=[];
-            data.map((item,index)=>{
-                let list={};
-                list['key']=index;//每一项添加key值
-                list['code']=codes[index];//添加code
-                list['menuId']=menuId;
-                item.map((item)=>{
-                    let key=item.title
-                    let value=item.value
-                    list[key]=value
-                    return false
-                })
+        const result=[];
+        data.map((item,index)=>{
+            let list={};
+            list['key']=index;//每一项添加key值
+            list['code']=codes[index];//添加code
+            list['menuId']=menuId;
+            item.map((item)=>{
+                let key=item.title
+                let value=item.value
+                list[key]=value
+                return false
+            })
             result.push(list)
             return false
         })
@@ -108,7 +108,7 @@ export default class actTable extends React.Component{
                 item["dataIndex"]=value;
                 return false								
             })
-            var act={
+            const act={
                 title: '操作',
                 key: 'action',
                 render: (text, record) => (
@@ -124,8 +124,8 @@ export default class actTable extends React.Component{
         }		
     } 
     handleOperate=(type,record)=>{
-		let menuId=this.props.menuId
-		let code=record.code
+		const menuId=this.props.menuId
+		const code=record.code
         //console.log(code)
         this.setState({loading:true})
         if(type==="delete"){
@@ -161,8 +161,8 @@ export default class actTable extends React.Component{
 		const panes = this.props.panes;
 		let flag = false;
         let dcode=type; 
-        let code=record.code
-        let menuId=record.menuId;
+        const code=record.code
+        const menuId=record.menuId;
 		dcode+=record.code;  //为了打开新页面，加入detail和eidt的code
 		//console.log(record.code)
 		for(let ops of panes){			
@@ -187,7 +187,7 @@ export default class actTable extends React.Component{
 	} 
     //搜索和页码
 	searchList=(params)=>{
-		let menuId=storage.getItem("menuId");
+		const menuId=storage.getItem("menuId");
         let data="";
         this.setState({loading:true})
 		if(isNaN(params)){
@@ -201,8 +201,8 @@ export default class actTable extends React.Component{
 				...data,
 			}                 
 		}).then((res)=>{
-			let list=[]
-			let code=[];	
+			const list=[]
+			const code=[];	
 			res.entities.map((item)=>{			
 				code.push(item.code)
 				list.push(item.fields)
@@ -220,8 +220,8 @@ export default class actTable extends React.Component{
     handleNew=(title,newRecordCode)=>{
 		const panes = this.props.panes;
 		let flag = false;
-		let newcode=title+"--创建"
-		let newK=title+","+newRecordCode
+		const newcode=title+"--创建"
+		const newK=title+","+newRecordCode
 		for(let ops of panes){			
 			if(ops.key === newK){
 			  flag = true;
@@ -235,7 +235,7 @@ export default class actTable extends React.Component{
         this.props.newRecordCallback(panes,newK,newcode,newRecordCode)
 	}
     fresh=()=>{
-        let menuId=this.props.menuId;
+        const menuId=this.props.menuId;
         this.setState({loading:true})
         Super.super({
             url:`/api/entity/list/${menuId}`,                

@@ -4,13 +4,12 @@ import Super from "./../../super"
 import './index.css'
 const SubMenu = Menu.SubMenu;
 
-let storage=window.sessionStorage;
+const storage=window.sessionStorage;
 export default class NavLeft extends React.Component{
 	state={
 		menuTreeNode:[],
 		openKeys:[]
-	}
-	
+	}	
     componentDidMount(){
         this.props.onRef2(this)
     }
@@ -25,7 +24,7 @@ export default class NavLeft extends React.Component{
 			}                 
 		}).then((res)=>{
 			const menuTreeNode = this.renderMenu(res.menus)
-			let objKey={}
+			const objKey={}
 			res.menus.map((item)=>{
 				objKey[item.id]=item.level2s
 				return false
@@ -40,7 +39,7 @@ export default class NavLeft extends React.Component{
 		return data.map((item)=>{
 			if(item.level2s){
 				return <SubMenu title={item.title} key={item.id}>
-						{ this.renderMenu(item.level2s) }
+							{ this.renderMenu(item.level2s) }
 						</SubMenu>				
 			}
 			return  <Menu.Item key={item.id} >
@@ -50,7 +49,7 @@ export default class NavLeft extends React.Component{
 	}	
 	handleMenu=({item, key})=>{
 		storage.setItem("menuId",key);
-		let panes=this.props.panes;
+		const panes=this.props.panes;
 		let flag = false;
 		for(let ops of panes){
 		  if(ops.key === key){
@@ -75,16 +74,18 @@ export default class NavLeft extends React.Component{
 	}
 	handleOpenKey=(activeKey)=>{
 		if(activeKey){
-			let objKey=this.state.objKey;
+			const objKey=this.state.objKey;
 			for(let key in objKey){
 				objKey[key].map((item)=>{
-					let itemId=item.id.toString()
+					const itemId=item.id.toString()
 					if(itemId===activeKey){
 						this.setState({openKeys:[key]})
 					}
 					return false
 				})
 			}
+		}else{
+			this.setState({openKeys:[]})
 		}
 		return false
 	}

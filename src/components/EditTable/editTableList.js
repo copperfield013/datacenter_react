@@ -2,7 +2,7 @@ import React from 'react'
 import { Table, Input, Button, message } from 'antd';
 import './index.css'
 
-let storage=window.sessionStorage;
+const storage=window.sessionStorage;
 let totalRecord=[]
 let newRecord=[]
 export default class EditTableList extends React.Component {
@@ -17,7 +17,7 @@ export default class EditTableList extends React.Component {
   }
   
   update=(e,name)=>{
-    let record={}
+    const record={}
     record[name]=e.target.value
     if(totalRecord.length===0){
       totalRecord.push(record)
@@ -31,10 +31,9 @@ export default class EditTableList extends React.Component {
   handleAdd=()=> {
     const count =this.state.count;
     const newDataSource = this.state.dataSource
-    let list={}    
+    const list={}    
     this.props.item.map((item)=>{
         let fieldName=item.fieldName;
-        //let fieldId=item.fieldId;
         list["key"]=fieldName+count
         list[fieldName]=<Input type="text" 
                           style={{width:185}} 
@@ -54,8 +53,8 @@ export default class EditTableList extends React.Component {
 
   handleDelete = () => {
     const dataSource = [...this.state.dataSource];
-    let skeys=this.state.selectedRowKeys
-    let len=this.state.selectedRowKeys.length
+    const skeys=this.state.selectedRowKeys
+    const len=this.state.selectedRowKeys.length
     if(len===0){
         message.info("请选择一条数据")
     }else{
@@ -67,7 +66,7 @@ export default class EditTableList extends React.Component {
         return false
       })
       //console.log(news)
-      let keys=[];
+      const keys=[];
       this.state.selectedRows.map((item)=>{ 
           storage.removeItem(item.code)//在storage里面删除对应数据
           for(let k in item){
@@ -102,13 +101,11 @@ export default class EditTableList extends React.Component {
       }
     return (
       <div>
-          {
-            this.props.type==="edit"?<div>
+          {this.props.type==="edit"?<div>
                                         <Button type='primary' icon="plus" onClick={()=>{this.handleAdd()}} style={{marginBottom:10,marginRight:10}}>新增</Button>
                                         <Button type='danger' icon="delete" onClick={()=>{this.handleDelete()}} style={{marginBottom:10}}>删除</Button>
                                     </div>
-            :""
-          }
+            :""}
           <Table
             rowSelection={this.props.type==="edit"?rowSelection:null}
             bordered

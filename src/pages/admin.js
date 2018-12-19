@@ -1,14 +1,14 @@
 import React from 'react'
 import {Row,Col,Tabs,Layout,Button} from 'antd'
 import "antd/dist/antd.css"
-import "./style/common.css"
-import "./style/coverstyle.css"
-import Header from './components/Header'
-import Footer from './components/Footer'
-import Home from './pages/home'
-import ActTable from './pages/actTable/actTable'
-import Detail from './pages/detail'
-import NavLeft from './components/NavLeft'
+import "./../style/common.css"
+import "./../style/coverstyle.css"
+import Header from './../components/Header'
+import Footer from './../components/Footer'
+import Home from './home'
+import ActTable from './actTable/actTable'
+import Detail from './detail'
+import NavLeft from './../components/NavLeft'
 const { Content } = Layout;
 const TabPane = Tabs.TabPane;
 
@@ -16,7 +16,7 @@ export default class Admin extends React.Component{
 	constructor(props) {
 		super(props);
 		const panes = [
-		  { title: '主页', key: '0',closable: false },
+		  	{ title: '主页', key: '0',closable: false },
 		];
 		this.state = {
 			activeKey: panes[0].key,
@@ -49,8 +49,8 @@ export default class Admin extends React.Component{
 				code:activeKey,
 			})
 		}else if(activeKey.indexOf(",")>-1){ //新增记录
-			let title=activeKey.split(",")[0]
-			let newRecordCode=activeKey.split(",")[1]
+			const title=activeKey.split(",")[0]
+			const newRecordCode=activeKey.split(",")[1]
 			this.child.handleNew(title,newRecordCode)//用acttable的方法
 		}else{
 			this.setState({menuId:activeKey});	
@@ -65,13 +65,13 @@ export default class Admin extends React.Component{
 		let activeKey = this.state.activeKey;
 		let lastIndex;
 		this.state.panes.forEach((pane, i) => {
-		  if (pane.key === targetKey) {
-			lastIndex = i - 1;
-		  }
+			if (pane.key === targetKey) {
+				lastIndex = i - 1;
+			}
 		});
 		const panes = this.state.panes.filter(pane => pane.key !== targetKey);
 		if (lastIndex >= 0 && activeKey === targetKey) {
-		  activeKey = panes[lastIndex].key;
+		  	activeKey = panes[lastIndex].key;
 		}
 		if(panes.length<=2){
 			this.setState({ showShutAll:"none" });
@@ -98,8 +98,8 @@ export default class Admin extends React.Component{
 				code:activeKey,
 			})
 		}else if(activeKey.indexOf(",")>-1){ //新增记录
-			let title=activeKey.split(",")[0]
-			let newRecordCode=activeKey.split(",")[1]
+			const title=activeKey.split(",")[0]
+			const newRecordCode=activeKey.split(",")[1]
 			this.child.handleNew(title,newRecordCode);//用acttable的方法
 			this.setState({ panes, activeKey });
 		}
@@ -163,9 +163,9 @@ export default class Admin extends React.Component{
 	}
 	//固定tab
 	handleScroll=(e)=>{		
-		let scrollTop  = e.target.scrollTop;  //滚动条滚动高度
-		let scrollHeight = e.target.scrollHeight
-		let obj =document.getElementsByClassName("ant-tabs-bar")[0]
+		const scrollTop  = e.target.scrollTop;  //滚动条滚动高度
+		const scrollHeight = e.target.scrollHeight
+		const obj =document.getElementsByClassName("ant-tabs-bar")[0]
 		if(scrollTop>50 && scrollHeight>705){
 			obj.style.position = 'fixed';
 			obj.style.top = '0';	
@@ -191,7 +191,7 @@ export default class Admin extends React.Component{
 			panes,
 			showShutAll:"none"
 		})
-		
+		this.children.handleOpenKey(null);//复原菜单		
 	}
 	render(){
 		const operations = <Button onClick={this.shutAll} style={{display:this.state.showShutAll}}>关闭所有</Button>;

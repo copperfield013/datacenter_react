@@ -5,11 +5,11 @@ const Option = Select.Option;
 export default {
     formateDate(time){
         if(!time) return '';
-        let date=new Date(time);
+        const date=new Date(time);
         return date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getHours()+':'+date.getMinutes()+':'+date.getSeconds()
     },
     pagination(data,callback){
-        let page={
+        const page={
             onchange:(current)=>{
                 callback(current)
             },
@@ -27,7 +27,7 @@ export default {
         if(!data){
             return [];
         } 
-        let options=[]
+        const options=[]
         data.map((item)=>{
             options.push(<Option value={item.value} key={item.title}>{item.title}</Option>)
             return false
@@ -38,7 +38,7 @@ export default {
         if(!data){
             return [];
         } 
-        let options=[]
+        const options=[]
         data.map((item)=>{
             options.push(<Radio value={item.id} key={item.id}>{item.name}</Radio>)
             return false

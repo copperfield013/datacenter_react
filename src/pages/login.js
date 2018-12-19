@@ -1,11 +1,11 @@
 import React from 'react'
 import {Row,Col,Form, Icon, Input, Button,message,Checkbox } from 'antd'
 import "antd/dist/antd.css"
-import "./style/common.css"
-import Super from "./super"
+import "./../style/common.css"
+import Super from "./../super"
 const FormItem = Form.Item;
 
-var storage=window.sessionStorage;
+const storage=window.sessionStorage;
 class Loginit extends React.Component{
 	handleSubmit =()=>{       
         this.props.form.validateFields((err,values)=>{            

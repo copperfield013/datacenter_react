@@ -8,8 +8,7 @@ export default class ExportFrame extends React.Component{
         radioValue:1,
         started:"none",
         isDisabled:true,
-    }
-    
+    }    
     onChangeRadio=(e)=>{
         this.setState({
             radioValue: e.target.value,
@@ -35,14 +34,12 @@ export default class ExportFrame extends React.Component{
                     <Radio value={2}>导出所有</Radio>
                 </RadioGroup>
                 <Divider />
-                {
-                    this.state.radioValue===2?
+                { this.state.radioValue===2?
                     <div>
                         数据范围：
                         <InputNumber min={1} max={10} placeholder="开始序号"/>-<InputNumber min={1} max={10} placeholder="结束序号"/>
                         <Divider />
-                    </div>:""
-                }
+                    </div>:"" }
                 <div style={{textAlign:"center",display:this.state.isStart}}>
                     <Checkbox>详情</Checkbox><Button type="primary" onClick={this.handleStart}>开始导出</Button>
                 </div>

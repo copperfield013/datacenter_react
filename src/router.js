@@ -1,8 +1,8 @@
 import React from 'react'
 import { HashRouter, Route , Switch, Redirect} from 'react-router-dom'
 import App from './App'
-import Admin from './admin'
-import Loginit from './login'
+import Admin from './pages/admin'
+import Loginit from './pages/login'
 
 export default class iRouter extends React.Component{
     

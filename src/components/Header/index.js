@@ -2,7 +2,7 @@ import React from 'react'
 import {Row,Col,Dropdown,Menu,Icon} from 'antd'
 import "./index.css"
 
-var storage=window.sessionStorage;
+const storage=window.sessionStorage;
 export default class Header extends React.Component{
 	componentWillMount(){
 		this.setState({
@@ -36,8 +36,7 @@ export default class Header extends React.Component{
 								<span>
 									{this.state.userName}
 								</span>								
-							</div>
-							
+							</div>							
 						</Dropdown>
 					</Col>
 				</Row>

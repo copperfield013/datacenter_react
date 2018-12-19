@@ -1,6 +1,6 @@
 import React from 'react'
 import {Input,Button,Form,Select,DatePicker,InputNumber} from 'antd'
-import Units from "../../units/unit";
+import Units from "../../units";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
 const FormItem=Form.Item
@@ -8,7 +8,7 @@ const {RangePicker} = DatePicker;
 
 class BaseForm extends React.Component{
     handleFilterSubmit=()=>{
-        let fieldsValue=this.props.form.getFieldsValue();
+        const fieldsValue=this.props.form.getFieldsValue();
         this.props.filterSubmit(fieldsValue);
     }
     // reset=()=>{
@@ -20,9 +20,9 @@ class BaseForm extends React.Component{
         const formItemList=[];
         if(formList && formList.length>0){
             formList.forEach((item)=>{
-                let label=item.title;
-                let field=`criteria_${item.id}`;
-                let initialValue=item.defaultValue;
+                const label=item.title;
+                const field=`criteria_${item.id}`;
+                const initialValue=item.defaultValue;
                 if(item.inputType==="daterange"){
                     const TIMEPICKER= <FormItem label={label} key={field}>
                         {getFieldDecorator(field)(

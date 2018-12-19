@@ -2,8 +2,8 @@ import React from 'react'
 import {Card,Form} from 'antd'
 import EditTableList from './editTableList'
 
-let storage=window.sessionStorage;
-let totalcode=[]
+const storage=window.sessionStorage;
+const totalcode=[]
 export default class EditTable extends React.Component{
     componentDidMount(){
         this.props.callback(totalcode)
@@ -14,7 +14,7 @@ export default class EditTable extends React.Component{
         const detailsItemList=[];
         if(detailsList && detailsList.length>0){
             this.props.itemDescs.map((item,index)=>{
-                let cardTitle=this.props.cardTitle[index]
+                const cardTitle=this.props.cardTitle[index]
                 const RANGE=<Card title={cardTitle} 
                                 key={cardTitle} 
                                 id={cardTitle} 
@@ -32,7 +32,7 @@ export default class EditTable extends React.Component{
                                 />
                             </Card>
                 detailsItemList.push(RANGE)
-                let submitcode=[];
+                const submitcode=[];
                 if(this.props.dataSource.length>1){
                     this.props.dataSource[index].map((item)=>{
                         if(item.code){

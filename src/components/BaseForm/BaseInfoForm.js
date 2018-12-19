@@ -1,13 +1,13 @@
 import React from 'react'
 import {Input,Button,Cascader,Form,Select,DatePicker,Avatar,Upload,Icon} from 'antd'
 import Super from "./../../super"
-import Units from "../../units/unit";
+import Units from "../../units";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
 import moment from 'moment';
 const FormItem=Form.Item
 
-var storage=window.sessionStorage;
+const storage=window.sessionStorage;
 class BaseInfoForm extends React.Component{
     state={
         fileList:[],
@@ -19,28 +19,28 @@ class BaseInfoForm extends React.Component{
         this.props.form.resetFields();
     }
     handleBaseInfoSubmit=()=>{
-        let fieldsValue=this.props.form.getFieldsValue()
+        const fieldsValue=this.props.form.getFieldsValue()
         storage["baseInfo"]=JSON.stringify(fieldsValue)
     }
     requestSelectOptions=(id)=>{//下拉框
         Super.super({
 			url:`/api/field/options?fieldIds=${id}`,                
 		}).then((res)=>{
-			let key=res.keyPrefix+id
+			const key=res.keyPrefix+id
             this.setState({
                 list:res.optionsMap[key]
             })
 		})
     }
     requestLinkage=(optionKey)=>{ //第一级联动
-        let optGroupId=optionKey.split("@")[0]
-        let time=optionKey.split("@")[1]
+        const optGroupId=optionKey.split("@")[0]
+        const time=optionKey.split("@")[1]
         Super.super({
 			url:`/api/field/cas_ops/${optGroupId}`,                
 		}).then((res)=>{
-			let ops=[]
+			const ops=[]
             res.options.map((item)=>{
-                let op={}
+                const op={}
                 op["value"]=item.title
                 op["label"]=item.title
                 op["key"]=item.id
@@ -71,8 +71,8 @@ class BaseInfoForm extends React.Component{
             Super.super({
                 url:`/api/field/cas_ops/${id}`,                
             }).then((res)=>{
-                let ops=[]
-                let time=this.state.time
+                const ops=[]
+                const time=this.state.time
                 res.options.map((item)=>{
                     let op={}
                     op["value"]=item.title
@@ -90,7 +90,7 @@ class BaseInfoForm extends React.Component{
                     targetOption.loading = false;
                     targetOption.children =ops
                     this.setState({
-                    options: [...this.state.options],
+                        options: [...this.state.options],
                     });
                 }, 300);
             })
@@ -106,17 +106,17 @@ class BaseInfoForm extends React.Component{
             listType: 'picture',
             onRemove: (file) => {
                 this.setState((state) => {
-                const index = state.fileList.indexOf(file);
-                const newFileList = state.fileList.slice();
-                newFileList.splice(index, 1);
-                return {
-                    fileList: newFileList,
-                };
+                    const index = state.fileList.indexOf(file);
+                    const newFileList = state.fileList.slice();
+                    newFileList.splice(index, 1);
+                    return {
+                        fileList: newFileList,
+                    };
                 });
             },
             beforeUpload: (file) => {
                 this.setState(state => ({
-                fileList: [...state.fileList, file],
+                    fileList: [...state.fileList, file],
                 }));
                 return false;
             },
@@ -124,15 +124,12 @@ class BaseInfoForm extends React.Component{
         };
         if(formList && formList.length>0){
             formList.forEach((item)=>{
-                //let label=item.title;
-                let fieldName=item.fieldName;
-                let field=item.fieldId
-                //let placeholder=item.placeholder || '';
-                let fieldValue=this.props.flag?"":item.value;
+                const fieldName=item.fieldName;
+                const field=item.fieldId
+                const fieldValue=this.props.flag?"":item.value;
                 if(item.type==="date"){
                     const DATE= <FormItem label={fieldName} key={field} className='labelcss'>
-                                    {
-                                        this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                    {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
                                             initialValue:fieldValue===""?null:moment(fieldValue, 'YYYY-MM-DD'),
                                             rules:item.validators==="required"?[{
@@ -145,8 +142,7 @@ class BaseInfoForm extends React.Component{
                     formItemList.push(DATE)                
                 }else if(item.type==="text"){
                     const TEXT= <FormItem label={fieldName} key={field} className='labelcss'>
-                                    {
-                                        this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                    {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
                                         initialValue:fieldValue,
                                         rules:item.validators==="required"?[{
@@ -159,8 +155,7 @@ class BaseInfoForm extends React.Component{
                     formItemList.push(TEXT)                
                 }else if(item.type==="select"){
                     const SELECT= <FormItem label={fieldName} key={[field]} className='labelcss'>
-                                        {
-                                            this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                        {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                             getFieldDecorator(fieldName,{
                                                 initialValue:fieldValue,
                                                 rules:item.validators==="required"?[{
@@ -178,10 +173,9 @@ class BaseInfoForm extends React.Component{
                                     </FormItem> 
                     formItemList.push(SELECT)    
                 }else if(item.type==="label"){
-                    let result=fieldValue?fieldValue.split(','):[];                    
+                    const result=fieldValue?fieldValue.split(','):[];                    
                     const LABEL= <FormItem label={fieldName} key={field} className='labelcss'>
-                                        {
-                                            this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                        {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                             getFieldDecorator(fieldName,{
                                                 initialValue:result,
                                                 rules:item.validators==="required"?[{
@@ -200,8 +194,7 @@ class BaseInfoForm extends React.Component{
                     formItemList.push(LABEL)   
                 }else if(item.type==="caselect"){
                     const CASELECT= <FormItem label={fieldName} key={field} className='labelcss'>
-                                        {
-                                            this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                        {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                             getFieldDecorator(fieldName)(
                                                 <Cascader
                                                     onClick={()=>this.requestLinkage(item.optionKey)}
@@ -217,8 +210,7 @@ class BaseInfoForm extends React.Component{
                     formItemList.push(CASELECT)   
                 }else if(item.type==="file"){
                     const FILE= <FormItem label={fieldName} key={field} className='labelcss'>
-                                        {
-                                        this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}><Avatar src={field}/></span>:
+                                        {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}><Avatar src={field}/></span>:
                                         getFieldDecorator(fieldName)(
                                             <Upload {...props}>
                                                 <Button style={{width:220}}>

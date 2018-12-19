@@ -1,13 +1,13 @@
 import React from 'react'
 import {Card,Button,Modal,message,Icon,Drawer,Timeline,Switch} from 'antd'
 import Super from "./../../super"
-import Units from './../../units/unit'
+import Units from '../../units'
 import './index.css'
 import 'moment/locale/zh-cn';
-import EditTable from './../../pages/EditTable/editTable'
+import EditTable from './../../components/EditTable/editTable'
 import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 
-let storage=window.sessionStorage;
+const storage=window.sessionStorage;
 let totalcode=[]
 export default class Detail extends React.Component{
     state={
@@ -26,21 +26,21 @@ export default class Detail extends React.Component{
             return
         }
         this.setState({loading:true})
-        let typecode=this.props.type+this.props.code;		
+        const typecode=this.props.type+this.props.code;		
         if(!storage[typecode]){//判断是否存储数据
             //console.log("未存")
-            let menuId=this.props.menuId;
-            let code=this.props.code;
+            const menuId=this.props.menuId;
+            const code=this.props.code;
             Super.super({
                 url:`/api/entity/detail/${menuId}/${code}`,                 
             }).then((res)=>{
                 //console.log(res)
                 storage[typecode]=JSON.stringify(res); //存储一条数据
-                let detailsList=res.entity.fieldGroups; 
+                const detailsList=res.entity.fieldGroups; 
                 this.toDetails(res,this.props.type)
                 this.renderList(detailsList)
                 if(res.history){                   
-                    let detailHistory=this.renderHistoryList(res.history);
+                    const detailHistory=this.renderHistoryList(res.history);
                     this.setState({
                         detailHistory
                     }) 
@@ -49,12 +49,12 @@ export default class Detail extends React.Component{
             })
         }else{  
             //console.log("已存") 
-            let data=JSON.parse(storage[typecode]);
-            let detailsList=data.entity.fieldGroups;
+            const data=JSON.parse(storage[typecode]);
+            const detailsList=data.entity.fieldGroups;
             this.renderList(detailsList)
             this.toDetails(data,this.props.type) 
             if(data.history){
-                let detailHistory=this.renderHistoryList(data.history);
+                const detailHistory=this.renderHistoryList(data.history);
                 this.setState({
                     detailHistory
                 })
@@ -64,7 +64,7 @@ export default class Detail extends React.Component{
     }
     renderHistoryList=(data)=>{
 		return data.map((item,index)=>{
-            let color=item.current?"red":"blue";
+            const color=item.current?"red":"blue";
 			return <Timeline.Item color={color} key={index}>
                         {Units.formateDate(item.time)}<br/>
                         {`操作人`+item.userName}
@@ -76,20 +76,20 @@ export default class Detail extends React.Component{
     }
     toHistory=(e)=>{
         this.setState({loading:true})
-        let historyId=e.target.getAttribute("id");
-        let menuId=this.props.menuId;
-        let code=this.props.code;
+        const historyId=e.target.getAttribute("id");
+        const menuId=this.props.menuId;
+        const code=this.props.code;
         Super.super({
             url:`/api/entity/detail/${menuId}/${code}`,  
             data:{
                 historyId,
             }                 
         }).then((res)=>{
-            let detailsList=res.entity.fieldGroups; 
+            const detailsList=res.entity.fieldGroups; 
             this.toDetails(res,this.props.type)
             this.renderList(detailsList)
             if(res.history){                   
-                let detailHistory=this.renderHistoryList(res.history);
+                const detailHistory=this.renderHistoryList(res.history);
                 this.setState({
                     detailHistory
                 }) 
@@ -100,8 +100,8 @@ export default class Detail extends React.Component{
     }
     toDetails=(data,type)=>{
 		let detailsTitle="";
-		let moduleTitle=data.module.title;
-		let entityTitle=data.entity.title;
+		const moduleTitle=data.module.title;
+		const entityTitle=data.entity.title;
 		//console.log(detailsList)
 		if(type==="detail"){
 			detailsTitle=entityTitle?moduleTitle+"-"+entityTitle+"-详情":moduleTitle+"-详情";
@@ -115,11 +115,11 @@ export default class Detail extends React.Component{
 	}
     renderList=(detailsList)=>{
         //console.log("渲染")       
-        let itemDescs=[]
-        let columns=[]
-        let dataSource=[]
-        let cardTitle=[]
-        let formList=detailsList[0].fields;    
+        const itemDescs=[]
+        const columns=[]
+        const dataSource=[]
+        const cardTitle=[]
+        const formList=detailsList[0].fields;    
         let firstCard=""          
         detailsList.map((item)=>{
             if(item.descs){
@@ -155,17 +155,17 @@ export default class Detail extends React.Component{
 		}		
     }
     requestTableList=(data)=>{
-        let res=[]
+        const res=[]
         this.setState({
             count :this.state.count+data.array.length
         })
         if(data.array){
             data.array.map((item)=>{
-                let code=item.code;
-                let list={};              
+                const code=item.code;
+                const list={};              
                 item.fields.map((it,index)=>{
-                    let fieldName=it.fieldName;
-                    let fieldValue=it.value;
+                    const fieldName=it.fieldName;
+                    const fieldValue=it.value;
                     list["key"]=index+code;
                     list["code"]=code;
                     list[fieldName]=fieldValue;
@@ -197,9 +197,9 @@ export default class Detail extends React.Component{
         e.preventDefault();
         this.setState({loading:true})
         this.child.handleBaseInfoSubmit()
-        let records=[]
-        let menuId=this.props.menuId;
-        let code=this.props.code;          
+        const records=[]
+        const menuId=this.props.menuId;
+        const code=this.props.code;          
         let baseInfo={}
         let newRecord={}
         if(storage.getItem("baseInfo")){
@@ -207,7 +207,7 @@ export default class Detail extends React.Component{
         }
         totalcode.map((item)=>{
             if(storage.getItem(item)){
-                let record=JSON.parse(storage.getItem(item))
+                const record=JSON.parse(storage.getItem(item))
                 delete(record.key)//删除不必要传递的key
                 records.push(record)
             }
@@ -216,7 +216,7 @@ export default class Detail extends React.Component{
         if(storage.getItem("newRecord")){
             newRecord=JSON.parse(storage.getItem("newRecord"))
         }
-        let values=Object.assign(baseInfo, ...records, newRecord)
+        const values=Object.assign(baseInfo, ...records, newRecord)
         console.log(values)
         Super.super({
             url:`/api/entity/update/${menuId}`,  
