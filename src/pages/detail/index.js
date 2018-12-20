@@ -6,6 +6,7 @@ import './index.css'
 import 'moment/locale/zh-cn';
 import EditTable from './../../components/EditTable/editTable'
 import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
+const confirm = Modal.confirm;
 
 const storage=window.sessionStorage;
 let totalcode=[]
@@ -15,6 +16,7 @@ export default class Detail extends React.Component{
         visibleModal: false,
         visibleDrawer:false,
         loading:false,
+        visibleExport:false,
     }
     componentWillMount(){
         this.requestLists()
@@ -32,7 +34,7 @@ export default class Detail extends React.Component{
             const menuId=this.props.menuId;
             const code=this.props.code;
             Super.super({
-                url:`/api/entity/detail/${menuId}/${code}`,                 
+                url:`/api/entity/curd/detail/${menuId}/${code}`,                 
             }).then((res)=>{
                 //console.log(res)
                 storage[typecode]=JSON.stringify(res); //存储一条数据
@@ -80,7 +82,7 @@ export default class Detail extends React.Component{
         const menuId=this.props.menuId;
         const code=this.props.code;
         Super.super({
-            url:`/api/entity/detail/${menuId}/${code}`,  
+            url:`/api/entity/curd/detail/${menuId}/${code}`,  
             data:{
                 historyId,
             }                 
@@ -220,7 +222,7 @@ export default class Detail extends React.Component{
         const values=Object.assign(baseInfo, ...records, newRecord)
         console.log(values)
         Super.super({
-            url:`/api/entity/update/${menuId}`,  
+            url:`/api/entity/curd/update/${menuId}`,  
             data:{
                 "唯一编码":code,
                 ...values,
@@ -234,7 +236,25 @@ export default class Detail extends React.Component{
             visibleModal: false,
         });
       }
-    
+    exportDetail=()=>{
+        const menuId=this.props.menuId;
+        const code=this.props.code;  
+        confirm({
+            title: '确认导出当前详情页？',            
+            okText: "确认",
+            cancelText: "取消",
+            onOk() {
+                Super.super({
+                    url:`/api/entity/export/export_detail/${menuId}/${code}`,                 
+                }).then((res)=>{
+                    if(res.status==="suc"){
+                        Units.downloadFile(`/api/entity/export/download/${res.uuid}`)
+                    }
+                })
+            },
+          });  
+        
+    }
     handleCancel = () => {
         this.setState({
             visibleModal: false,
@@ -268,7 +288,7 @@ export default class Detail extends React.Component{
                     {
                         this.props.type==="detail"?
                         <div className="fr">
-                            <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
+                            <Button className="hoverbig" title="导出" onClick={this.exportDetail}><Icon type="upload" /></Button>
                             <Button className="hoverbig" title="查看历史" onClick={this.showHistory}><Icon type="schedule" /></Button>                                                      
                             <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
                         </div>
@@ -311,7 +331,7 @@ export default class Detail extends React.Component{
                     okText="确认"
                     cancelText="取消"
                     >
-                    <p>确认提交数据吗</p>
+                    <p>确认提交数据吗？</p>
                 </Modal>
                 <Drawer
                     title="查看历史"

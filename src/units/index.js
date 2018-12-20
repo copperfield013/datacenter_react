@@ -1,5 +1,5 @@
 import React from 'react'
-import {Select,Radio} from 'antd'
+import {Select,Radio,message} from 'antd'
 const Option = Select.Option;
 
 export default {
@@ -45,23 +45,14 @@ export default {
         })
         return options
     },
-    /**
-     * ETable 行点击通用函数
-     * @param {*选中行的索引} selectedRowKeys
-     * @param {*选中行对象} selectedItem
-     */
-    updateSelectedItem(selectedRowKeys, selectedRows, selectedIds) {
-        if (selectedIds) {
-            this.setState({
-                selectedRowKeys,
-                selectedIds: selectedIds,
-                selectedItem: selectedRows
-            })
-        } else {
-            this.setState({
-                selectedRowKeys,
-                selectedItem: selectedRows
-            })
-        }
-    },
+    downloadFile(url) {   
+        try{ 
+            let elemIF = document.createElement("iframe");   
+            elemIF.src = url;   
+            elemIF.style.display = "none";   
+            document.body.appendChild(elemIF);   
+        }catch(e){ 
+            message.error(e)
+        } 
+    }
 }

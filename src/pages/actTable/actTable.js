@@ -29,34 +29,25 @@ export default class actTable extends React.Component{
     requestList=()=>{ 
         const menuId=this.props.menuId;
         this.setState({loading:true,Loading:true,})
-		if(storage[menuId]){
-			//console.log("已存储")
-			const data=JSON.parse(storage[menuId])
-            this.editList(data)
-            this.setState({loading:false,Loading:false})
-            if(data.entities.length>0){
+        Super.super({
+            url:`/api/entity/curd/list/${menuId}`,                
+        }).then((res)=>{
+            if(res){
                 this.setState({
-                    newRecordCode:data.entities[0].code
+                    loading:false,
+                    Loading:false,
+                    pageNo:res.pageInfo.pageNo,
+                    pageSize:res.pageInfo.pageSize,
                 })
+                storage[menuId]=JSON.stringify(res); //存储一个列表数据              
+                this.editList(res)
+                if(res.entities.length>0){
+                    this.setState({
+                        newRecordCode:res.entities[0].code
+                    })
+                }
             }
-		}else{
-			//console.log("未存储")
-			Super.super({
-				url:`/api/entity/list/${menuId}`,                
-			}).then((res)=>{
-				if(res){
-                    this.setState({loading:false,Loading:false})
-                    storage[menuId]=JSON.stringify(res); //存储一个列表数据
-                    //console.log(res)
-                    this.editList(res)
-                    if(res.entities.length>0){
-                        this.setState({
-                            newRecordCode:res.entities[0].code
-                        })
-                    }
-				}
-			})
-		}		
+        })				
 	}
     editList=(data)=>{
 		const list=[]
@@ -76,11 +67,11 @@ export default class actTable extends React.Component{
 				columns:'',
 				pageCount:'',
 			})
-        }    
+        }
 		this.setState({
 			formList:data.criterias,
 			list:this.renderLists(list,storage.getItem("menuId"),codes),
-			moduleTitle:data.module.title,
+            moduleTitle:data.module.title,
 		})
     }
     //list数据转换
@@ -116,7 +107,6 @@ export default class actTable extends React.Component{
                 <span>
                     <Button type="primary" icon="align-left" size="small" onClick={()=>this.handleOperate("detail",record)}>详情</Button>
                     <Button type="dashed" icon="edit" size="small" onClick={()=>this.handleOperate("edit",record)}>修改</Button>
-                    <Button type="danger" icon="delete" size="small" onClick={()=>this.handleOperate("delete",record)}>删除</Button>
                 </span>
                 ),
             }
@@ -137,7 +127,7 @@ export default class actTable extends React.Component{
 				cancelText:"取消",
 				onOk:()=>{
 					Super.super({
-						url:`/api/entity/remove/${menuId}/${code}`,               
+						url:`/api/entity/curd/remove/${menuId}/${code}`,               
 					}).then((res)=>{
                         this.setState({loading:false,Loading:false})
 						if(res.status==="suc"){
@@ -192,12 +182,13 @@ export default class actTable extends React.Component{
         let data="";
         this.setState({Loading:true})
 		if(isNaN(params)){
-			data={...params}
+            data={...params}
+            this.setState({filterOptions:data})
 		}else{
 			data={pageNo:params}
 		}
 		Super.super({
-			url:`/api/entity/list/${menuId}`,  
+			url:`/api/entity/curd/list/${menuId}`,  
 			data:{
 				...data,
 			}                 
@@ -214,7 +205,9 @@ export default class actTable extends React.Component{
 				list:this.renderLists(list,storage.getItem("menuId"),code),
 				code,
                 pageCount:res.pageInfo.count,
-                currentPage:res.pageInfo.pageNo
+                currentPage:res.pageInfo.pageNo,               
+                pageNo:res.pageInfo.pageNo,
+                pageSize:res.pageInfo.pageSize,
 			})
 		})			
     }
@@ -239,7 +232,7 @@ export default class actTable extends React.Component{
         const menuId=this.props.menuId;
         this.setState({loading:true,Loading:true})
         Super.super({
-            url:`/api/entity/list/${menuId}`,                
+            url:`/api/entity/curd/list/${menuId}`,                
         }).then((res)=>{
             if(res){
                 this.setState({loading:false,currentPage:1,Loading:false})
@@ -250,7 +243,21 @@ export default class actTable extends React.Component{
         })
     }
     render(){
-        const content = <ExportFrame /> //导出组件
+        const content = <ExportFrame 
+                            menuId={this.props.menuId}
+                            pageNo={this.state.pageNo}
+                            pageSize={this.state.pageSize}
+                            filterOptions={this.state.filterOptions}
+                            /> //导出组件
+        const rowSelection = {
+            onChange: (selectedRowKeys, selectedRows) => {
+              console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+            },
+            getCheckboxProps: record => ({
+              disabled: record.name === 'Disabled User',
+              name: record.name,
+            }),
+          };
         return(
             <div>
                 <h3>
@@ -268,6 +275,7 @@ export default class actTable extends React.Component{
                     <BaseForm formList={this.state.formList} filterSubmit={this.searchList}/>          
                 </Card>
                 <Table
+                    rowSelection={rowSelection}
                     columns={this.state.columns}
                     dataSource={this.state.list}
                     bordered

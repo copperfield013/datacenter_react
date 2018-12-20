@@ -3,6 +3,7 @@ import {Input,Button,Form,Select,DatePicker,InputNumber} from 'antd'
 import Units from "../../units";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
+import './index.css'
 const FormItem=Form.Item
 const {RangePicker} = DatePicker;
 
@@ -46,16 +47,16 @@ class BaseForm extends React.Component{
                     formItemList.push(TIMEPICKER)                
                 }else if(item.inputType==="text"){
                     const INPUT= <FormItem label={label} key={field}>
-                        {getFieldDecorator(field)(
+                        {getFieldDecorator(field,{
+                            initialValue:initialValue
+                        })(
                             <Input type="text" placeholder={`请输入${label}`} style={{width:160}} />
                         )}
                     </FormItem>   
                     formItemList.push(INPUT)                
                 }else if(item.inputType==="select"){
                     const SELECT= <FormItem label={label} key={field}>
-                        {getFieldDecorator(field,{
-                            initialValue:initialValue
-                        })(
+                        {getFieldDecorator(field)(
                             <Select style={{width:120}} placeholder={`请输入${label}`} getPopupContainer={trigger => trigger.parentNode}>
                                 {Units.getSelectList(item.list)}
                             </Select>
@@ -73,6 +74,7 @@ class BaseForm extends React.Component{
                 {this.initFormList()}
                 <FormItem>
                     <Button type="primary" onClick={this.handleFilterSubmit}>查询</Button>
+                    <Button type="danger">删除选中</Button>
                     {/* <Button type="danger"  onClick={this.reset}>重置</Button> */}
                 </FormItem>
             </Form>

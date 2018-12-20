@@ -3,17 +3,21 @@ import { message } from 'antd';
 
 const storage=window.sessionStorage;
 export default class Superagent{
-    static super(options){
+    static super(options,type){
         const tokenName=storage.getItem('tokenName')
         // let loading;
         // if(options.data && options.data.isShowLoading!==false){
         //     loading=document.getElementById('ajaxLoading')
         //     loading.style.display="block"
         // }
+        let tet="form"
+        if(type==="json"){
+            tet=""
+        }
         return new Promise((resolve,reject)=>{
             superagent
                 .post(options.url)
-                .type('form')
+                .type(tet)
                 .set("datamobile-token",tokenName)
                 .query(options.query||'')
                 .send(options.data||'')

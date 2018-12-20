@@ -18,10 +18,7 @@ export default class NavLeft extends React.Component{
 	}
 	request=()=>{
 		Super.super({
-			url:'/api/menu/getMenu',  
-			data:{
-				isShowLoading:true
-			}                 
+			url:'/api/menu/getMenu',                 
 		}).then((res)=>{
 			const menuTreeNode = this.renderMenu(res.menus)
 			const objKey={}
@@ -93,8 +90,7 @@ export default class NavLeft extends React.Component{
 		return (
 			<div>
 				<div className="logo">
-					<img src="/asset/logo.svg" alt="" />
-					<h1>系统</h1>
+					<h1>易+数据融合中心</h1>
 				</div>
 				 <Menu 
 					mode="inline"
