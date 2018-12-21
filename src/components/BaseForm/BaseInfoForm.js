@@ -5,6 +5,7 @@ import Units from "../../units";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
 import moment from 'moment';
+moment.locale('zh-cn');
 const FormItem=Form.Item
 
 const storage=window.sessionStorage;
@@ -19,7 +20,13 @@ class BaseInfoForm extends React.Component{
         this.props.form.resetFields();
     }
     handleBaseInfoSubmit=()=>{
-        const fieldsValue=this.props.form.getFieldsValue()
+        let fieldsValue=this.props.form.getFieldsValue()
+        console.log(fieldsValue)
+        for(let k in fieldsValue){
+            if(k.indexOf("日期")>-1){ //日期格式转换
+                fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
+            }
+        }
         storage["baseInfo"]=JSON.stringify(fieldsValue)
     }
     requestSelectOptions=(id)=>{//下拉框
@@ -57,8 +64,6 @@ class BaseInfoForm extends React.Component{
     loadData = (selectedOptions) => { //子集联动
         const targetOption = selectedOptions[selectedOptions.length - 1]
         targetOption.loading = true
-        //console.log(selectedOptions)
-        // load options lazily
         this.setState({
             time:this.state.time-1
         })
@@ -131,12 +136,16 @@ class BaseInfoForm extends React.Component{
                     const DATE= <FormItem label={fieldName} key={field} className='labelcss'>
                                     {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
-                                            initialValue:fieldValue===""?null:moment(fieldValue, 'YYYY-MM-DD'),
+                                            initialValue:fieldValue===""?null:moment(fieldValue,'YYYY-MM-DD'),
                                             rules:item.validators==="required"?[{
                                                     required: true, message: `请输入${fieldName}`,
                                                   }]:"",
                                         })(
-                                            <DatePicker style={{width:220}} locale={locale} getCalendarContainer={trigger => trigger.parentNode}/>
+                                            <DatePicker 
+                                                style={{width:220}} 
+                                                locale={locale} 
+                                                getCalendarContainer={trigger => trigger.parentNode}
+                                                />
                                     )}
                                 </FormItem>
                     formItemList.push(DATE)                

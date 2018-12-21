@@ -227,7 +227,23 @@ export default class actTable extends React.Component{
 			panes.push({ title:newcode, key:newK });
         }
         this.props.newRecordCallback(panes,newK,newcode,newRecordCode)
-	}
+    }
+    handleImport=(title)=>{
+        const panes = this.props.panes;
+		let flag = false;
+		const importCode=title+"导入"
+		for(let ops of panes){			
+			if(ops.key === importCode){
+			  flag = true;
+			  break;
+			}
+			continue;
+          }
+		if(flag === false){
+			panes.push({ title:importCode, key:importCode });
+        }
+        this.props.importCallback(panes,importCode)
+    }
     fresh=()=>{
         const menuId=this.props.menuId;
         this.setState({loading:true,Loading:true})
@@ -264,7 +280,7 @@ export default class actTable extends React.Component{
                     {this.state.moduleTitle}
                     <div className="fr">
                         <Button className="hoverbig" title="创建" onClick={()=>this.handleNew(this.state.moduleTitle,this.state.newRecordCode)}><Icon type="plus"/></Button>
-                        <Button className="hoverbig" title="导入"><Icon type="download" /></Button>
+                        <Button className="hoverbig" title="导入" onClick={()=>this.handleImport(this.state.moduleTitle,this.state.newRecordCode)}><Icon type="download" /></Button>
                         <Popover content={content} title="导出" placement="bottomRight" trigger="click">
                             <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
                         </Popover>                       

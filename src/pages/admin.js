@@ -9,6 +9,7 @@ import Home from './home'
 import ActTable from './actTable/actTable'
 import Detail from './detail'
 import NavLeft from './../components/NavLeft'
+import ImportData from './importData/importData'
 const { Content } = Layout;
 const TabPane = Tabs.TabPane;
 
@@ -104,7 +105,7 @@ export default class Admin extends React.Component{
 			this.setState({ panes, activeKey });
 		}
 	}	
-	Welcome = (title,xqTitle,newcode) => {
+	Welcome = (title,xqTitle,newcode,importCode) => {
 		switch(title){
 			case "主页":
 			return <Home />
@@ -121,6 +122,11 @@ export default class Admin extends React.Component{
 						code={this.state.newRecordCode}
 						flag="creatNewRecord"
 					/>
+			case importCode:
+			return <ImportData 
+						importCode={this.state.importCode}
+						menuId={this.state.menuId}
+						/>
 			default:
 			return <ActTable 
 						handleDetail={this.handleDetail}
@@ -129,6 +135,7 @@ export default class Admin extends React.Component{
 						panes={this.state.panes}
 						actCallBackAdmin={this.actCallBackAdmin}
 						newRecordCallback={this.newRecordCallback}
+						importCallback={this.importCallback}
 						onRef={this.onRef} 
 					/>
 		}  	
@@ -149,6 +156,13 @@ export default class Admin extends React.Component{
 			activeKey:newK,
 			newcode,
 			newRecordCode,
+		});
+	}
+	importCallback=(panes,importCode)=>{
+		this.setState({ 
+			panes, 
+			activeKey:importCode,
+			importCode,
 		});
 	}
 	setPanes=(panes,key)=>{
@@ -222,7 +236,7 @@ export default class Admin extends React.Component{
 																key={pane.key} 
 																closable={pane.closable}
 																>
-																{this.Welcome(pane.title,this.state.xqTitle,this.state.newcode)}
+																{this.Welcome(pane.title,this.state.xqTitle,this.state.newcode,this.state.importCode)}
 														</TabPane>)}
 						</Tabs>
 					</Content>					

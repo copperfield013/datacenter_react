@@ -72,7 +72,7 @@ class BaseForm extends React.Component{
         return(
             <Form layout="inline">
                 {this.initFormList()}
-                <FormItem>
+                <FormItem className="btns">
                     <Button type="primary" onClick={this.handleFilterSubmit}>查询</Button>
                     <Button type="danger">删除选中</Button>
                     {/* <Button type="danger"  onClick={this.reset}>重置</Button> */}

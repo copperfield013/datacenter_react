@@ -12,7 +12,7 @@ export default class Superagent{
         // }
         let tet="form"
         if(type==="json"){
-            tet=""
+            tet="application/json"
         }
         return new Promise((resolve,reject)=>{
             superagent

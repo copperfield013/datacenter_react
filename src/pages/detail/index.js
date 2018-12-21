@@ -165,11 +165,10 @@ export default class Detail extends React.Component{
             data.array.map((item)=>{
                 const code=item.code;
                 const list={};              
-                item.fields.map((it,index)=>{
+                item.fields.map((it)=>{
                     const fieldName=it.fieldName;
                     const fieldValue=it.value;
                     list["key"]=code;
-                    list["code"]=code;
                     list[fieldName]=fieldValue;
                     return false
                 })
@@ -220,7 +219,7 @@ export default class Detail extends React.Component{
             newRecord=JSON.parse(storage.getItem("newRecord"))
         }
         const values=Object.assign(baseInfo, ...records, newRecord)
-        console.log(values)
+        console.log(baseInfo)
         Super.super({
             url:`/api/entity/curd/update/${menuId}`,  
             data:{
