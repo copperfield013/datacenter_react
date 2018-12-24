@@ -21,7 +21,6 @@ class BaseInfoForm extends React.Component{
     }
     handleBaseInfoSubmit=()=>{
         let fieldsValue=this.props.form.getFieldsValue()
-        console.log(fieldsValue)
         for(let k in fieldsValue){
             if(k.indexOf("日期")>-1){ //日期格式转换
                 fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
@@ -136,7 +135,7 @@ class BaseInfoForm extends React.Component{
                     const DATE= <FormItem label={fieldName} key={field} className='labelcss'>
                                     {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
-                                            initialValue:fieldValue===""?null:moment(fieldValue,'YYYY-MM-DD'),
+                                            initialValue:!fieldValue||fieldValue===""?null:moment(fieldValue,'YYYY-MM-DD'),
                                             rules:item.validators==="required"?[{
                                                     required: true, message: `请输入${fieldName}`,
                                                   }]:"",

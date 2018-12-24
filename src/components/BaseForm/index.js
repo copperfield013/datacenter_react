@@ -34,7 +34,7 @@ class BaseForm extends React.Component{
                 }else if(item.inputType==="date"){
                     const TIMEPICKER= <FormItem label={label} key={field}>
                         {getFieldDecorator(field)(
-                            <DatePicker locale={locale} style={{width:225}} getCalendarContainer={trigger => trigger.parentNode}/>
+                            <DatePicker locale={locale} placeholder={`请输入${label}`} style={{width:225}} getCalendarContainer={trigger => trigger.parentNode}/>
                         )}
                     </FormItem>   
                     formItemList.push(TIMEPICKER)                

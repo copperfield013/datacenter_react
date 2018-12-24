@@ -343,7 +343,9 @@ export default class Detail extends React.Component{
                         {this.state.detailHistory}
                     </Timeline>
                 </Drawer>
-                <div className="rightBar">
+                {
+                    !this.state.cardTitle||this.state.cardTitle.length<1?"":
+                    <div className="rightBar">
                     <ul>
                         <li onClick={()=>this.scrollToAnchor(this.state.firstCard)} key={this.state.firstCard}>
                             {this.state.firstCard}
@@ -356,6 +358,8 @@ export default class Detail extends React.Component{
                         }
                     </ul>
                 </div>
+                }
+                
             </div>
         )
     }

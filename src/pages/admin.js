@@ -25,60 +25,9 @@ export default class Admin extends React.Component{
 			showShutAll:"none",
 		};
 	}
-	onChange = (activeKey) => {
+	judgeActiveKey=(activeKey,panes)=>{		
 		let type;
 		let xqTitle;
-		this.setState({activeKey});	
-		this.children.handleOpenKey(activeKey);	
-		if(activeKey.indexOf("detail")>-1 || activeKey.indexOf("edit")>-1){		
-			this.state.panes.map((item)=>{
-				if(item.key===activeKey){
-					xqTitle=item.title
-				}
-				return false
-			})
-			if(activeKey.indexOf("detail")===0){
-				activeKey=activeKey.slice(6)
-				type="detail"
-			}else{
-				activeKey=activeKey.slice(4)
-				type="edit"
-			}
-			this.setState({
-				xqTitle,
-				type,
-				code:activeKey,
-			})
-		}else if(activeKey.indexOf(",")>-1){ //新增记录
-			const title=activeKey.split(",")[0]
-			const newRecordCode=activeKey.split(",")[1]
-			this.child.handleNew(title,newRecordCode)//用acttable的方法
-		}else{
-			this.setState({menuId:activeKey});	
-		}
-	}
-	onEdit = (targetKey, action) => {
-		this[action](targetKey);
-	}
-	remove = (targetKey) => {
-		let type;
-		let xqTitle;
-		let activeKey = this.state.activeKey;
-		let lastIndex;
-		this.state.panes.forEach((pane, i) => {
-			if (pane.key === targetKey) {
-				lastIndex = i - 1;
-			}
-		});
-		const panes = this.state.panes.filter(pane => pane.key !== targetKey);
-		if (lastIndex >= 0 && activeKey === targetKey) {
-		  	activeKey = panes[lastIndex].key;
-		}
-		if(panes.length<=2){
-			this.setState({ showShutAll:"none" });
-		}
-		this.setState({ panes, activeKey });
-		this.children.handleOpenKey(activeKey);
 		if(activeKey.indexOf("detail")>-1 || activeKey.indexOf("edit")>-1){
 			this.state.panes.map((item)=>{
 				if(item.key===activeKey){
@@ -102,8 +51,40 @@ export default class Admin extends React.Component{
 			const title=activeKey.split(",")[0]
 			const newRecordCode=activeKey.split(",")[1]
 			this.child.handleNew(title,newRecordCode);//用acttable的方法
-			this.setState({ panes, activeKey });
+			this.setState({ panes });
+		}else if(activeKey.indexOf("导入")>-1){ 
+			this.setState({importCode:activeKey});	
+		}else{
+			this.setState({menuId:activeKey});	
 		}
+	}
+	onChange = (activeKey) => {
+		this.setState({activeKey});	
+		this.children.handleOpenKey(activeKey);	
+		this.judgeActiveKey(activeKey)
+	}
+	onEdit = (targetKey, action) => {
+		this[action](targetKey);
+	}
+	remove = (targetKey) => {
+		let activeKey = this.state.activeKey;
+		let lastIndex;
+		this.state.panes.forEach((pane, i) => {
+			if (pane.key === targetKey) {
+				lastIndex = i - 1;
+			}
+		});
+		const panes = this.state.panes.filter(pane => pane.key !== targetKey);
+		if (lastIndex >= 0 && activeKey === targetKey) {
+		  	activeKey = panes[lastIndex].key;
+		}
+		if(panes.length<=2){
+			this.setState({ showShutAll:"none" });
+		}
+		this.setState({ panes, activeKey });
+		this.children.handleOpenKey(activeKey);
+		this.judgeActiveKey(activeKey,panes)
+		
 	}	
 	Welcome = (title,xqTitle,newcode,importCode) => {
 		switch(title){
@@ -159,6 +140,7 @@ export default class Admin extends React.Component{
 		});
 	}
 	importCallback=(panes,importCode)=>{
+		console.log(importCode)
 		this.setState({ 
 			panes, 
 			activeKey:importCode,

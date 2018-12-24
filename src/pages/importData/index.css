@@ -1,0 +1,23 @@
+.importBtns button{
+    margin:15px 0 10px 0
+}
+.importList .ant-spin-container{
+    height:300px;
+    overflow: auto
+}
+.ant-list-item-content p{
+    margin-bottom: 0;
+}
+.listHeader h3{
+    display: inline;
+}
+.listHeader .checks{
+    float:right;
+    position: relative;
+    padding-right: 32px
+}
+.listHeader button{
+    position: absolute;
+    right:0;
+    top:0;
+}
