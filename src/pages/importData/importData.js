@@ -1,8 +1,9 @@
 import React from 'react'
 import superagent from 'superagent'
-import {Card,Button,Upload,message,Icon,Progress,List,Checkbox,Row,Col} from 'antd'
+import {Card,Button,Upload,message,Icon,Progress,List,Checkbox,Row,Col,Modal} from 'antd'
 import Super from "./../../super"
 import Units from "./../../units"
+import ModelImport from "./../../components/ModelImport"
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import './index.css'
 
@@ -25,13 +26,13 @@ export default class Detail extends React.Component{
         importAgain:"none",
         importbtn:"block",
         checkedList,
+        visible:false,
     }
     
     handleUpload = () => {
         const { fileList } = this.state;
         const formData = new FormData();
         const menuId=this.props.menuId;
-        console.log(menuId)
         const tokenName=storage.getItem('tokenName')
         formData.append('file', ...fileList);
         this.setState({
@@ -124,15 +125,26 @@ export default class Detail extends React.Component{
                     }else{
                         newCopyText+=it
                     }
+                    return false
                 })
             }
-            
+            return false
         })
         this.setState({
             checkedList,
             messages:newmesg,
             copyText:newCopyText,
         });
+    }
+    handleModal=()=>{
+        this.setState({
+            visible:true,
+        })
+    }
+    handleCancel=()=>{
+        this.setState({
+            visible:false,
+        })
     }
     render(){
         const { uploading, fileList } = this.state;
@@ -164,14 +176,22 @@ export default class Detail extends React.Component{
         };
         return(
             <div>
-                <h3>{this.props.importCode}</h3>
+                <h3>
+                    {this.props.importCode}
+                    <p className="fr">                      
+                        <Button className="hoverbig" title="刷新"><Icon type="sync" /></Button>
+                    </p>
+                </h3>              
                 <Row>
                     <Col span={14} offset={5}>
                         <Card style={{minWidth:600}}>
-                            <Upload {...props}>
-                            <Button>
-                                <Icon type="upload" /> 选择导入文件
+                            <Button style={{float:"right"}} onClick={this.handleModal}>
+                                <Icon type="snippets"/>选择导入模板
                             </Button>
+                            <Upload {...props}>
+                                <Button>
+                                    <Icon type="upload"/>选择导入文件
+                                </Button>
                             </Upload>
                             <Progress percent={this.state.percent} size="small" status="active" />
                             <div className="importBtns">
@@ -180,13 +200,14 @@ export default class Detail extends React.Component{
                                     onClick={this.handleUpload}
                                     disabled={this.state.begin}
                                     loading={uploading}
-                                    style={{ display:this.state.importbtn}}
+                                    style={{display:this.state.importbtn}}
                                     >
                                     {uploading ? '正在导入' : '开始导入' }
                                 </Button>
                                 <Button
                                     type="primary"
                                     onClick={this.handleUpload}
+                                    disabled={this.state.begin}
                                     loading={uploading}
                                     style={{display:this.state.importAgain}}
                                     >
@@ -219,6 +240,14 @@ export default class Detail extends React.Component{
                         </Card>
                     </Col>
                 </Row>
+                <Modal
+                    title="字段"
+                    visible={this.state.visible}
+                    onCancel={this.handleCancel}
+                    footer={null}
+                    >
+                    <ModelImport />
+                </Modal>
             </div>
         )
     }

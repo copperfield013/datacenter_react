@@ -140,7 +140,6 @@ export default class Admin extends React.Component{
 		});
 	}
 	importCallback=(panes,importCode)=>{
-		console.log(importCode)
 		this.setState({ 
 			panes, 
 			activeKey:importCode,

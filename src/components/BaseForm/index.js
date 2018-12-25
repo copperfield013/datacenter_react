@@ -8,6 +8,7 @@ const FormItem=Form.Item
 const {RangePicker} = DatePicker;
 
 class BaseForm extends React.Component{
+
     handleFilterSubmit=()=>{
         const fieldsValue=this.props.form.getFieldsValue();
         this.props.filterSubmit(fieldsValue);
@@ -69,12 +70,19 @@ class BaseForm extends React.Component{
         return formItemList;
     }
     render(){
+        const actions=this.props.actions
         return(
             <Form layout="inline">
                 {this.initFormList()}
                 <FormItem className="btns">
                     <Button type="primary" onClick={this.handleFilterSubmit}>查询</Button>
-                    <Button type="danger">删除选中</Button>
+                    <Button type="danger" disabled={this.props.disabled} onClick={()=>this.props.handleOperate("delete")}>删除选中</Button>
+                    {
+                        actions.length>0?
+                        actions.map((item)=>{
+                            return <Button type="primary" key={item.id} onClick={()=>this.props.handleActions(item.id)}  disabled={this.props.disabled}>{item.title}</Button>
+                        }):""
+                    }
                     {/* <Button type="danger"  onClick={this.reset}>重置</Button> */}
                 </FormItem>
             </Form>

@@ -12,12 +12,15 @@ export default class actTable extends React.Component{
         Loading:false,
         radioValue:1,
         currentPage:1,
+        selectedRowKeys: [], 
+        actions:[]
     }
     componentDidMount(){
         this.props.onRef(this)
+        this.requestList()
     }
     componentWillMount(){
-        this.requestList()
+        
     }
     handleFilter=(params)=>{
         //console.log(params)
@@ -72,6 +75,7 @@ export default class actTable extends React.Component{
 			formList:data.criterias,
 			list:this.renderLists(list,storage.getItem("menuId"),codes),
             moduleTitle:data.module.title,
+            actions:data.actions
 		})
     }
     //list数据转换
@@ -105,8 +109,8 @@ export default class actTable extends React.Component{
                 key: 'action',
                 render: (text, record) => (
                 <span>
-                    <Button type="primary" icon="align-left" size="small" onClick={()=>this.handleOperate("detail",record)}>详情</Button>
-                    <Button type="dashed" icon="edit" size="small" onClick={()=>this.handleOperate("edit",record)}>修改</Button>
+                    <Button type="primary" icon="align-left" size="small" onClick={(e)=>this.handleOperate("detail",record,e)}>详情</Button>
+                    <Button type="dashed" icon="edit" size="small" onClick={(e)=>this.handleOperate("edit",record,e)}>修改</Button>
                 </span>
                 ),
             }
@@ -114,10 +118,9 @@ export default class actTable extends React.Component{
             return data
         }		
     } 
-    handleOperate=(type,record)=>{
+    handleOperate=(type,record,e)=>{
+        e.stopPropagation();//阻止事件冒泡，防止点击按钮选中整行
 		const menuId=this.props.menuId
-		const code=record.code
-        //console.log(code)
         this.setState({loading:true,Loading:true})
         if(type==="delete"){
             Modal.confirm({
@@ -127,12 +130,14 @@ export default class actTable extends React.Component{
 				cancelText:"取消",
 				onOk:()=>{
 					Super.super({
-						url:`/api/entity/curd/remove/${menuId}/${code}`,               
+                        url:`/api/entity/curd/remove/${menuId}`,
+                        data:{
+                            codes:this.state.selectCodes
+                        }            
 					}).then((res)=>{
                         this.setState({loading:false,Loading:false})
-						if(res.status==="suc"){
-							message.success('删除成功！')  
-							this.fresh()     //刷新列表，调用子组件方法                        
+						if(res.status==="suc"){ 
+							this.fresh("删除成功！")     //刷新列表       
 						}else{
 							message.info('删除失败！')  
 						}
@@ -244,51 +249,93 @@ export default class actTable extends React.Component{
         }
         this.props.importCallback(panes,importCode)
     }
-    fresh=()=>{
+    handleActions=(actionId)=>{
         const menuId=this.props.menuId;
-        this.setState({loading:true,Loading:true})
+        this.setState({Loading:true})
+        Super.super({
+            url:`/api/entity/curd/do_action/${menuId}/${actionId}`, 
+            data:{
+                codes:this.state.selectCodes
+            }                 
+        }).then((res)=>{
+            if(res && res.status==="suc"){
+                this.setState({Loading:false,selectedRowKeys: [],})
+                this.fresh(res.msg)
+            }
+        })
+    }
+    fresh=(msg)=>{
+        const menuId=this.props.menuId;
+        this.setState({Loading:true})
         Super.super({
             url:`/api/entity/curd/list/${menuId}`,                
         }).then((res)=>{
             if(res){
-                this.setState({loading:false,currentPage:1,Loading:false})
+                this.setState({currentPage:1,Loading:false,selectedRowKeys: [],})
                 storage[menuId]=JSON.stringify(res); //存储一个列表数据
                 this.editList(res)
-                message.success("刷新成功")
+                message.success(msg)
             }
         })
     }
+    onClickRow=(record)=>{
+        return {
+            onClick: () => {
+                const selectedRowKeys=this.state.selectedRowKeys;
+                const i=selectedRowKeys.indexOf(record.key)
+                if(i===-1){
+                    selectedRowKeys.push(record.key) 
+                }else{
+                    selectedRowKeys.splice(i,1);
+                }              
+                this.setState({
+                    selectedRowKeys
+                })
+            },
+          };
+    }
     render(){
-        const content = <ExportFrame 
+        const content = <ExportFrame //导出组件
                             menuId={this.props.menuId}
                             pageNo={this.state.pageNo}
                             pageSize={this.state.pageSize}
                             filterOptions={this.state.filterOptions}
-                            /> //导出组件
+                            /> 
+        const {selectedRowKeys } = this.state;
         const rowSelection = {
+            selectedRowKeys,
             onChange: (selectedRowKeys, selectedRows) => {
-              console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+                //console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+                let selectCodes=""
+                selectedRows.map((item)=>{
+                    selectCodes+=item.code+","
+                    return false
+                })
+                this.setState({selectCodes,selectedRowKeys})
             },
-            getCheckboxProps: record => ({
-              disabled: record.name === 'Disabled User',
-              name: record.name,
-            }),
           };
         return(
             <div>
                 <h3>
                     {this.state.moduleTitle}
-                    <div className="fr">
+                    <p className="fr">
                         <Button className="hoverbig" title="创建" onClick={()=>this.handleNew(this.state.moduleTitle,this.state.newRecordCode)}><Icon type="plus"/></Button>
                         <Button className="hoverbig" title="导入" onClick={()=>this.handleImport(this.state.moduleTitle,this.state.newRecordCode)}><Icon type="download" /></Button>
                         <Popover content={content} title="导出" placement="bottomRight" trigger="click">
                             <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
                         </Popover>                       
-                        <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
-                    </div>
+                        <Button className="hoverbig" title="刷新" onClick={()=>this.fresh("刷新成功！")}><Icon type="sync" /></Button>
+                    </p>
                 </h3>
                 <Card className="hoverable" headStyle={{background:"#f2f4f5"}} loading={this.state.loading}>
-                    <BaseForm formList={this.state.formList} filterSubmit={this.searchList}/>          
+                    <BaseForm 
+                        formList={this.state.formList} 
+                        filterSubmit={this.searchList} 
+                        handleOperate={this.handleOperate}
+                        actions={this.state.actions}
+                        handleActions={this.handleActions}
+                        disabled={this.state.selectedRowKeys.length>0?false:true}
+                        />          
                 </Card>
                 <Table
                     rowSelection={rowSelection}
@@ -298,6 +345,7 @@ export default class actTable extends React.Component{
                     pagination={false}
                     style={{display:this.state.columns?"block":"none"}}
                     loading={this.state.Loading}
+                    onRow={this.onClickRow}
                 >
                 </Table>
                 <Pagination 

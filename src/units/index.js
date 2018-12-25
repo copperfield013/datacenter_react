@@ -54,5 +54,27 @@ export default {
         }catch(e){ 
             message.error(e)
         } 
-    }
+    },
+    setCookie(cname,cvalue,exdays){
+        const d = new Date();
+        d.setTime(d.getTime()+(exdays*24*60*60*1000));
+        const expires = "expires="+d.toGMTString();
+        document.cookie = cname + "=" + cvalue + "; " + expires;
+    },
+    getCookie(cname){
+        const name = cname + "=";
+        const ca = document.cookie.split(';');
+        for(let i=0; i<ca.length; i++){
+            const c = ca[i].trim();
+            if (c.indexOf(name)===0) return c.substring(name.length,c.length);
+        }
+        return "";
+    },
+    delCookie(cname){ 
+        const exp = new Date(); 
+        exp.setTime(exp.getTime() - 1); 
+        const cval=this.getCookie(cname); 
+        if(cval!=null) 
+            document.cookie= cname + "="+cval+";expires="+exp.toGMTString(); 
+    },
 }
