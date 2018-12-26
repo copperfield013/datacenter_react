@@ -17,6 +17,7 @@ export default class Detail extends React.Component{
         visibleDrawer:false,
         loading:false,
         visibleExport:false,
+        fuseMode:false,
     }
     componentWillMount(){
         this.requestLists()
@@ -225,6 +226,7 @@ export default class Detail extends React.Component{
             data:{
                 "唯一编码":code,
                 ...values,
+                "%fuseMode%":this.state.fuseMode,
             }                 
         }).then((res)=>{
             console.log(res)
@@ -277,6 +279,11 @@ export default class Detail extends React.Component{
             if(anchorElement) { anchorElement.scrollIntoView({behavior: 'smooth'})}
         }
       }
+      fuseMode=(checked)=>{
+          this.setState({
+            fuseMode:checked
+          })
+      }
     render(){
         return(
             <div>
@@ -293,8 +300,8 @@ export default class Detail extends React.Component{
                         </div>
                         :
                         <div className="fr">
-                            <Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn">提交</Button>
-                            <Switch checkedChildren="开" unCheckedChildren="关" style={{marginRight:10}} title="融合模式"/>
+                            <Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn" style={{background:this.state.fuseMode===true?"#001529":""}}>保存</Button>
+                            <Switch checkedChildren="开" unCheckedChildren="关" style={{marginRight:10}} title="融合模式" onChange={this.fuseMode}/>
                             <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
                         </div>
                     }               

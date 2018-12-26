@@ -1,5 +1,6 @@
 const proxy = require('http-proxy-middleware');
 const DATACENTER_URL = 'http://139.196.123.44/datacenter_api';
+//const DATACENTER_URL = 'http://192.168.2.105:7080/datacenter';
 module.exports = function(app) {
     app.use(proxy('/api',
         {

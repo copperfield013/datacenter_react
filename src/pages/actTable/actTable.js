@@ -258,9 +258,11 @@ export default class actTable extends React.Component{
                 codes:this.state.selectCodes
             }                 
         }).then((res)=>{
+            this.setState({Loading:false,selectedRowKeys: [],})
             if(res && res.status==="suc"){
-                this.setState({Loading:false,selectedRowKeys: [],})
-                this.fresh(res.msg)
+               this.fresh(res.msg)
+            }else{
+                message.error(res.msg)
             }
         })
     }

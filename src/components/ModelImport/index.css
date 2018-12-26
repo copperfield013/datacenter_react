@@ -1,0 +1,32 @@
+.modelList {
+    margin-bottom:15px;
+    cursor: pointer;
+    width:200px;
+}
+.modelList:hover{
+    color:#1890ff
+}
+.modelList p{
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+.modelList p.tit{
+    font-weight: bold;
+    font-size: 15px
+}
+.modelList span{
+    display: inline-block;
+    width:40px;
+    height:40px;
+    border-radius: 50%;
+    line-height:45px;
+    text-align: center;
+    float: left;
+    margin-right:10px;
+    align-self: center;
+    background:#1890ff;
+}
+.modelList span.light{
+    background:red;
+    color:#fff;
+}

@@ -76,7 +76,7 @@ class BaseForm extends React.Component{
                 {this.initFormList()}
                 <FormItem className="btns">
                     <Button type="primary" onClick={this.handleFilterSubmit}>查询</Button>
-                    <Button type="danger" disabled={this.props.disabled} onClick={()=>this.props.handleOperate("delete")}>删除选中</Button>
+                    <Button type="danger" disabled={this.props.disabled} onClick={(e)=>this.props.handleOperate("delete","",e)}>删除选中</Button>
                     {
                         actions.length>0?
                         actions.map((item)=>{

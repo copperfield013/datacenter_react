@@ -43,8 +43,7 @@ export default class Detail extends React.Component{
             .set("datamobile-token",tokenName)
             .send(formData)
             .end((req,res)=>{
-                if(res.body.status==="suc"){                 
-                    //this.handleStatus(res.body.uuid)
+                if(res.body.status==="suc"){
                     this.timerID=setInterval(
                         () =>this.handleStatus(res.body.uuid),
                         500
@@ -245,8 +244,12 @@ export default class Detail extends React.Component{
                     visible={this.state.visible}
                     onCancel={this.handleCancel}
                     footer={null}
+                    width={750}
+                    style={{top:40}}
                     >
-                    <ModelImport />
+                    <ModelImport 
+                        menuId={this.props.menuId}
+                    />
                 </Modal>
             </div>
         )
