@@ -279,11 +279,11 @@ export default class Detail extends React.Component{
             if(anchorElement) { anchorElement.scrollIntoView({behavior: 'smooth'})}
         }
       }
-      fuseMode=(checked)=>{
-          this.setState({
+    fuseMode=(checked)=>{
+        this.setState({
             fuseMode:checked
-          })
-      }
+        })
+    }
     render(){
         return(
             <div>

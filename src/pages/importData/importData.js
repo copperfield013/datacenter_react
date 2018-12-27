@@ -10,12 +10,6 @@ import './index.css'
 const storage=window.sessionStorage;
 const CheckboxGroup = Checkbox.Group;
 let MSG=[];
-const plainOptions = [
-    { label: '常规', value: 'INFO' }, 
-    { label: '成功', value: 'SUC' }, 
-    { label: '错误', value: 'ERROR' }, 
-    { label: '警告', value: 'WARN' }
-];
 const checkedList = ['INFO', 'SUC', 'ERROR', 'WARN'];
 export default class Detail extends React.Component{
     state = {
@@ -63,10 +57,6 @@ export default class Detail extends React.Component{
                     msgIndex:0
                 }          
             }).then((res)=>{
-                this.setState({
-                    statusMsg:res.message,
-                    percent:(res.current/res.totalCount)*100,
-                })
                 let copyText=""
                 if(res.completed===true){
                     clearInterval(this.timerID);
@@ -80,7 +70,7 @@ export default class Detail extends React.Component{
                         }else if(item.type==="ERROR"){
                             color="red"
                         }else if(item.type==="WARN"){
-                            color="yellow"
+                            color="rgb(250, 225, 4)"
                         }
                         const msg=<div type={item.type}><p>{time}</p><p style={{color:color}}>{item.text}</p></div>
                         copyText+=time+item.text+"\n"
@@ -90,18 +80,20 @@ export default class Detail extends React.Component{
                     message.success('导入完成！');
                     
                     this.setState({
+                        statusMsg:res.message,
+                        percent:(res.current/res.totalCount)*100,
                         uploading:false,
                         isDisabled:false,
                         uuid,
                         messages:MSG,
                         importAgain:"block",
                         importbtn:"none",
-                        copyText
+                        copyText,
                     });
                 }
             })
         } 
-    onChange = (checkedList) => {
+    onChange = (checkedList) => { //日志checkbox选择
         const messages=MSG
         let newmesg=[]
         let newCopyText=""
@@ -212,13 +204,18 @@ export default class Detail extends React.Component{
                                     >
                                     {uploading ? '正在导入' : '重新导入' }
                                 </Button>
-                            </div>                    
+                            </div>               
                             <List
                                 header={
                                         <div className="listHeader">
                                             <h3>导入日志</h3>
                                             <div className="checks">                                     
-                                                <CheckboxGroup options={plainOptions} value={this.state.checkedList} onChange={this.onChange}/>                                  
+                                                <CheckboxGroup value={this.state.checkedList} onChange={this.onChange}>
+                                                    <Checkbox value="INFO" className="infoColor">常规</Checkbox>
+                                                    <Checkbox value="SUC" className="sucColor">成功</Checkbox>
+                                                    <Checkbox value="ERROR"  className="errorColor">错误</Checkbox>
+                                                    <Checkbox value="WARN"  className="warnColor">警告</Checkbox>
+                                                </CheckboxGroup>                             
                                                 <CopyToClipboard 
                                                     text={this.state.copyText}
                                                     onCopy={() => {
@@ -230,7 +227,7 @@ export default class Detail extends React.Component{
                                             </div>
                                         </div>
                                         }
-                                footer={<div>导入完成</div>}
+                                footer={<div>{this.state.statusMsg}</div>}
                                 bordered
                                 dataSource={this.state.messages}
                                 renderItem={item => (<List.Item>{item}</List.Item>)}

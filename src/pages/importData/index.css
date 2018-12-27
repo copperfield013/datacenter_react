@@ -21,3 +21,31 @@
     right:0;
     top:0;
 }
+.infoColor{
+    color:black;
+}
+.infoColor .ant-checkbox-checked .ant-checkbox-inner{
+    background-color:black;
+    border-color: black;
+}
+.sucColor{
+    color:green;
+}
+.sucColor .ant-checkbox-checked .ant-checkbox-inner{
+    background-color:green;
+    border-color: green;
+}
+.errorColor{
+    color:red;
+}
+.errorColor .ant-checkbox-checked .ant-checkbox-inner{
+    background-color:red;
+    border-color: red;
+}
+.warnColor{
+    color:rgb(250, 225, 4);
+}
+.warnColor .ant-checkbox-checked .ant-checkbox-inner{
+    background-color:rgb(250, 225, 4);
+    border-color: rgb(250, 225, 4);
+}

@@ -158,8 +158,8 @@ export default class Admin extends React.Component{
 	}
 	//固定tab
 	handleScroll=(e)=>{		
-		const scrollTop  = e.target.scrollTop;  //滚动条滚动高度
-		const scrollHeight = e.target.scrollHeight
+		const scrollTop  = e.target.scrollTop;  //页面滚动高度
+		const scrollHeight = e.target.scrollHeight;//页面总高度		
 		const obj =document.getElementsByClassName("ant-tabs-bar")[0]
 		if(scrollTop>50 && scrollHeight>705){
 			obj.style.position = 'fixed';

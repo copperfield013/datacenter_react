@@ -100,6 +100,10 @@ class BaseInfoForm extends React.Component{
             })
         }       
       }
+    downAvatar=()=>{
+        console.log(2231)
+        Units.downloadFile("/file-server/download-files/29ac84cd765996b426bb425737cb4ca2/call.png")
+    }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
         const formList=this.props.formList;
@@ -120,11 +124,11 @@ class BaseInfoForm extends React.Component{
             },
             beforeUpload: (file) => {
                 this.setState(state => ({
-                    fileList: [...state.fileList, file],
+                    fileList: [file],
                 }));
                 return false;
             },
-            defaultFileList: [...fileList],
+            defaultFileList: fileList,
         };
         if(formList && formList.length>0){
             formList.forEach((item)=>{
@@ -133,7 +137,7 @@ class BaseInfoForm extends React.Component{
                 const fieldValue=this.props.flag?"":item.value;
                 if(item.type==="date"){
                     const DATE= <FormItem label={fieldName} key={field} className='labelcss'>
-                                    {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                    {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
                                             initialValue:!fieldValue||fieldValue===""?null:moment(fieldValue,'YYYY-MM-DD'),
                                             rules:item.validators==="required"?[{
@@ -150,7 +154,7 @@ class BaseInfoForm extends React.Component{
                     formItemList.push(DATE)                
                 }else if(item.type==="text"){
                     const TEXT= <FormItem label={fieldName} key={field} className='labelcss'>
-                                    {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                    {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
                                         initialValue:fieldValue,
                                         rules:item.validators==="required"?[{
@@ -163,7 +167,7 @@ class BaseInfoForm extends React.Component{
                     formItemList.push(TEXT)                
                 }else if(item.type==="select"){
                     const SELECT= <FormItem label={fieldName} key={[field]} className='labelcss'>
-                                        {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                        {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                             getFieldDecorator(fieldName,{
                                                 initialValue:fieldValue,
                                                 rules:item.validators==="required"?[{
@@ -183,7 +187,7 @@ class BaseInfoForm extends React.Component{
                 }else if(item.type==="label"){
                     const result=fieldValue?fieldValue.split(','):[];                    
                     const LABEL= <FormItem label={fieldName} key={field} className='labelcss'>
-                                        {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                        {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                             getFieldDecorator(fieldName,{
                                                 initialValue:result,
                                                 rules:item.validators==="required"?[{
@@ -202,7 +206,7 @@ class BaseInfoForm extends React.Component{
                     formItemList.push(LABEL)   
                 }else if(item.type==="caselect"){
                     const CASELECT= <FormItem label={fieldName} key={field} className='labelcss'>
-                                        {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}>{fieldValue}</span>:
+                                        {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                             getFieldDecorator(fieldName)(
                                                 <Cascader
                                                     onClick={()=>this.requestLinkage(item.optionKey)}
@@ -218,10 +222,13 @@ class BaseInfoForm extends React.Component{
                     formItemList.push(CASELECT)   
                 }else if(item.type==="file"){
                     const FILE= <FormItem label={fieldName} key={field} className='labelcss'>
-                                        {this.props.type==="detail"?<span style={{width:220,display:"inline-block"}}><Avatar src={field}/></span>:
+                                        {this.props.type==="detail"?fieldValue?<span className="downAvatar">
+                                                                        <Avatar shape="square" src={`/file-server/${fieldValue}`}/>
+                                                                        <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a>
+                                                                    </span>:<span className="downAvatar">无文件</span>:
                                         getFieldDecorator(fieldName)(
                                             <Upload {...props}>
-                                                <Button style={{width:220}}>
+                                                <Button style={{width:220}} disabled={this.state.fileList.length===1?true:false}>
                                                     <Icon type="upload" /> 点击上传
                                                 </Button>
                                             </Upload>
