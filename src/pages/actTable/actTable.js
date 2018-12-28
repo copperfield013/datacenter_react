@@ -262,7 +262,7 @@ export default class actTable extends React.Component{
             if(res && res.status==="suc"){
                this.fresh(res.msg)
             }else{
-                message.error(res.msg)
+                message.error(res.status)
             }
         })
     }

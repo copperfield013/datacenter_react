@@ -95,6 +95,7 @@ export default class Admin extends React.Component{
 						type={this.state.type}
 						menuId={this.state.menuId}
 						code={this.state.code}
+						scrollIds={this.scrollIds}
 					/>
 			case newcode:
 			return <Detail
@@ -120,6 +121,11 @@ export default class Admin extends React.Component{
 						onRef={this.onRef} 
 					/>
 		}  	
+	}
+	scrollIds=(scrollIds)=>{
+		this.setState({
+			scrollIds
+		 })
 	}
 	actCallBackAdmin=(panes,dcode,xqTitle,menuId,code,type)=>{
 		this.setState({ 
@@ -159,7 +165,36 @@ export default class Admin extends React.Component{
 	//固定tab
 	handleScroll=(e)=>{		
 		const scrollTop  = e.target.scrollTop;  //页面滚动高度
-		const scrollHeight = e.target.scrollHeight;//页面总高度		
+		const scrollHeight = e.target.scrollHeight;//页面总高度
+		const clientHeight   = e.target.clientHeight  ;
+		const scrollIds=this.state.scrollIds;		
+		const mainTopArr = []; 
+		let k=0;
+		if(scrollIds){	//滑动锁定导航
+			for(let i=0;i<scrollIds.length;i++){
+				let node=document.getElementById(scrollIds[i])
+				if(node){
+					let top = Math.floor(node.offsetTop); 	
+					mainTopArr.push(top);
+				}		
+			} 
+			//console.log(mainTopArr)
+			for(let i=0;i<mainTopArr.length;i++){ 
+				if((scrollTop+clientHeight/2)>=mainTopArr[i]){ 
+				k=i; 
+				} 
+			} 
+			const list=document.getElementsByClassName("rightBar")[0]
+			if(list){
+				const lis=list.getElementsByTagName("li")
+				for(let i=0;i<lis.length;i++){
+					lis[i].style.backgroundColor="#fff"
+				}
+				lis[k].style.backgroundColor="#cfe3f5"
+			}
+		}
+
+
 		const obj =document.getElementsByClassName("ant-tabs-bar")[0]
 		if(scrollTop>50 && scrollHeight>705){
 			obj.style.position = 'fixed';

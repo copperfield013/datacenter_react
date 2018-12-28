@@ -135,6 +135,10 @@ export default class Detail extends React.Component{
             }     
             return false
         })   
+        let scrollIds=[]
+        scrollIds.push(firstCard)
+        scrollIds.push(...cardTitle)
+        this.props.scrollIds(scrollIds)
         this.setState({
             detailsList,
             formList,           

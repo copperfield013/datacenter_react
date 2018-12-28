@@ -12,6 +12,7 @@ const storage=window.sessionStorage;
 class BaseInfoForm extends React.Component{
     state={
         fileList:[],
+        flag:false
     }
     componentDidMount(){
         this.props.onRef(this)
@@ -100,36 +101,39 @@ class BaseInfoForm extends React.Component{
             })
         }       
       }
-    downAvatar=()=>{
-        console.log(2231)
-        Units.downloadFile("/file-server/download-files/29ac84cd765996b426bb425737cb4ca2/call.png")
+    onRemove=(file) => {
+        this.setState({
+            fileList: [],
+            flag:true //为了防止重复添加defaultUpload
+        });
+    }
+    beforeUpload=(file) => {
+        this.setState(state => ({
+            fileList: [file],
+        }));
+        return false;
+    }
+    handleChange=(info)=>{
+        let fileList = info.fileList;
+        fileList = fileList.slice(-1);
+        console.log(fileList)
+        this.setState({fileList})
+    }
+    handleUpload=(fieldValue,e)=>{//defaultFileList默认不在fileList里面
+        if(fieldValue&&this.state.flag===false){
+            let defaultUpload={}
+            defaultUpload["uid"]="-1";
+            defaultUpload["url"]=`/file-server/${fieldValue}`
+            this.setState({
+                fileList:[defaultUpload]
+            })
+        }
+            
     }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
         const formList=this.props.formList;
         const formItemList=[];
-        const { fileList } = this.state;
-        const props = {
-            accept:"image/*",
-            listType: 'picture',
-            onRemove: (file) => {
-                this.setState((state) => {
-                    const index = state.fileList.indexOf(file);
-                    const newFileList = state.fileList.slice();
-                    newFileList.splice(index, 1);
-                    return {
-                        fileList: newFileList,
-                    };
-                });
-            },
-            beforeUpload: (file) => {
-                this.setState(state => ({
-                    fileList: [file],
-                }));
-                return false;
-            },
-            defaultFileList: fileList,
-        };
         if(formList && formList.length>0){
             formList.forEach((item)=>{
                 const fieldName=item.fieldName;
@@ -222,16 +226,33 @@ class BaseInfoForm extends React.Component{
                     formItemList.push(CASELECT)   
                 }else if(item.type==="file"){
                     const FILE= <FormItem label={fieldName} key={field} className='labelcss'>
-                                        {this.props.type==="detail"?fieldValue?<span className="downAvatar">
-                                                                        <Avatar shape="square" src={`/file-server/${fieldValue}`}/>
-                                                                        <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a>
-                                                                    </span>:<span className="downAvatar">无文件</span>:
-                                        getFieldDecorator(fieldName)(
-                                            <Upload {...props}>
-                                                <Button style={{width:220}} disabled={this.state.fileList.length===1?true:false}>
-                                                    <Icon type="upload" /> 点击上传
-                                                </Button>
-                                            </Upload>
+                                        {this.props.type==="detail"?
+                                            fieldValue?<span className="downAvatar">
+                                                <Avatar shape="square" src={`/file-server/${fieldValue}`}/>
+                                                <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a>
+                                                </span>:<span className="downAvatar">无文件</span>
+                                        :getFieldDecorator(fieldName)(
+                                                <Upload
+                                                    accept="image/*"
+                                                    listType= 'picture'
+                                                    onRemove={this.onRemove}
+                                                    beforeUpload={this.beforeUpload}
+                                                    defaultFileList={fieldValue?[{
+                                                        uid:"-1",
+                                                        name:`${item.fieldName}.png`,
+                                                        status: 'done',
+                                                        url: `/file-server/${fieldValue}`,
+                                                    }]:""}
+                                                    onChange={this.handleChange}
+                                                >
+                                                    <Button 
+                                                        style={{width:220}} 
+                                                        disabled={this.state.fileList.length===1?true:false} 
+                                                        onMouseEnter={(e)=>this.handleUpload(fieldValue,e)}
+                                                        >
+                                                        <Icon type="upload" /> 点击上传
+                                                    </Button>
+                                                </Upload>
                                         )}
                                 </FormItem>
                     formItemList.push(FILE)   
