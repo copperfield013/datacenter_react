@@ -27,7 +27,7 @@ class BaseInfoForm extends React.Component{
                 fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
             }
         }
-        storage["baseInfo"]=JSON.stringify(fieldsValue)
+        this.props.baseInfo(fieldsValue)
     }
     requestSelectOptions=(id)=>{//下拉框
         Super.super({

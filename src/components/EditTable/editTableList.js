@@ -5,15 +5,20 @@ import './index.css'
 const storage=window.sessionStorage;
 let totalRecord=[]
 let newRecord=[]
+let res=[]
 export default class EditTableList extends React.Component {
   state={
     selectedRowKeys: [],
     count:this.props.count===0?0:(this.props.count+1),
     dataSource:this.props.dataSource?this.props.dataSource:[],
   }
+  componentDidMount(){
+    res.push(this.props.dataSource)
+    storage["records"]=JSON.stringify(res)
+  }
   componentWillMount(){
     totalRecord=[]//切换清空原有数据
-    storage.removeItem("newRecord")
+    storage.removeItem("records")
   }
   
   update=(e,name)=>{
@@ -25,8 +30,8 @@ export default class EditTableList extends React.Component {
     }else{
       newRecord=Object.assign(...totalRecord, record)
     }
-    //console.log(record)
-    storage["newRecord"]=JSON.stringify(newRecord)
+    console.log(newRecord)
+    storage["records"]=JSON.stringify(res)
   }
   handleAdd=()=> {
     const count =this.state.count;
@@ -65,24 +70,7 @@ export default class EditTableList extends React.Component {
         })
         return false
       })
-      //console.log(news)
-      const keys=[];
-      this.state.selectedRows.map((item)=>{ 
-          storage.removeItem(item.code)//在storage里面删除对应数据
-          for(let k in item){
-            keys.push(skeys+k)
-          }
-          return false
-      })
-      for(let k in newRecord){
-        keys.map((it)=>{
-          if(k===it){
-            delete newRecord[k]
-          }
-          return false
-        })
-        storage["newRecord"]=JSON.stringify(newRecord)
-      }
+      console.log(this.state.dataSource)    
     }      
   }
   render() {
@@ -111,7 +99,7 @@ export default class EditTableList extends React.Component {
             bordered
             dataSource={this.state.dataSource}
             columns={this.props.columns}
-            pagination={false}
+            pagination={{pageSize:6,showQuickJumper:true}}       
           />        
       </div>
     );

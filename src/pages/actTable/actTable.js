@@ -280,22 +280,22 @@ export default class actTable extends React.Component{
             }
         })
     }
-    onClickRow=(record)=>{
-        return {
-            onClick: () => {
-                const selectedRowKeys=this.state.selectedRowKeys;
-                const i=selectedRowKeys.indexOf(record.key)
-                if(i===-1){
-                    selectedRowKeys.push(record.key) 
-                }else{
-                    selectedRowKeys.splice(i,1);
-                }              
-                this.setState({
-                    selectedRowKeys
-                })
-            },
-          };
-    }
+    // onClickRow=(record)=>{
+    //     return {
+    //         onClick: () => {
+    //             const selectedRowKeys=this.state.selectedRowKeys;
+    //             const i=selectedRowKeys.indexOf(record.key)
+    //             if(i===-1){
+    //                 selectedRowKeys.push(record.key) 
+    //             }else{
+    //                 selectedRowKeys.splice(i,1);
+    //             }              
+    //             this.setState({
+    //                 selectedRowKeys
+    //             })
+    //         },
+    //       };
+    // }
     render(){
         const content = <ExportFrame //导出组件
                             menuId={this.props.menuId}
@@ -313,6 +313,7 @@ export default class actTable extends React.Component{
                     selectCodes+=item.code+","
                     return false
                 })
+                console.log(selectCodes)
                 this.setState({selectCodes,selectedRowKeys})
             },
           };
@@ -347,7 +348,7 @@ export default class actTable extends React.Component{
                     pagination={false}
                     style={{display:this.state.columns?"block":"none"}}
                     loading={this.state.Loading}
-                    onRow={this.onClickRow}
+                    //onRow={this.onClickRow}
                 >
                 </Table>
                 <Pagination 

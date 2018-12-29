@@ -1,4 +1,5 @@
 import React from 'react'
+import superagent from 'superagent'
 import {Card,Button,Modal,message,Icon,Drawer,Timeline,Switch} from 'antd'
 import Super from "./../../super"
 import Units from '../../units'
@@ -9,7 +10,6 @@ import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 const confirm = Modal.confirm;
 
 const storage=window.sessionStorage;
-let totalcode=[]
 export default class Detail extends React.Component{
     state={
         count:0,
@@ -21,7 +21,7 @@ export default class Detail extends React.Component{
     }
     componentWillMount(){
         this.requestLists()
-        totalcode=[] //切换清空原有数据
+        //totalcode=[] //切换清空原有数据
     }
     requestLists=()=>{
         if(!this.props.code){
@@ -169,12 +169,13 @@ export default class Detail extends React.Component{
         if(data.array){
             data.array.map((item)=>{
                 const code=item.code;
-                const list={};              
+                const list={};  
+                list[item.relation+"唯一编码"]=code;            
                 item.fields.map((it)=>{
                     const fieldName=it.fieldName;
-                    const fieldValue=it.value;
-                    list["key"]=code;
+                    const fieldValue=it.value;     
                     list[fieldName]=fieldValue;
+                    list["key"]=code;
                     return false
                 })
                 res.push(list) 
@@ -203,44 +204,41 @@ export default class Detail extends React.Component{
     handleOk = (e) => {
         e.preventDefault();
         this.setState({loading:true})
-        this.child.handleBaseInfoSubmit()
-        const records=[]
+        const tokenName=storage.getItem('tokenName')
+        const formData = new FormData();
         const menuId=this.props.menuId;
         const code=this.props.code;          
-        let baseInfo={}
-        let newRecord={}
-        if(storage.getItem("baseInfo")){
-            baseInfo=JSON.parse(storage.getItem("baseInfo"))
+        const baseInfo=this.state.baseValue;
+
+        formData.append('唯一编码', code);
+        formData.append('%fuseMode%', this.state.fuseMode);
+        for(let k in baseInfo){
+            formData.append(k, baseInfo[k]);
         }
-        totalcode.map((item)=>{
-            if(storage.getItem(item)){
-                const record=JSON.parse(storage.getItem(item))
-                delete(record.key)//删除不必要传递的key
-                records.push(record)
-            }
-            return false
-        })
-        if(storage.getItem("newRecord")){
-            newRecord=JSON.parse(storage.getItem("newRecord"))
-        }
-        const values=Object.assign(baseInfo, ...records, newRecord)
-        console.log(baseInfo)
-        Super.super({
-            url:`/api/entity/curd/update/${menuId}`,  
-            data:{
-                "唯一编码":code,
-                ...values,
-                "%fuseMode%":this.state.fuseMode,
-            }                 
-        }).then((res)=>{
-            console.log(res)
-            this.setState({loading:false})
-            message.success("提交成功！")
-        })
+        // for(let k in newRecord){
+        //     formData.append(k, newRecord[k]);
+        // }
+        // superagent
+        //     .post(`/api/entity/curd/update/${menuId}`)
+        //     .set({"datamobile-token":tokenName})
+        //     .send(formData)
+        //     .end((req,res)=>{
+        //         if(res.body.status==="suc"){
+        //             message.success("保存成功！")
+        //         }else{
+        //             message.success(res.body.status)
+        //         }
+        //     })
         this.setState({
             visibleModal: false,
+            loading:false
         });
       }
+    baseInfo=(baseValue)=>{
+        this.setState({
+            baseValue
+        });
+    }
     exportDetail=()=>{
         const menuId=this.props.menuId;
         const code=this.props.code;  
@@ -266,6 +264,7 @@ export default class Detail extends React.Component{
         });
     }
     showModal = () => {
+        this.child.handleBaseInfoSubmit()
         this.setState({
             visibleModal: true,
         });
@@ -274,8 +273,12 @@ export default class Detail extends React.Component{
 	onRef=(ref)=>{
 		this.child=ref
     }
-    callbacktotalcode=(data)=>{
-        totalcode=data
+    callbackRecords=(data)=>{
+        console.log(data)
+        //totalcode=data
+        this.setState({
+            totalcode:data
+        });
     }
     scrollToAnchor = (anchorName) => {
         if (anchorName) {
@@ -322,6 +325,7 @@ export default class Detail extends React.Component{
                         type={this.props.type} 
                         onRef={this.onRef}
                         flag={this.props.flag}
+                        baseInfo={this.baseInfo}
                         />
                 </Card>
                 <EditTable 
@@ -332,7 +336,7 @@ export default class Detail extends React.Component{
                     count={this.state.count}
                     cardTitle={this.state.cardTitle}
                     itemDescs={this.state.itemDescs}
-                    callback={this.callbacktotalcode}
+                    //callback={this.callbackRecords}
                 />
                 <Modal
                     visible={this.state.visibleModal}
