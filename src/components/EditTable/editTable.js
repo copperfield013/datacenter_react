@@ -4,6 +4,12 @@ import EditTableList from './editTableList'
 
 
 export default class EditTable extends React.Component{
+    callbackdatasource=(dataSource)=>{
+        this.props.callbackdatasource(dataSource)
+    }
+    deleSource=(deleKey)=>{
+        this.props.deleSource(deleKey)
+    }
     initDetailsList=()=>{
         const detailsList=this.props.detailsList;
         const detailsItemList=[];
@@ -24,6 +30,8 @@ export default class EditTable extends React.Component{
                                     dataSource={this.props.dataSource[index]}
                                     item={item}
                                     count={this.props.count}
+                                    callbackdatasource={this.callbackdatasource}
+                                    deleSource={this.deleSource}
                                 />
                             </Card>
                 detailsItemList.push(RANGE)         

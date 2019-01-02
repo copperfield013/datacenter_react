@@ -10,6 +10,7 @@ import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 const confirm = Modal.confirm;
 
 const storage=window.sessionStorage;
+let records=[]
 export default class Detail extends React.Component{
     state={
         count:0,
@@ -21,7 +22,7 @@ export default class Detail extends React.Component{
     }
     componentWillMount(){
         this.requestLists()
-        //totalcode=[] //切换清空原有数据
+        records=[] //切换清空原有数据
     }
     requestLists=()=>{
         if(!this.props.code){
@@ -215,20 +216,25 @@ export default class Detail extends React.Component{
         for(let k in baseInfo){
             formData.append(k, baseInfo[k]);
         }
-        // for(let k in newRecord){
-        //     formData.append(k, newRecord[k]);
-        // }
-        // superagent
-        //     .post(`/api/entity/curd/update/${menuId}`)
-        //     .set({"datamobile-token":tokenName})
-        //     .send(formData)
-        //     .end((req,res)=>{
-        //         if(res.body.status==="suc"){
-        //             message.success("保存成功！")
-        //         }else{
-        //             message.success(res.body.status)
-        //         }
-        //     })
+        records.map((item)=>{
+            for(let k in item){
+                if(k!=="key"){ //删除无意义的key值
+                    formData.append(k, item[k]);
+                }
+            }
+            return false
+        })
+        superagent
+            .post(`/api/entity/curd/update/${menuId}`)
+            .set({"datamobile-token":tokenName})
+            .send(formData)
+            .end((req,res)=>{
+                if(res.body.status==="suc"){
+                    message.success("保存成功！")
+                }else{
+                    message.success(res.body.status)
+                }
+            })
         this.setState({
             visibleModal: false,
             loading:false
@@ -291,6 +297,23 @@ export default class Detail extends React.Component{
             fuseMode:checked
         })
     }
+    callbackdatasource=(dataSource)=>{
+        dataSource.map((item)=>{
+            records.push(item)
+            return false
+        })
+        //console.log(records)
+    }
+    deleSource=(deleKey)=>{
+        records.map((item)=>{
+            let index=records.indexOf(item)
+            if(item.key===deleKey){
+                records.splice(index, 1); 
+            }
+            return false
+        })
+        //console.log(records)
+    }
     render(){
         return(
             <div>
@@ -337,6 +360,8 @@ export default class Detail extends React.Component{
                     cardTitle={this.state.cardTitle}
                     itemDescs={this.state.itemDescs}
                     //callback={this.callbackRecords}
+                    callbackdatasource={this.callbackdatasource}
+                    deleSource={this.deleSource}
                 />
                 <Modal
                     visible={this.state.visibleModal}

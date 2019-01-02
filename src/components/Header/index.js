@@ -29,7 +29,7 @@ export default class Header extends React.Component{
 		return (
 			<div className="header">
 				<Row className="header-top">	
-					<Col span="24">
+					<Col span={24}>
 						<Dropdown overlay={menu} placement="bottomCenter">
 							<div className="userLogin">
 								<Icon type="user" />

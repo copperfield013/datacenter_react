@@ -227,7 +227,7 @@ export default class Admin extends React.Component{
 		const operations = <Button onClick={this.shutAll} style={{display:this.state.showShutAll}}>关闭所有</Button>;
 		return(
 			<Row className="container">
-				<Col span="4" className="nav-left">
+				<Col span={4} className="nav-left">
 					<NavLeft
 						callBackAdmin={this.setPanes}
 						panes={this.state.panes}
@@ -235,7 +235,7 @@ export default class Admin extends React.Component{
 						onRef2={this.onRef2} 
 					/>
 				</Col>
-				<Col span="20" className="main" onScroll={this.handleScroll}>
+				<Col span={20} className="main" onScroll={this.handleScroll}>
 					<Header/>
 					<Content className="content">
 						<Tabs 

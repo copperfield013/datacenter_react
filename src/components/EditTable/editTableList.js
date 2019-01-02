@@ -1,11 +1,8 @@
 import React from 'react'
 import { Table, Input, Button, message } from 'antd';
+import Units from './../../units'
 import './index.css'
 
-const storage=window.sessionStorage;
-let totalRecord=[]
-let newRecord=[]
-let res=[]
 export default class EditTableList extends React.Component {
   state={
     selectedRowKeys: [],
@@ -13,38 +10,30 @@ export default class EditTableList extends React.Component {
     dataSource:this.props.dataSource?this.props.dataSource:[],
   }
   componentDidMount(){
-    res.push(this.props.dataSource)
-    storage["records"]=JSON.stringify(res)
-  }
-  componentWillMount(){
-    totalRecord=[]//切换清空原有数据
-    storage.removeItem("records")
+    this.props.callbackdatasource(this.state.dataSource)//传递原始记录
   }
   
-  update=(e,name)=>{
+  update=(e,name,key)=>{
     const record={}
+    const arr=[];
     record[name]=e.target.value
-    if(totalRecord.length===0){
-      totalRecord.push(record)
-      newRecord=record
-    }else{
-      newRecord=Object.assign(...totalRecord, record)
-    }
-    console.log(newRecord)
-    storage["records"]=JSON.stringify(res)
+    record["key"]=key
+    arr.push(record)
+    this.props.callbackdatasource(arr)//新增记录
   }
   handleAdd=()=> {
     const count =this.state.count;
     const newDataSource = this.state.dataSource
-    const list={}    
+    const list={}     
+    const rendom=Units.RndNum(10)
+    list["key"]=rendom  //自定义随机数作key值
     this.props.item.map((item)=>{
         let fieldName=item.fieldName;
-        list["key"]=fieldName+count
         list[fieldName]=<Input type="text" 
                           style={{width:185}} 
                           key={[fieldName+count]} 
                           placeholder={`请输入${fieldName}`}
-                          onBlur={(e)=>this.update(e,[count+fieldName])}
+                          onBlur={(e)=>this.update(e,[fieldName+count],rendom)}
                           />   
         return false                            
     })
@@ -55,7 +44,6 @@ export default class EditTableList extends React.Component {
     });
       //console.log(this.state.dataSource)
   }
-
   handleDelete = () => {
     const dataSource = [...this.state.dataSource];
     const skeys=this.state.selectedRowKeys
@@ -68,9 +56,12 @@ export default class EditTableList extends React.Component {
           dataSource:dataSource.filter(item => item.key !== key),
           selectedRowKeys: [],
         })
+        this.props.columns.map((item)=>{
+          this.props.deleSource(key)//有多少列，执行多少次
+          return false
+        })
         return false
       })
-      console.log(this.state.dataSource)    
     }      
   }
   render() {
@@ -99,7 +90,7 @@ export default class EditTableList extends React.Component {
             bordered
             dataSource={this.state.dataSource}
             columns={this.props.columns}
-            pagination={{pageSize:6,showQuickJumper:true}}       
+            pagination={{pageSize:6,showQuickJumper:true,hideOnSinglePage:true,}}     
           />        
       </div>
     );

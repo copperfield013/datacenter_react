@@ -8,7 +8,6 @@ import moment from 'moment';
 moment.locale('zh-cn');
 const FormItem=Form.Item
 
-const storage=window.sessionStorage;
 class BaseInfoForm extends React.Component{
     state={
         fileList:[],
