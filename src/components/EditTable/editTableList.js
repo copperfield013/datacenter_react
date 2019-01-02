@@ -27,13 +27,16 @@ export default class EditTableList extends React.Component {
     const list={}     
     const rendom=Units.RndNum(10)
     list["key"]=rendom  //自定义随机数作key值
-    this.props.item.map((item)=>{
-        let fieldName=item.fieldName;
+    const itemList=this.props.item
+    const itemTitle=itemList.title
+    itemList.descs.map((item)=>{
+        const fieldName=item.fieldName;
+        const title=item.title;
         list[fieldName]=<Input type="text" 
                           style={{width:185}} 
-                          key={[fieldName+count]} 
+                          key={[itemTitle+count]} 
                           placeholder={`请输入${fieldName}`}
-                          onBlur={(e)=>this.update(e,[fieldName+count],rendom)}
+                          onBlur={(e)=>this.update(e,[itemTitle+`[${count}].`+title],rendom)}
                           />   
         return false                            
     })

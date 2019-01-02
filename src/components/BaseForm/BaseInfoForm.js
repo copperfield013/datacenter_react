@@ -8,24 +8,30 @@ import moment from 'moment';
 moment.locale('zh-cn');
 const FormItem=Form.Item
 
+let submits=[]
 class BaseInfoForm extends React.Component{
     state={
         fileList:[],
-        flag:false
-    }
+        flag:false,
+        visiCascader:"none"
+    }   
     componentDidMount(){
         this.props.onRef(this)
     }
-    reSet=()=>{
-        this.props.form.resetFields();
-    }
     handleBaseInfoSubmit=()=>{
-        let fieldsValue=this.props.form.getFieldsValue()
+        const fieldsValue=this.props.form.getFieldsValue()
         for(let k in fieldsValue){
-            if(k.indexOf("日期")>-1){ //日期格式转换
+            if(k.indexOf("日期")>-1 && fieldsValue[k]){ //日期格式转换
                 fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
             }
         }
+        for(let k in fieldsValue){
+            if(k.indexOf("地址")>-1 && fieldsValue[k]){ //地址格式转换
+                fieldsValue[k]= fieldsValue[k].join("->")
+            }
+        }
+        submits.push(fieldsValue)
+        console.log(submits)
         this.props.baseInfo(fieldsValue)
     }
     requestSelectOptions=(id)=>{//下拉框
@@ -129,6 +135,13 @@ class BaseInfoForm extends React.Component{
         }
             
     }
+    changeCascader=(optionKey,e)=>{
+        this.requestLinkage(optionKey)
+        e.target.style.display="none"
+        this.setState({
+            visiCascader:"inline-block"
+        })
+    }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
         const formList=this.props.formList;
@@ -207,10 +220,38 @@ class BaseInfoForm extends React.Component{
                                         )}
                                 </FormItem>
                     formItemList.push(LABEL)   
-                }else if(item.type==="caselect"){
+                }else if(item.type==="caselect"){ 
+                    // let arrVal=[]
+                    // if(fieldValue){
+                    //     arrVal=fieldValue.split("->")
+                    // }
                     const CASELECT= <FormItem label={fieldName} key={field} className='labelcss'>
                                         {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
-                                            getFieldDecorator(fieldName)(
+                                        fieldValue?<div>
+                                            <Input style={{width:220}} value={fieldValue} onClick={(e)=>this.changeCascader(item.optionKey,e)} readOnly/>
+                                            {
+                                                this.state.visiCascader==="inline-block"?getFieldDecorator(fieldName,{
+                                                    rules:item.validators==="required"?[{
+                                                            required: true, message: `请输入${fieldName}`,
+                                                          }]:"",
+                                                })(
+                                                    <Cascader
+                                                        onClick={()=>this.requestLinkage(item.optionKey)}
+                                                        placeholder={`请选择${fieldName}`}
+                                                        style={{width:220}}
+                                                        options={this.state.options}
+                                                        loadData={this.loadData}
+                                                        displayRender={label=>label.join('->')}
+                                                        getPopupContainer={trigger => trigger.parentNode}
+                                                    />
+                                            ):""
+                                            }
+                                            </div>:
+                                            getFieldDecorator(fieldName,{
+                                                rules:item.validators==="required"?[{
+                                                        required: true, message: `请输入${fieldName}`,
+                                                      }]:"",
+                                            })(
                                                 <Cascader
                                                     onClick={()=>this.requestLinkage(item.optionKey)}
                                                     placeholder={`请选择${fieldName}`}

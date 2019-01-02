@@ -29,7 +29,7 @@ export default class EditTable extends React.Component{
                                     columns={this.props.columns[index]}
                                     dataSource={this.props.dataSource[index]}
                                     item={item}
-                                    count={this.props.count}
+                                    count={this.props.dataSource[index].length}
                                     callbackdatasource={this.callbackdatasource}
                                     deleSource={this.deleSource}
                                 />

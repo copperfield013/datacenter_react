@@ -1,19 +1,19 @@
 import React from 'react'
 import superagent from 'superagent'
-import {Card,Button,Modal,message,Icon,Drawer,Timeline,Switch} from 'antd'
+import {Button,Modal,message,Icon,Drawer,Timeline,Switch} from 'antd'
 import Super from "./../../super"
 import Units from '../../units'
 import './index.css'
 import 'moment/locale/zh-cn';
 import EditTable from './../../components/EditTable/editTable'
-import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
+import FormCard from './../../components/FormCard'
 const confirm = Modal.confirm;
 
 const storage=window.sessionStorage;
 let records=[]
+let baseValues=[]
 export default class Detail extends React.Component{
     state={
-        count:0,
         visibleModal: false,
         visibleDrawer:false,
         loading:false,
@@ -25,46 +25,26 @@ export default class Detail extends React.Component{
         records=[] //切换清空原有数据
     }
     requestLists=()=>{
-        if(!this.props.code){
-            console.log("无效的模板")
-            return
-        }
         this.setState({loading:true})
-        const typecode=this.props.type+this.props.code;		
-        if(!storage[typecode]){//判断是否存储数据
-            //console.log("未存")
-            const menuId=this.props.menuId;
-            const code=this.props.code;
-            Super.super({
-                url:`/api/entity/curd/detail/${menuId}/${code}`,                 
-            }).then((res)=>{
-                //console.log(res)
-                storage[typecode]=JSON.stringify(res); //存储一条数据
-                const detailsList=res.entity.fieldGroups; 
-                this.toDetails(res,this.props.type)
-                this.renderList(detailsList)
-                if(res.history){                   
-                    const detailHistory=this.renderHistoryList(res.history);
-                    this.setState({
-                        detailHistory
-                    }) 
-                }
-                this.setState({loading:false})
-            })
-        }else{  
-            //console.log("已存") 
-            const data=JSON.parse(storage[typecode]);
-            const detailsList=data.entity.fieldGroups;
+        const typecode=this.props.type+this.props.code;	
+        const menuId=this.props.menuId;
+        const code=this.props.code;
+        Super.super({
+            url:`/api/entity/curd/detail/${menuId}/${code}`,                 
+        }).then((res)=>{
+            //console.log(res)
+            storage[typecode]=JSON.stringify(res); //存储一条数据
+            const detailsList=res.entity.fieldGroups; 
+            this.toDetails(res,this.props.type)
             this.renderList(detailsList)
-            this.toDetails(data,this.props.type) 
-            if(data.history){
-                const detailHistory=this.renderHistoryList(data.history);
+            if(res.history){                   
+                const detailHistory=this.renderHistoryList(res.history);
                 this.setState({
                     detailHistory
-                })
+                }) 
             }
-            this.setState({loading:false})          
-        }               
+            this.setState({loading:false})
+        })             
     }
     renderHistoryList=(data)=>{
 		return data.map((item,index)=>{
@@ -123,21 +103,22 @@ export default class Detail extends React.Component{
         const columns=[]
         const dataSource=[]
         const cardTitle=[]
-        const formList=detailsList[0].fields;    
-        let firstCard=""          
+        const formList=[]  
+        const formTitle=[]  
         detailsList.map((item)=>{
             if(item.descs){
                 cardTitle.push(item.title)
-                itemDescs.push(item.descs)
+                itemDescs.push(item)
                 columns.push(this.renderColumns(item.descs))
                 dataSource.push(this.requestTableList(item))
             }else if(item.fields){
-                firstCard=item.title
+                formList.push(item.fields)
+                formTitle.push(item.title)
             }     
             return false
-        })   
+        }) 
         let scrollIds=[]
-        scrollIds.push(firstCard)
+        scrollIds.push(...formTitle)
         scrollIds.push(...cardTitle)
         this.props.scrollIds(scrollIds)
         this.setState({
@@ -147,7 +128,7 @@ export default class Detail extends React.Component{
             columns,
             dataSource:this.props.flag?[]:dataSource,
             cardTitle,
-            firstCard,
+            formTitle,
         })
     }
     renderColumns=(data)=>{
@@ -164,18 +145,19 @@ export default class Detail extends React.Component{
     }
     requestTableList=(data)=>{
         const res=[]
-        this.setState({
-            count :this.state.count+data.array.length
-        })
         if(data.array){
-            data.array.map((item)=>{
+            data.array.map((item,index)=>{
                 const code=item.code;
                 const list={};  
-                list[item.relation+"唯一编码"]=code;            
+                list[data.title+".$$flag$$"]=true;  
+                list[data.title+`[${index}].唯一编码`]=code;      
+                if(item.relation){
+                    list[data.title+".$$lebel$$"]=item.relation;     
+                }     
                 item.fields.map((it)=>{
-                    const fieldName=it.fieldName;
+                    const title=it.title;
                     const fieldValue=it.value;     
-                    list[fieldName]=fieldValue;
+                    list[data.title+`[${index}].`+title]=fieldValue;
                     list["key"]=code;
                     return false
                 })
@@ -197,9 +179,7 @@ export default class Detail extends React.Component{
         });
     }
     fresh=()=>{
-        this.child.reSet() //重置baseInfoForm
-        //this.children.initDetailsList(true)//无效，待解决
-        this.renderList(this.state.detailsList)
+        this.requestLists()
         message.success("刷新成功")
     }
     handleOk = (e) => {
@@ -241,6 +221,8 @@ export default class Detail extends React.Component{
         });
       }
     baseInfo=(baseValue)=>{
+        baseValues.push(baseValue)
+        console.log(baseValues)
         this.setState({
             baseValue
         });
@@ -270,7 +252,7 @@ export default class Detail extends React.Component{
         });
     }
     showModal = () => {
-        this.child.handleBaseInfoSubmit()
+        this.child.handleSubmit()
         this.setState({
             visibleModal: true,
         });
@@ -281,7 +263,6 @@ export default class Detail extends React.Component{
     }
     callbackRecords=(data)=>{
         console.log(data)
-        //totalcode=data
         this.setState({
             totalcode:data
         });
@@ -336,30 +317,23 @@ export default class Detail extends React.Component{
                         </div>
                     }               
                     
-                </h3> 
-                <Card title={this.state.firstCard} 
-                    id={this.state.firstCard} 
-                    className="hoverable" 
-                    headStyle={{background:"#f2f4f5"}}
+                </h3>
+                <FormCard 
+                    title={this.state.formTitle} 
+                    formList={this.state.formList}
+                    type={this.props.type} 
+                    flag={this.props.flag}
+                    baseInfo={this.baseInfo}
                     loading={this.state.loading}
-                    >
-                    <BaseInfoForm 
-                        formList={this.state.formList} 
-                        type={this.props.type} 
-                        onRef={this.onRef}
-                        flag={this.props.flag}
-                        baseInfo={this.baseInfo}
-                        />
-                </Card>
+                    onRef={this.onRef}
+                />
                 <EditTable 
                     detailsList={this.state.detailsList}
                     type={this.props.type}
                     columns={this.state.columns}
                     dataSource={this.state.dataSource}
-                    count={this.state.count}
                     cardTitle={this.state.cardTitle}
                     itemDescs={this.state.itemDescs}
-                    //callback={this.callbackRecords}
                     callbackdatasource={this.callbackdatasource}
                     deleSource={this.deleSource}
                 />
@@ -387,9 +361,11 @@ export default class Detail extends React.Component{
                     !this.state.cardTitle||this.state.cardTitle.length<1?"":
                     <div className="rightBar">
                     <ul>
-                        <li onClick={()=>this.scrollToAnchor(this.state.firstCard)} key={this.state.firstCard}>
-                            {this.state.firstCard}
-                        </li>
+                        {
+                            this.state.formTitle.map((item)=>{
+                                return <li onClick={()=>this.scrollToAnchor(item)} key={item}>{item}</li>
+                            })
+                        }
                         {
                             this.state.cardTitle?
                             this.state.cardTitle.map((item)=>{
