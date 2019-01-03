@@ -1,6 +1,6 @@
 import React from 'react'
 import superagent from 'superagent'
-import {Button,Modal,message,Icon,Drawer,Timeline,Switch} from 'antd'
+import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Select,InputNumber,Upload} from 'antd'
 import Super from "./../../super"
 import Units from '../../units'
 import './index.css'
@@ -8,6 +8,7 @@ import 'moment/locale/zh-cn';
 import EditTable from './../../components/EditTable/editTable'
 import FormCard from './../../components/FormCard'
 const confirm = Modal.confirm;
+const Option = Select.Option;
 
 const storage=window.sessionStorage;
 let records=[]
@@ -19,6 +20,7 @@ export default class Detail extends React.Component{
         loading:false,
         visibleExport:false,
         fuseMode:false,
+        previewVisible:false
     }
     componentWillMount(){
         this.requestLists()
@@ -30,7 +32,10 @@ export default class Detail extends React.Component{
         const menuId=this.props.menuId;
         const code=this.props.code;
         Super.super({
-            url:`/api/entity/curd/detail/${menuId}/${code}`,                 
+            url:`/api/entity/curd/detail/${menuId}/${code}`,       
+            data:{
+                isShowLoading:true
+            }          
         }).then((res)=>{
             //console.log(res)
             storage[typecode]=JSON.stringify(res); //存储一条数据
@@ -109,7 +114,7 @@ export default class Detail extends React.Component{
             if(item.descs){
                 cardTitle.push(item.title)
                 itemDescs.push(item)
-                columns.push(this.renderColumns(item.descs))
+                columns.push(this.renderColumns(item.descs,item.array))
                 dataSource.push(this.requestTableList(item))
             }else if(item.fields){
                 formList.push(item.fields)
@@ -131,19 +136,47 @@ export default class Detail extends React.Component{
             formTitle,
         })
     }
-    renderColumns=(data)=>{
+    renderColumns=(data,array)=>{
+        let isRelation=false;
+        if(array){
+            array.map((item)=>{
+                if(item.relation){
+                    isRelation=true;
+                }
+            })
+        }
 		if(data){
 			data.map((item,index)=>{
                 let fieldName=item.fieldName;
                 item["dataIndex"]=fieldName;	
                 item["key"]=index; 
                 return false      					
-            })
-            //console.log(data)
+            })           
+            if(isRelation===true){           
+                let rela={}
+                rela["dataIndex"]="关系"
+                rela["title"]="关系"
+                data.unshift(rela)
+            }
             return data
 		}		
     }
+    beforeUpload=(file) => {
+        this.setState(state => ({
+            fileList: [file],
+        }));
+        return false;
+    }
+    handlePreview = (file) => {
+        console.log(file)
+        this.setState({
+          previewImage: `/file-server/${file.url}` || `/file-server/${file.thumbUrl}`,
+          previewVisible: true,
+        });
+      }
+    handleChange = ({ fileList }) => this.setState({ fileList })
     requestTableList=(data)=>{
+        const { previewVisible, previewImage, fileList } = this.state;
         const res=[]
         if(data.array){
             data.array.map((item,index)=>{
@@ -151,13 +184,46 @@ export default class Detail extends React.Component{
                 const list={};  
                 list[data.title+".$$flag$$"]=true;  
                 list[data.title+`[${index}].唯一编码`]=code;      
-                if(item.relation){
-                    list[data.title+".$$lebel$$"]=item.relation;     
+                if(data.composite.relationKey){
+                    list[data.title+".$$label$$"]=item.relation;    
+                    list["关系"]=<Select defaultValue={data.composite.relationSubdomain[0]}>                                   
+                                    {data.composite.relationSubdomain.map((item,index)=>{
+                                            return <Option value={item} key={index}>{item}</Option>
+                                        })}
+                                </Select>
                 }     
                 item.fields.map((it)=>{
                     const title=it.title;
+                    const fieldName=it.fieldName
                     const fieldValue=it.value;     
-                    list[data.title+`[${index}].`+title]=fieldValue;
+                    const fieldtype=it.type;
+                    if(fieldtype==="text"){
+                        list[fieldName]=fieldValue?fieldValue:"";//对应columns的dataIndex的值，不可缺少
+                    }else if(fieldtype==="file"){
+                        list[fieldName]=fieldValue?<img src={`/file-server/${fieldValue}`} />
+                                        :
+                                        <div>                                           
+                                            <Upload
+                                                accept="image/*"
+                                                listType= 'picture-card'
+                                                beforeUpload={this.beforeUpload}
+                                                onPreview={this.handlePreview}
+                                                onChange={this.handleChange}
+                                            >
+                                                <div>
+                                                    <Icon type="plus" />
+                                                    <div className="ant-upload-text">Upload</div>
+                                                </div>
+                                            </Upload>
+                                            <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
+                                            sss
+                                                <img alt="example" style={{ width: '100%' }} src={previewImage} />
+                                            </Modal>
+                                        </div>
+                    }else if(fieldtype==="decimal"){
+                        list[fieldName]=<InputNumber defaultValue={fieldValue}/>
+                    }
+                    list[data.title+`[${index}].`+title]=fieldValue?fieldValue:"";
                     list["key"]=code;
                     return false
                 })
@@ -198,7 +264,7 @@ export default class Detail extends React.Component{
         }
         records.map((item)=>{
             for(let k in item){
-                if(k!=="key"){ //删除无意义的key值
+                if(k!=="key" && k!=="关系"){ //删除无意义的key值
                     formData.append(k, item[k]);
                 }
             }
@@ -252,7 +318,7 @@ export default class Detail extends React.Component{
         });
     }
     showModal = () => {
-        this.child.handleSubmit()
+        this.child.handleBaseInfoSubmit()
         this.setState({
             visibleModal: true,
         });

@@ -8,32 +8,13 @@ import moment from 'moment';
 moment.locale('zh-cn');
 const FormItem=Form.Item
 
-let submits=[]
-class BaseInfoForm extends React.Component{
+
+export default class BaseInfoForm extends React.Component{
     state={
         fileList:[],
         flag:false,
         visiCascader:"none"
     }   
-    componentDidMount(){
-        this.props.onRef(this)
-    }
-    handleBaseInfoSubmit=()=>{
-        const fieldsValue=this.props.form.getFieldsValue()
-        for(let k in fieldsValue){
-            if(k.indexOf("日期")>-1 && fieldsValue[k]){ //日期格式转换
-                fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
-            }
-        }
-        for(let k in fieldsValue){
-            if(k.indexOf("地址")>-1 && fieldsValue[k]){ //地址格式转换
-                fieldsValue[k]= fieldsValue[k].join("->")
-            }
-        }
-        submits.push(fieldsValue)
-        console.log(submits)
-        this.props.baseInfo(fieldsValue)
-    }
     requestSelectOptions=(id)=>{//下拉框
         Super.super({
 			url:`/api/field/options?fieldIds=${id}`,                
@@ -118,10 +99,10 @@ class BaseInfoForm extends React.Component{
         }));
         return false;
     }
-    handleChange=(info)=>{
+    handleChange=(fieldName,info)=>{
         let fileList = info.fileList;
         fileList = fileList.slice(-1);
-        console.log(fileList)
+        //this.props.submitFile(fieldName,fileList)
         this.setState({fileList})
     }
     handleUpload=(fieldValue,e)=>{//defaultFileList默认不在fileList里面
@@ -271,7 +252,8 @@ class BaseInfoForm extends React.Component{
                                                 <Avatar shape="square" src={`/file-server/${fieldValue}`}/>
                                                 <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a>
                                                 </span>:<span className="downAvatar">无文件</span>
-                                        :getFieldDecorator(fieldName)(
+                                        :
+                                        getFieldDecorator(fieldName)(
                                                 <Upload
                                                     accept="image/*"
                                                     listType= 'picture'
@@ -283,7 +265,7 @@ class BaseInfoForm extends React.Component{
                                                         status: 'done',
                                                         url: `/file-server/${fieldValue}`,
                                                     }]:""}
-                                                    onChange={this.handleChange}
+                                                    onChange={(info)=>this.handleChange(fieldName,info)}
                                                 >
                                                     <Button 
                                                         style={{width:220}} 
@@ -304,10 +286,9 @@ class BaseInfoForm extends React.Component{
     }
     render(){
         return(
-            <Form layout="inline">
-                {this.initFormList()}
-            </Form>
+                this.initFormList()
+            
         )
     }
 }
-export default Form.create()(BaseInfoForm);
+//export default Form.create()(BaseInfoForm);

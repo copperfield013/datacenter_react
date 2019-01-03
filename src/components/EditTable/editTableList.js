@@ -1,7 +1,8 @@
 import React from 'react'
-import { Table, Input, Button, message } from 'antd';
+import { Table, Input, Button, message,Select } from 'antd';
 import Units from './../../units'
 import './index.css'
+const Option = Select.Option;
 
 export default class EditTableList extends React.Component {
   state={
@@ -21,6 +22,9 @@ export default class EditTableList extends React.Component {
     arr.push(record)
     this.props.callbackdatasource(arr)//新增记录
   }
+  handleChange=(value)=> {
+    console.log(`selected ${value}`);
+  }
   handleAdd=()=> {
     const count =this.state.count;
     const newDataSource = this.state.dataSource
@@ -29,15 +33,28 @@ export default class EditTableList extends React.Component {
     list["key"]=rendom  //自定义随机数作key值
     const itemList=this.props.item
     const itemTitle=itemList.title
+    console.log(itemList)
     itemList.descs.map((item)=>{
         const fieldName=item.fieldName;
         const title=item.title;
-        list[fieldName]=<Input type="text" 
+        list["关系"]=<Select defaultValue={itemList.composite.relationSubdomain[0]} onChange={this.handleChange}>                                   
+                        {
+                            itemList.composite.relationSubdomain.map((item,index)=>{
+                                return <Option value={item} key={index}>{item}</Option>
+                            })
+                        }
+                    </Select>
+        if(item.type==="text"){
+          list[fieldName]=<Input type="text" 
                           style={{width:185}} 
                           key={[itemTitle+count]} 
                           placeholder={`请输入${fieldName}`}
                           onBlur={(e)=>this.update(e,[itemTitle+`[${count}].`+title],rendom)}
                           />   
+        }else if(item.type==="file"){
+          list[fieldName]="略略略"
+        }
+        
         return false                            
     })
     newDataSource.push(list)
