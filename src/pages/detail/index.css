@@ -1,6 +1,6 @@
 .labelcss label{
     display:inline-block;
-    width:200px;
+    width:190px;
 }
 .submitBtn{
     position: fixed;
@@ -11,8 +11,8 @@
 .rightBar{
     background: #fff;
     position: fixed;
-    right:60px;
-    top:200px;
+    right:40px;
+    top:142px;
     border:1px solid #e8e8e8;
     border-radius: 4px;
     z-index: 100;
@@ -29,4 +29,18 @@
 }
 .rightBar li:hover{
     background: #cfe3f5;
+}
+.downEditPic{
+    display:inline-block;
+}
+.downEditPic a{
+    visibility: hidden;
+    color:#1890ff;
+    cursor: pointer;
+}
+.downEditPic:hover a{
+    visibility:visible;
+}
+.editPic .ant-upload-list{
+    width:150px
 }

@@ -6,10 +6,10 @@
     display:inline-block;
 }
 .downAvatar a,.deleAvatar{
-    display: none;
+    visibility: hidden;
     color:#1890ff;
     cursor: pointer;
 }
 .downAvatar:hover a,.downAvatar:hover .deleAvatar{
-    display: inline-block;
+    visibility:visible;
 }

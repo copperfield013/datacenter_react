@@ -1,18 +1,18 @@
 import React from 'react'
 import superagent from 'superagent'
-import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Select,InputNumber,Upload} from 'antd'
+import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Select,InputNumber,Input} from 'antd'
 import Super from "./../../super"
 import Units from '../../units'
 import './index.css'
 import 'moment/locale/zh-cn';
 import EditTable from './../../components/EditTable/editTable'
 import FormCard from './../../components/FormCard'
+import NewUpload from './../../components/NewUpload'
 const confirm = Modal.confirm;
 const Option = Select.Option;
 
 const storage=window.sessionStorage;
 let records=[]
-let baseValues=[]
 export default class Detail extends React.Component{
     state={
         visibleModal: false,
@@ -20,7 +20,6 @@ export default class Detail extends React.Component{
         loading:false,
         visibleExport:false,
         fuseMode:false,
-        previewVisible:false
     }
     componentWillMount(){
         this.requestLists()
@@ -143,6 +142,7 @@ export default class Detail extends React.Component{
                 if(item.relation){
                     isRelation=true;
                 }
+                return false
             })
         }
 		if(data){
@@ -161,67 +161,47 @@ export default class Detail extends React.Component{
             return data
 		}		
     }
-    beforeUpload=(file) => {
-        this.setState(state => ({
-            fileList: [file],
-        }));
-        return false;
+    handleChange = () =>{
+
     }
-    handlePreview = (file) => {
-        console.log(file)
-        this.setState({
-          previewImage: `/file-server/${file.url}` || `/file-server/${file.thumbUrl}`,
-          previewVisible: true,
-        });
-      }
-    handleChange = ({ fileList }) => this.setState({ fileList })
     requestTableList=(data)=>{
-        const { previewVisible, previewImage, fileList } = this.state;
         const res=[]
         if(data.array){
             data.array.map((item,index)=>{
                 const code=item.code;
                 const list={};  
+                const modelType=this.props.type;
                 list[data.title+".$$flag$$"]=true;  
                 list[data.title+`[${index}].唯一编码`]=code;      
                 if(data.composite.relationKey){
                     list[data.title+".$$label$$"]=item.relation;    
-                    list["关系"]=<Select defaultValue={data.composite.relationSubdomain[0]}>                                   
+                    list["关系"]=modelType==="edit"?<Select defaultValue={data.composite.relationSubdomain[0]}>                                   
                                     {data.composite.relationSubdomain.map((item,index)=>{
                                             return <Option value={item} key={index}>{item}</Option>
                                         })}
-                                </Select>
+                                </Select>:item.relation
                 }     
                 item.fields.map((it)=>{
                     const title=it.title;
                     const fieldName=it.fieldName
                     const fieldValue=it.value;     
-                    const fieldtype=it.type;
-                    if(fieldtype==="text"){
-                        list[fieldName]=fieldValue?fieldValue:"";//对应columns的dataIndex的值，不可缺少
-                    }else if(fieldtype==="file"){
-                        list[fieldName]=fieldValue?<img src={`/file-server/${fieldValue}`} />
-                                        :
-                                        <div>                                           
-                                            <Upload
-                                                accept="image/*"
-                                                listType= 'picture-card'
-                                                beforeUpload={this.beforeUpload}
-                                                onPreview={this.handlePreview}
-                                                onChange={this.handleChange}
-                                            >
-                                                <div>
-                                                    <Icon type="plus" />
-                                                    <div className="ant-upload-text">Upload</div>
-                                                </div>
-                                            </Upload>
-                                            <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
-                                            sss
-                                                <img alt="example" style={{ width: '100%' }} src={previewImage} />
-                                            </Modal>
-                                        </div>
-                    }else if(fieldtype==="decimal"){
-                        list[fieldName]=<InputNumber defaultValue={fieldValue}/>
+                    const fieldType=it.type;
+                    if(modelType==="detail"){
+                        if(fieldType==="file"){
+                            list[fieldName]=fieldValue?<span className="downEditPic"><img style={{width:55}} src={`/file-server/${fieldValue}`} alt="图片加载失败"/>
+                            <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a></span>
+                            :"无文件"
+                        }else{
+                            list[fieldName]=fieldValue?fieldValue:"";
+                        }                        
+                    }else{
+                        if(fieldType==="text"){
+                            list[fieldName]=<Input defaultValue={fieldValue} onChange={this.handleChange}/>;
+                        }else if(fieldType==="file"){
+                            list[fieldName]=<div className="editPic"><NewUpload fieldValue={fieldValue} fieldName={fieldName}/> </div>                                          
+                        }else if(fieldType==="decimal"){
+                            list[fieldName]=<InputNumber defaultValue={fieldValue}/>
+                        }
                     }
                     list[data.title+`[${index}].`+title]=fieldValue?fieldValue:"";
                     list["key"]=code;
@@ -246,7 +226,6 @@ export default class Detail extends React.Component{
     }
     fresh=()=>{
         this.requestLists()
-        message.success("刷新成功")
     }
     handleOk = (e) => {
         e.preventDefault();
@@ -264,7 +243,7 @@ export default class Detail extends React.Component{
         }
         records.map((item)=>{
             for(let k in item){
-                if(k!=="key" && k!=="关系"){ //删除无意义的key值
+                if(k!=="key" && k!=="关系" && typeof item[k]!=="object"){ //删除无意义的key值
                     formData.append(k, item[k]);
                 }
             }
@@ -287,8 +266,7 @@ export default class Detail extends React.Component{
         });
       }
     baseInfo=(baseValue)=>{
-        baseValues.push(baseValue)
-        console.log(baseValues)
+        //console.log(baseValue)
         this.setState({
             baseValue
         });
@@ -349,7 +327,6 @@ export default class Detail extends React.Component{
             records.push(item)
             return false
         })
-        //console.log(records)
     }
     deleSource=(deleKey)=>{
         records.map((item)=>{

@@ -14,8 +14,6 @@ class FormCard extends React.Component{
         for(let k in fieldsValue){
             if(k.indexOf("日期")>-1 && fieldsValue[k]){ //日期格式转换
                 fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
-            }else if(k.indexOf("地址")>-1 && fieldsValue[k]){
-                fieldsValue[k]= fieldsValue[k].join("->")
             }else if(!fieldsValue[k]){
                 fieldsValue[k]=""
             }else if(k.indexOf("头像")>-1){

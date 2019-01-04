@@ -1,13 +1,14 @@
 import React from 'react'
-import {Input,Button,Cascader,Form,Select,DatePicker,Avatar,Upload,Icon} from 'antd'
+import {Input,Form,Select,DatePicker,Avatar,Icon} from 'antd'
 import Super from "./../../super"
 import Units from "../../units";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
 import moment from 'moment';
+import NewUpload from './../NewUpload'
+import NewCascader from './../NewCascader'
 moment.locale('zh-cn');
 const FormItem=Form.Item
-
 
 export default class BaseInfoForm extends React.Component{
     state={
@@ -25,99 +26,7 @@ export default class BaseInfoForm extends React.Component{
             })
 		})
     }
-    requestLinkage=(optionKey)=>{ //第一级联动
-        const optGroupId=optionKey.split("@")[0]
-        const time=optionKey.split("@")[1]
-        Super.super({
-			url:`/api/field/cas_ops/${optGroupId}`,                
-		}).then((res)=>{
-			const ops=[]
-            res.options.map((item)=>{
-                const op={}
-                op["value"]=item.title
-                op["label"]=item.title
-                op["key"]=item.id
-                op["isLeaf"]= false
-                ops.push(op)
-                return false
-            })
-            this.setState({
-                options:ops,
-                time
-            })
-		})
-    }
-    loadData = (selectedOptions) => { //子集联动
-        const targetOption = selectedOptions[selectedOptions.length - 1]
-        targetOption.loading = true
-        this.setState({
-            time:this.state.time-1
-        })
-        if(selectedOptions && this.state.time>=1){
-            let id="";
-            selectedOptions.map((item)=>{
-                id=item.key
-                return false
-            })
-            Super.super({
-                url:`/api/field/cas_ops/${id}`,                
-            }).then((res)=>{
-                const ops=[]
-                const time=this.state.time
-                res.options.map((item)=>{
-                    let op={}
-                    op["value"]=item.title
-                    op["label"]=item.title
-                    op["key"]=item.id
-                    if(time===1){
-                        op["isLeaf"]= true
-                    }else{
-                        op["isLeaf"]= false
-                    }
-                    ops.push(op)
-                    return false
-                })
-                setTimeout(() => {
-                    targetOption.loading = false;
-                    targetOption.children =ops
-                    this.setState({
-                        options: [...this.state.options],
-                    });
-                }, 300);
-            })
-        }       
-      }
-    onRemove=(file) => {
-        this.setState({
-            fileList: [],
-            flag:true //为了防止重复添加defaultUpload
-        });
-    }
-    beforeUpload=(file) => {
-        this.setState(state => ({
-            fileList: [file],
-        }));
-        return false;
-    }
-    handleChange=(fieldName,info)=>{
-        let fileList = info.fileList;
-        fileList = fileList.slice(-1);
-        //this.props.submitFile(fieldName,fileList)
-        this.setState({fileList})
-    }
-    handleUpload=(fieldValue,e)=>{//defaultFileList默认不在fileList里面
-        if(fieldValue&&this.state.flag===false){
-            let defaultUpload={}
-            defaultUpload["uid"]="-1";
-            defaultUpload["url"]=`/file-server/${fieldValue}`
-            this.setState({
-                fileList:[defaultUpload]
-            })
-        }
-            
-    }
-    changeCascader=(optionKey,e)=>{
-        this.requestLinkage(optionKey)
+    changeCascader=(e)=>{
         e.target.style.display="none"
         this.setState({
             visiCascader:"inline-block"
@@ -172,11 +81,11 @@ export default class BaseInfoForm extends React.Component{
                                                       }]:"",
                                         })(
                                             <Select style={{width:220}} 
-                                                    onMouseEnter={()=>this.requestSelectOptions(field)}
-                                                    placeholder={`请输入${fieldName}`}
-                                                    getPopupContainer={trigger => trigger.parentNode}
-                                                    >
-                                                    {Units.getSelectList(this.state.list)}
+                                                onMouseEnter={()=>this.requestSelectOptions(field)}
+                                                placeholder={`请输入${fieldName}`}
+                                                getPopupContainer={trigger => trigger.parentNode}
+                                                >
+                                                {Units.getSelectList(this.state.list)}
                                             </Select>
                                         )}
                                     </FormItem> 
@@ -209,21 +118,16 @@ export default class BaseInfoForm extends React.Component{
                     const CASELECT= <FormItem label={fieldName} key={field} className='labelcss'>
                                         {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         fieldValue?<div>
-                                            <Input style={{width:220}} value={fieldValue} onClick={(e)=>this.changeCascader(item.optionKey,e)} readOnly/>
+                                            <Input style={{width:220}} value={fieldValue} onClick={this.changeCascader} readOnly/>
                                             {
                                                 this.state.visiCascader==="inline-block"?getFieldDecorator(fieldName,{
                                                     rules:item.validators==="required"?[{
                                                             required: true, message: `请输入${fieldName}`,
                                                           }]:"",
                                                 })(
-                                                    <Cascader
-                                                        onClick={()=>this.requestLinkage(item.optionKey)}
-                                                        placeholder={`请选择${fieldName}`}
-                                                        style={{width:220}}
-                                                        options={this.state.options}
-                                                        loadData={this.loadData}
-                                                        displayRender={label=>label.join('->')}
-                                                        getPopupContainer={trigger => trigger.parentNode}
+                                                    <NewCascader
+                                                        optionKey={item.optionKey}
+                                                        fieldName={fieldName}
                                                     />
                                             ):""
                                             }
@@ -233,14 +137,9 @@ export default class BaseInfoForm extends React.Component{
                                                         required: true, message: `请输入${fieldName}`,
                                                       }]:"",
                                             })(
-                                                <Cascader
-                                                    onClick={()=>this.requestLinkage(item.optionKey)}
-                                                    placeholder={`请选择${fieldName}`}
-                                                    style={{width:220}}
-                                                    options={this.state.options}
-                                                    loadData={this.loadData}
-                                                    displayRender={label=>label.join('->')}
-                                                    getPopupContainer={trigger => trigger.parentNode}
+                                                <NewCascader
+                                                    optionKey={item.optionKey}
+                                                    fieldName={fieldName}
                                                 />
                                         )}
                                 </FormItem>
@@ -254,27 +153,10 @@ export default class BaseInfoForm extends React.Component{
                                                 </span>:<span className="downAvatar">无文件</span>
                                         :
                                         getFieldDecorator(fieldName)(
-                                                <Upload
-                                                    accept="image/*"
-                                                    listType= 'picture'
-                                                    onRemove={this.onRemove}
-                                                    beforeUpload={this.beforeUpload}
-                                                    defaultFileList={fieldValue?[{
-                                                        uid:"-1",
-                                                        name:`${item.fieldName}.png`,
-                                                        status: 'done',
-                                                        url: `/file-server/${fieldValue}`,
-                                                    }]:""}
-                                                    onChange={(info)=>this.handleChange(fieldName,info)}
-                                                >
-                                                    <Button 
-                                                        style={{width:220}} 
-                                                        disabled={this.state.fileList.length===1?true:false} 
-                                                        onMouseEnter={(e)=>this.handleUpload(fieldValue,e)}
-                                                        >
-                                                        <Icon type="upload" /> 点击上传
-                                                    </Button>
-                                                </Upload>
+                                            <NewUpload
+                                                fieldValue={fieldValue}
+                                                width={220}
+                                            />
                                         )}
                                 </FormItem>
                     formItemList.push(FILE)   
