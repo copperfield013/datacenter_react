@@ -1,5 +1,5 @@
 import React from 'react'
-import { Table, Input, Button, message,Select,InputNumber,Upload,Icon} from 'antd';
+import { Table, Input, Button, message,Select,InputNumber} from 'antd';
 import Units from './../../units'
 import './index.css'
 import NewUpload from './../NewUpload'
@@ -12,9 +12,17 @@ export default class EditTableList extends React.Component {
     dataSource:this.props.dataSource?this.props.dataSource:[],
   }
   componentDidMount(){
-    this.props.callbackdatasource(this.state.dataSource)//传递原始记录
+    const data=this.state.dataSource
+    data.map((item)=>{
+      for(let k in item){
+        if(typeof(item[k]) === 'string' && item[k].indexOf("download-files")>-1){
+          delete item[k] //删除datasource图片
+        }
+      }
+      return false
+    })
+    this.props.callbackdatasource(data)//传递原始记录
   }
-  
   update=(e,name,key)=>{
     const record={}
     const arr=[];
@@ -25,6 +33,9 @@ export default class EditTableList extends React.Component {
   }
   handleChange=(value)=> {
     console.log(`selected ${value}`);
+  }
+  uploadChange=(file,name)=>{
+    this.props.uploadChange(file,name)
   }
   handleAdd=()=> {
     const count =this.state.count;
@@ -37,6 +48,9 @@ export default class EditTableList extends React.Component {
     itemList.descs.map((item)=>{
         const fieldName=item.fieldName;
         const title=item.title;
+        // if(newDataSource.length===0){
+        //   list[itemTitle+`$$flag$$`]=true
+        // }
         if(itemList.composite.relationSubdomain){
           list["关系"]=<Select defaultValue={itemList.composite.relationSubdomain[0]} onChange={this.handleChange}>                                   
                           {
@@ -53,11 +67,10 @@ export default class EditTableList extends React.Component {
                           onBlur={(e)=>this.update(e,[itemTitle+`[${count}].`+title],rendom)}
                           />   
         }else if(item.type==="file"){
-          list[fieldName]=<NewUpload />
+          list[fieldName]=<NewUpload onChange={(file)=>this.uploadChange(file,[itemTitle+`[${count}].`+title])}/>
         }else if(item.type==="decimal"){
-          list[fieldName]=<InputNumber/>
-        }
-        
+          list[fieldName]=<InputNumber onBlur={(e)=>this.update(e,[itemTitle+`[${count}].`+title],rendom)}/>
+        }     
         return false                            
     })
     newDataSource.push(list)
@@ -75,10 +88,26 @@ export default class EditTableList extends React.Component {
         message.info("请选择一条数据")
     }else{
       skeys.map((key)=>{
+        const newDataSource=dataSource.filter(item => item.key !== key)       
         this.setState({ 
-          dataSource:dataSource.filter(item => item.key !== key),
+          dataSource:newDataSource,
           selectedRowKeys: [],
         })
+        const toFlag=[] //清空表格列表是，添加$$flag$$
+        if(newDataSource.length===0){
+          dataSource.map((item)=>{
+            for(let k in item){
+              if(k.indexOf("flag")>-1){
+                const flag={}
+                flag[k]=item[k]
+                flag["key"]=-1
+                toFlag.push(flag)
+              }
+            }
+            return false
+          })
+        }        
+        this.props.callbackdatasource(toFlag)
         this.props.columns.map((item)=>{
           this.props.deleSource(key)//有多少列，执行多少次
           return false

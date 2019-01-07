@@ -4,15 +4,19 @@ import EditTableList from './editTableList'
 
 
 export default class EditTable extends React.Component{
-    callbackdatasource=(dataSource)=>{
-        this.props.callbackdatasource(dataSource)
+    callbackdatasource=(datasource)=>{
+        this.props.callbackdatasource(datasource)
     }
     deleSource=(deleKey)=>{
         this.props.deleSource(deleKey)
     }
+    uploadChange=(file,name)=>{
+        this.props.uploadChange(file,name)
+    }
     initDetailsList=()=>{
         const detailsList=this.props.detailsList;
         const detailsItemList=[];
+        const flag=this.props.flag
         if(detailsList && detailsList.length>0){
             this.props.itemDescs.map((item,index)=>{
                 const cardTitle=this.props.cardTitle[index]
@@ -27,11 +31,12 @@ export default class EditTable extends React.Component{
                                     pagination={false}
                                     bordered
                                     columns={this.props.columns[index]}
-                                    dataSource={this.props.dataSource[index]}
+                                    dataSource={flag?null:this.props.dataSource[index]} //判断是否是创建记录
                                     item={item}
                                     count={this.props.dataSource[index].length}
-                                    callbackdatasource={this.callbackdatasource}
                                     deleSource={this.deleSource}
+                                    uploadChange={this.uploadChange}
+                                    callbackdatasource={this.callbackdatasource}
                                 />
                             </Card>
                 detailsItemList.push(RANGE)         

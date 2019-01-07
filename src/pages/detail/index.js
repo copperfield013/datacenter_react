@@ -13,6 +13,8 @@ const Option = Select.Option;
 
 const storage=window.sessionStorage;
 let records=[]
+let files=[]
+let origData={}
 export default class Detail extends React.Component{
     state={
         visibleModal: false,
@@ -23,11 +25,15 @@ export default class Detail extends React.Component{
     }
     componentWillMount(){
         this.requestLists()
-        records=[] //切换清空原有数据
     }
-    requestLists=()=>{
+    componentWillUnmount(){      
+        records=[] //切换清空原有数据
+        files=[]
+        origData={}
+    }
+    loadRequest=()=>{    
+        const typecode=this.props.type+this.props.code;    
         this.setState({loading:true})
-        const typecode=this.props.type+this.props.code;	
         const menuId=this.props.menuId;
         const code=this.props.code;
         Super.super({
@@ -48,7 +54,27 @@ export default class Detail extends React.Component{
                 }) 
             }
             this.setState({loading:false})
-        })             
+        }) 
+    }
+    requestLists=()=>{
+        const typecode=this.props.type+this.props.code;	
+        if(!storage[typecode]){//判断是否存储数据,tab切换减少请求
+            //console.log("未存")
+            this.loadRequest()          
+        }else{  
+            //console.log("已存") 
+            const data=JSON.parse(storage[typecode]);
+            const detailsList=data.entity.fieldGroups;
+            this.renderList(detailsList)
+            this.toDetails(data,this.props.type) 
+            if(data.history){
+                const detailHistory=this.renderHistoryList(data.history);
+                this.setState({
+                    detailHistory
+                })
+            }
+            this.setState({loading:false})          
+        }              
     }
     renderHistoryList=(data)=>{
 		return data.map((item,index)=>{
@@ -130,7 +156,7 @@ export default class Detail extends React.Component{
             formList,           
             itemDescs,
             columns,
-            dataSource:this.props.flag?[]:dataSource,
+            dataSource,
             cardTitle,
             formTitle,
         })
@@ -161,17 +187,34 @@ export default class Detail extends React.Component{
             return data
 		}		
     }
-    handleChange = () =>{
-
+    handleChange = (name,e) =>{ //更改原有datasource
+        origData[name]=e.target.value
+        this.removeOrivalue()  
+    }
+    handlleNumber=(name,value)=>{
+        origData[name]=value;
+        this.removeOrivalue()
+    }
+    removeOrivalue=()=>{
+        records.map((item)=>{
+            for(let k in item){
+                for(let key in origData){
+                    if(k===key){
+                        item[k]=origData[key]
+                    }
+                }
+            }
+            return false
+        }) 
     }
     requestTableList=(data)=>{
         const res=[]
         if(data.array){
+            const list={};
+            list[data.title+".$$flag$$"]=true;  
             data.array.map((item,index)=>{
-                const code=item.code;
-                const list={};  
-                const modelType=this.props.type;
-                list[data.title+".$$flag$$"]=true;  
+                const code=item.code;                  
+                const modelType=this.props.type;              
                 list[data.title+`[${index}].唯一编码`]=code;      
                 if(data.composite.relationKey){
                     list[data.title+".$$label$$"]=item.relation;    
@@ -196,11 +239,11 @@ export default class Detail extends React.Component{
                         }                        
                     }else{
                         if(fieldType==="text"){
-                            list[fieldName]=<Input defaultValue={fieldValue} onChange={this.handleChange}/>;
+                            list[fieldName]=<Input defaultValue={fieldValue} onChange={(e)=>this.handleChange(data.title+`[${index}].`+title,e)}/>;
                         }else if(fieldType==="file"){
-                            list[fieldName]=<div className="editPic"><NewUpload fieldValue={fieldValue} fieldName={fieldName}/> </div>                                          
+                            list[fieldName]=<div className="editPic"><NewUpload fieldValue={fieldValue} fieldName={fieldName} onChange={(file)=>this.uploadChange(file,[data.title+`[${index}].`+title])}/> </div>                                          
                         }else if(fieldType==="decimal"){
-                            list[fieldName]=<InputNumber defaultValue={fieldValue}/>
+                            list[fieldName]=<InputNumber defaultValue={fieldValue} onChange={(e)=>this.handlleNumber(data.title+`[${index}].`+title,e)}/>
                         }
                     }
                     list[data.title+`[${index}].`+title]=fieldValue?fieldValue:"";
@@ -224,9 +267,6 @@ export default class Detail extends React.Component{
             visibleDrawer: false,
         });
     }
-    fresh=()=>{
-        this.requestLists()
-    }
     handleOk = (e) => {
         e.preventDefault();
         this.setState({loading:true})
@@ -243,9 +283,18 @@ export default class Detail extends React.Component{
         }
         records.map((item)=>{
             for(let k in item){
-                if(k!=="key" && k!=="关系" && typeof item[k]!=="object"){ //删除无意义的key值
+                if(k!=="key" && k!=="关系" && typeof item[k]!=="object"){ //删除无意义的值
                     formData.append(k, item[k]);
                 }
+            }
+            return false
+        })
+        files.map((item)=>{
+            for(let k in item){
+                if(item[k]){
+                    formData.append(k, item[k]);
+                }
+                //console.log(item[k])
             }
             return false
         })
@@ -256,6 +305,9 @@ export default class Detail extends React.Component{
             .end((req,res)=>{
                 if(res.body.status==="suc"){
                     message.success("保存成功！")
+                    const code=this.props.code;	
+                    storage.removeItem("edit"+code)//删除数据，这样再次进入页面会重新请求
+                    storage.removeItem("detail"+code)
                 }else{
                     message.success(res.body.status)
                 }
@@ -305,12 +357,6 @@ export default class Detail extends React.Component{
 	onRef=(ref)=>{
 		this.child=ref
     }
-    callbackRecords=(data)=>{
-        console.log(data)
-        this.setState({
-            totalcode:data
-        });
-    }
     scrollToAnchor = (anchorName) => {
         if (anchorName) {
             let anchorElement = document.getElementById(anchorName);
@@ -322,8 +368,16 @@ export default class Detail extends React.Component{
             fuseMode:checked
         })
     }
+    uploadChange=(file,name)=>{
+        if(file){
+            const tip={}
+            tip[name]=file[0]
+            files.push(tip)
+        }
+        console.log(file[0])
+    }
     callbackdatasource=(dataSource)=>{
-        dataSource.map((item)=>{
+        dataSource.map((item)=>{            
             records.push(item)
             return false
         })
@@ -336,7 +390,6 @@ export default class Detail extends React.Component{
             }
             return false
         })
-        //console.log(records)
     }
     render(){
         return(
@@ -350,13 +403,13 @@ export default class Detail extends React.Component{
                         <div className="fr">
                             <Button className="hoverbig" title="导出" onClick={this.exportDetail}><Icon type="upload" /></Button>
                             <Button className="hoverbig" title="查看历史" onClick={this.showHistory}><Icon type="schedule" /></Button>                                                      
-                            <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
+                            <Button className="hoverbig" title="刷新" onClick={this.loadRequest}><Icon type="sync" /></Button>
                         </div>
                         :
                         <div className="fr">
                             <Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn" style={{background:this.state.fuseMode===true?"#001529":""}}>保存</Button>
                             <Switch checkedChildren="开" unCheckedChildren="关" style={{marginRight:10}} title="融合模式" onChange={this.fuseMode}/>
-                            <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
+                            <Button className="hoverbig" title="刷新" onClick={this.loadRequest}><Icon type="sync" /></Button>
                         </div>
                     }               
                     
@@ -379,6 +432,8 @@ export default class Detail extends React.Component{
                     itemDescs={this.state.itemDescs}
                     callbackdatasource={this.callbackdatasource}
                     deleSource={this.deleSource}
+                    flag={this.props.flag}
+                    uploadChange={this.uploadChange}
                 />
                 <Modal
                     visible={this.state.visibleModal}

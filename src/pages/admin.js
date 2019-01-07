@@ -28,7 +28,7 @@ export default class Admin extends React.Component{
 	judgeActiveKey=(activeKey,panes)=>{		
 		let type;
 		let xqTitle;
-		if(activeKey.indexOf("detail")>-1 || activeKey.indexOf("edit")>-1){
+		if(activeKey.indexOf("detail")>-1 || activeKey.indexOf("edit")>-1){			
 			this.state.panes.map((item)=>{
 				if(item.key===activeKey){
 					xqTitle=item.title
@@ -83,8 +83,7 @@ export default class Admin extends React.Component{
 		}
 		this.setState({ panes, activeKey });
 		this.children.handleOpenKey(activeKey);
-		this.judgeActiveKey(activeKey,panes)
-		
+		this.judgeActiveKey(activeKey,panes)		
 	}	
 	Welcome = (title,xqTitle,newcode,importCode) => {
 		switch(title){
@@ -103,6 +102,7 @@ export default class Admin extends React.Component{
 						menuId={this.state.menuId}
 						code={this.state.newRecordCode}
 						flag="creatNewRecord"
+						scrollIds={this.scrollIds}
 					/>
 			case importCode:
 			return <ImportData 
@@ -128,6 +128,9 @@ export default class Admin extends React.Component{
 		 })
 	}
 	actCallBackAdmin=(panes,dcode,xqTitle,menuId,code,type)=>{
+		if(panes.length>2){
+			this.setState({showShutAll:"block"})
+		}
 		this.setState({ 
 			panes, 
 			activeKey:dcode,
@@ -138,6 +141,9 @@ export default class Admin extends React.Component{
 		});
 	}
 	newRecordCallback=(panes,newK,newcode,newRecordCode)=>{
+		if(panes.length>2){
+			this.setState({showShutAll:"block"})
+		}
 		this.setState({ 
 			panes, 
 			activeKey:newK,
@@ -146,6 +152,9 @@ export default class Admin extends React.Component{
 		});
 	}
 	importCallback=(panes,importCode)=>{
+		if(panes.length>2){
+			this.setState({showShutAll:"block"})
+		}
 		this.setState({ 
 			panes, 
 			activeKey:importCode,
@@ -193,7 +202,6 @@ export default class Admin extends React.Component{
 				lis[k].style.backgroundColor="#cfe3f5"
 			}
 		}
-
 
 		const obj =document.getElementsByClassName("ant-tabs-bar")[0]
 		if(scrollTop>50 && scrollHeight>705){
