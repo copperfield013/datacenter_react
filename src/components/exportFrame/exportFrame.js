@@ -114,7 +114,7 @@ export default class ExportFrame extends React.Component{
     }
     render(){
         return (
-            <div>
+            <div className="exportFrame">
                 <RadioGroup onChange={this.onChangeRadio} value={this.state.radioValue}>
                     <Radio value={1} disabled={this.state.radioDisabled1} >导出当前页</Radio>
                     <Radio value={2} disabled={this.state.radioDisabled2}>导出所有</Radio>

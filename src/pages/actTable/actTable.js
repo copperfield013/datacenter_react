@@ -318,7 +318,7 @@ export default class actTable extends React.Component{
             },
           };
         return(
-            <div>
+            <div className="actTable">
                 <h3>
                     {this.state.moduleTitle}
                     <p className="fr">

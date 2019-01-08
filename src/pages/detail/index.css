@@ -2,12 +2,6 @@
     display:inline-block;
     width:190px;
 }
-.submitBtn{
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 99;
-}
 .rightBar{
     background: #fff;
     position: fixed;
@@ -43,4 +37,20 @@
 }
 .editPic .ant-upload-list{
     width:150px
+}
+.buttonGroup{
+    position: fixed;
+    width:100px;
+    bottom: 30px;
+    right: 30px;
+    z-index: 99;
+}
+.buttonGroup .submitBtn{
+    position: relative;
+}
+.buttonGroup button{
+    margin-bottom: 10px;
+}
+.detailPage h3{
+    font-size: 18px;
 }

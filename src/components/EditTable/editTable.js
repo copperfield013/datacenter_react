@@ -2,7 +2,6 @@ import React from 'react'
 import {Card,Form} from 'antd'
 import EditTableList from './editTableList'
 
-
 export default class EditTable extends React.Component{
     callbackdatasource=(datasource)=>{
         this.props.callbackdatasource(datasource)

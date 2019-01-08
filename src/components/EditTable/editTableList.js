@@ -1,7 +1,6 @@
 import React from 'react'
 import { Table, Input, Button, message,Select,InputNumber} from 'antd';
 import Units from './../../units'
-import './index.css'
 import NewUpload from './../NewUpload'
 const Option = Select.Option;
 
@@ -22,6 +21,7 @@ export default class EditTableList extends React.Component {
       return false
     })
     this.props.callbackdatasource(data)//传递原始记录
+    console.log(this.props.dataSource)
   }
   update=(e,name,key)=>{
     const record={}
@@ -40,18 +40,17 @@ export default class EditTableList extends React.Component {
   handleAdd=()=> {
     const count =this.state.count;
     const newDataSource = this.state.dataSource
+    const itemList=this.props.item
+    const itemTitle=itemList.title   
     const list={}     
     const rendom=Units.RndNum(10)
-    list["key"]=rendom  //自定义随机数作key值
-    const itemList=this.props.item
-    const itemTitle=itemList.title
+    list["key"]=rendom  //自定义随机数作key值 
+    list[`${itemTitle}.$$flag$$`]=true
     itemList.descs.map((item)=>{
         const fieldName=item.fieldName;
         const title=item.title;
-        // if(newDataSource.length===0){
-        //   list[itemTitle+`$$flag$$`]=true
-        // }
-        if(itemList.composite.relationSubdomain){
+        if(itemList.composite.addType===5){
+          list[itemTitle+".$$label$$"]=itemTitle
           list["关系"]=<Select defaultValue={itemList.composite.relationSubdomain[0]} onChange={this.handleChange}>                                   
                           {
                               itemList.composite.relationSubdomain.map((item,index)=>{
@@ -70,7 +69,7 @@ export default class EditTableList extends React.Component {
           list[fieldName]=<NewUpload onChange={(file)=>this.uploadChange(file,[itemTitle+`[${count}].`+title])}/>
         }else if(item.type==="decimal"){
           list[fieldName]=<InputNumber onBlur={(e)=>this.update(e,[itemTitle+`[${count}].`+title],rendom)}/>
-        }     
+        }
         return false                            
     })
     newDataSource.push(list)

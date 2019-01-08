@@ -1,9 +1,7 @@
 import React from 'react'
 import {Row,Col,Form, Icon, Input, Button,message,Checkbox } from 'antd'
-import "antd/dist/antd.css"
-import "./../style/common.css"
-import Super from "./../super"
-import Units from './../units'
+import Super from "../super"
+import Units from '../units'
 const FormItem = Form.Item;
 
 const storage=window.sessionStorage;

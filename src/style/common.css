@@ -1,6 +1,15 @@
 @import "./loading.css";
+body {
+	margin: 0;
+	padding: 0;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+	  "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+	  sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+  }
 .container{
-	display:flex;	
+	display:flex;
 }
 .nav-left{
 	width:15%;
@@ -36,18 +45,12 @@
 	padding:30px 20px;
 	border-radius: 5px
 }
-h3{
-	font-size: 18px;
-}
 .buttonDiv{
     background: #fff;
     padding:15px 10px 10px;
 }
 table{
     margin-bottom: 15px
-}
-.ant-tabs-bar{
-	z-index: 99;
 }
 .hoverbig:hover{
     -ms-transform:scale(1.2,1.2); /* IE 9 */
@@ -64,7 +67,4 @@ table{
 .hoverable:hover{
     box-shadow: 4px 4px 10px rgba(0,0,0,.09);
     border-color: rgba(0,0,0,.09);
-}
-.ant-form{
-	width:90%;
 }

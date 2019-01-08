@@ -31,3 +31,9 @@
 .ant-card{
 	min-width: 740px;
 }
+.ant-tabs-bar{
+	z-index: 99;
+}
+.ant-form{
+	width:90%;
+}

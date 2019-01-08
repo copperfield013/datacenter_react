@@ -1,8 +1,5 @@
 import React from 'react'
 import {Row,Col,Tabs,Layout,Button} from 'antd'
-import "antd/dist/antd.css"
-import "./../style/common.css"
-import "./../style/coverstyle.css"
 import Header from './../components/Header'
 import Footer from './../components/Footer'
 import Home from './home'
@@ -209,7 +206,7 @@ export default class Admin extends React.Component{
 			obj.style.top = '0';	
 			obj.style.background='#002140'	
 			obj.style.width='100%'	
-			obj.style.zIndex='1051'			
+			obj.style.zIndex='1000'			
 		}else{
 			obj.style.position = 'static';
 		}

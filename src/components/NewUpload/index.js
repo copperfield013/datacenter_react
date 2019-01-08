@@ -24,8 +24,12 @@ export default class NewUpload extends React.Component{
         let fileList = info.fileList;
         fileList = fileList.slice(-1);
         this.setState({fileList})
-        console.log(fileList)
-        this.triggerChange(fileList);
+        if(fileList.length>=1){
+            fileList.map((item)=>{
+                this.triggerChange(item.originFileObj);
+                return false
+            })
+        }
     }
     triggerChange = (changedValue) => {
         const onChange = this.props.onChange;

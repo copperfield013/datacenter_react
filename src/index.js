@@ -1,7 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
 import Router from './router'
+import "antd/dist/antd.css"
+import "./style/common.css"
+import "./style/coverstyle.css"
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(

@@ -1,6 +1,6 @@
 import React from 'react'
 import superagent from 'superagent'
-import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Select,InputNumber,Input} from 'antd'
+import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Select,InputNumber,Input,Popover} from 'antd'
 import Super from "./../../super"
 import Units from '../../units'
 import './index.css'
@@ -83,7 +83,13 @@ export default class Detail extends React.Component{
                         {Units.formateDate(item.time)}<br/>
                         {`操作人`+item.userName}
                         {
-                          item.current?"":<Button style={{marginLeft:10}} id={item.id} type="primary" size="small" onClick={this.toHistory}>查看</Button>
+                          item.current?"":<Button 
+                                                style={{marginLeft:10}} 
+                                                id={item.id} 
+                                                type="primary" 
+                                                size="small" 
+                                                onClick={this.toHistory}
+                                                >查看</Button>
                         }                   
 				    </Timeline.Item>
 		})
@@ -139,7 +145,7 @@ export default class Detail extends React.Component{
             if(item.descs){
                 cardTitle.push(item.title)
                 itemDescs.push(item)
-                columns.push(this.renderColumns(item.descs,item.array))
+                columns.push(this.renderColumns(item.descs,item.composite))
                 dataSource.push(this.requestTableList(item))
             }else if(item.fields){
                 formList.push(item.fields)
@@ -161,15 +167,10 @@ export default class Detail extends React.Component{
             formTitle,
         })
     }
-    renderColumns=(data,array)=>{
+    renderColumns=(data,obj)=>{
         let isRelation=false;
-        if(array){
-            array.map((item)=>{
-                if(item.relation){
-                    isRelation=true;
-                }
-                return false
-            })
+        if(obj && obj.addType===5){
+            isRelation=true;
         }
 		if(data){
 			data.map((item,index)=>{
@@ -208,13 +209,15 @@ export default class Detail extends React.Component{
         }) 
     }
     requestTableList=(data)=>{
-        const res=[]
+        console.log(data)
+        const res=[]  
+        const modelType=this.props.type;    
         if(data.array){
-            const list={};
-            list[data.title+".$$flag$$"]=true;  
-            data.array.map((item,index)=>{
-                const code=item.code;                  
-                const modelType=this.props.type;              
+            data.array.map((item,index)=>{  
+                const list={};   
+                const code=item.code;          
+                list[data.title+".$$flag$$"]=true; 
+                list["key"]=code;        
                 list[data.title+`[${index}].唯一编码`]=code;      
                 if(data.composite.relationKey){
                     list[data.title+".$$label$$"]=item.relation;    
@@ -247,11 +250,9 @@ export default class Detail extends React.Component{
                         }
                     }
                     list[data.title+`[${index}].`+title]=fieldValue?fieldValue:"";
-                    list["key"]=code;
                     return false
                 })
                 res.push(list) 
-                //console.log(res)
                 return false             
             })
             return res        
@@ -281,14 +282,21 @@ export default class Detail extends React.Component{
         for(let k in baseInfo){
             formData.append(k, baseInfo[k]);
         }
+        
+        let res={}
         records.map((item)=>{
             for(let k in item){
-                if(k!=="key" && k!=="关系" && typeof item[k]!=="object"){ //删除无意义的值
-                    formData.append(k, item[k]);
+                res[k]=item[k] //去重
+            }          
+            return false
+        })  
+        if(res){
+            for(let k in res){
+                if(k!=="key" && k!=="关系" && typeof res[k]!=="object"){ //删除无意义的值
+                    formData.append(k, res[k]);
                 }
             }
-            return false
-        })
+        }
         files.map((item)=>{
             for(let k in item){
                 if(item[k]){
@@ -298,11 +306,14 @@ export default class Detail extends React.Component{
             }
             return false
         })
+        let loading=document.getElementById('ajaxLoading')
+        loading.style.display="block"
         superagent
             .post(`/api/entity/curd/update/${menuId}`)
             .set({"datamobile-token":tokenName})
             .send(formData)
             .end((req,res)=>{
+                loading.style.display="none"
                 if(res.body.status==="suc"){
                     message.success("保存成功！")
                     const code=this.props.code;	
@@ -371,10 +382,9 @@ export default class Detail extends React.Component{
     uploadChange=(file,name)=>{
         if(file){
             const tip={}
-            tip[name]=file[0]
+            tip[name]=file
             files.push(tip)
         }
-        console.log(file[0])
     }
     callbackdatasource=(dataSource)=>{
         dataSource.map((item)=>{            
@@ -391,9 +401,21 @@ export default class Detail extends React.Component{
             return false
         })
     }
+    handleMenuClick=(e)=>{
+        console.log('click', e);
+      }
+      
     render(){
+        const content = (
+            <div className="btns">
+              <Button>Actions</Button>
+              <Button>Actions</Button>
+              <Button>Actions</Button>
+              <Button>Actions</Button>
+            </div>
+          );
         return(
-            <div>
+            <div className="detailPage">
                 <h3>
                     {
                         this.props.flag?this.state.moduleTitle+"--创建":this.state.detailsTitle
@@ -407,7 +429,22 @@ export default class Detail extends React.Component{
                         </div>
                         :
                         <div className="fr">
-                            <Button type='primary' icon="cloud-upload" className="submitBtn" onClick={this.showModal} key="btn" style={{background:this.state.fuseMode===true?"#001529":""}}>保存</Button>
+                            <div className="buttonGroup">
+                            <Button>Actions</Button>
+                            <Popover placement="leftTop" content={content} trigger="click">
+                                <Button>
+                                    <Icon type="swap" />Actions
+                                </Button>
+                            </Popover>
+                            <Button 
+                                type='primary' 
+                                icon="cloud-upload" 
+                                className="submitBtn" 
+                                onClick={this.showModal} key="btn" 
+                                style={{background:this.state.fuseMode===true?"#001529":""}}
+                                >保存</Button>
+
+                            </div>
                             <Switch checkedChildren="开" unCheckedChildren="关" style={{marginRight:10}} title="融合模式" onChange={this.fuseMode}/>
                             <Button className="hoverbig" title="刷新" onClick={this.loadRequest}><Icon type="sync" /></Button>
                         </div>
