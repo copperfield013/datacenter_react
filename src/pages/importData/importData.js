@@ -166,7 +166,7 @@ export default class Detail extends React.Component{
             fileList,
         };
         return(
-            <div>
+            <div className="importData">
                 <h3>
                     {this.props.importCode}
                     <p className="fr">                      
@@ -208,8 +208,8 @@ export default class Detail extends React.Component{
                             <List
                                 header={
                                         <div className="listHeader">
-                                            <h3>导入日志</h3>
-                                            <div className="checks">                                     
+                                            <h4>导入日志</h4>
+                                            <div className="checks">              
                                                 <CheckboxGroup value={this.state.checkedList} onChange={this.onChange}>
                                                     <Checkbox value="INFO" className="infoColor">常规</Checkbox>
                                                     <Checkbox value="SUC" className="sucColor">成功</Checkbox>

@@ -58,7 +58,7 @@ export default class Admin extends React.Component{
 	onChange = (activeKey) => {
 		this.setState({activeKey});	
 		this.children.handleOpenKey(activeKey);	
-		this.judgeActiveKey(activeKey)
+		this.judgeActiveKey(activeKey,this.state.panes)
 	}
 	onEdit = (targetKey, action) => {
 		this[action](targetKey);
@@ -253,12 +253,12 @@ export default class Admin extends React.Component{
 							tabBarExtraContent={operations}
 						>
 							{this.state.panes.map(pane => <TabPane
-																tab={pane.title} 
-																key={pane.key} 
-																closable={pane.closable}
-																>
-																{this.Welcome(pane.title,this.state.xqTitle,this.state.newcode,this.state.importCode)}
-														</TabPane>)}
+													tab={pane.title} 
+													key={pane.key} 
+													closable={pane.closable}
+													>
+													{this.Welcome(pane.title,this.state.xqTitle,this.state.newcode,this.state.importCode)}
+												</TabPane>)}
 						</Tabs>
 					</Content>					
 					<Footer/>

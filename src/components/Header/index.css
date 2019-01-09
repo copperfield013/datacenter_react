@@ -9,24 +9,21 @@
 .ant-dropdown-menu-item, .ant-dropdown-menu-submenu-title{
     font-size: 16px
 }
-.header .userLogin{
+.userLogin{
     float:right;
     width:120px;
     text-align:center;
     cursor: pointer;
 }
-.header .userLogin i{
+.userLogin i{
     font-size: 24px!important;
 }
 .userLogin:hover{
     background: #4a5f74;
 }
-.header .ant-dropdown-menu{
-    background-color: #4a5f74;
-}
-.header .ant-dropdown-menu-item, .ant-dropdown-menu-submenu-title{
+.ant-dropdown-menu-item, .ant-dropdown-menu-submenu-title{
     color:#fff;
 }
-.header .ant-dropdown-menu-item:hover, .ant-dropdown-menu-submenu-title:hover{
+.ant-dropdown-menu-item:hover, .ant-dropdown-menu-submenu-title:hover{
     color:#000;
 }

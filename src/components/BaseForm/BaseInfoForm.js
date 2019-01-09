@@ -40,7 +40,7 @@ export default class BaseInfoForm extends React.Component{
             formList.forEach((item)=>{
                 const fieldName=item.fieldName;
                 const field=item.fieldId
-                const fieldValue=this.props.flag?"":item.value;
+                const fieldValue=this.props.flag?null:item.value;
                 if(item.type==="date"){
                     const DATE= <FormItem label={fieldName} key={field} className='labelcss'>
                                     {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:

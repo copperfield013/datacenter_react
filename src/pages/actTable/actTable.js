@@ -74,7 +74,7 @@ export default class actTable extends React.Component{
 		this.setState({
 			formList:data.criterias,
 			list:this.renderLists(list,storage.getItem("menuId"),codes),
-            moduleTitle:data.module.title,
+            moduleTitle:data.ltmpl.title,
             actions:data.actions
 		})
     }

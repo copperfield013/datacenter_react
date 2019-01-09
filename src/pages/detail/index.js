@@ -45,7 +45,7 @@ export default class Detail extends React.Component{
             //console.log(res)
             storage[typecode]=JSON.stringify(res); //存储一条数据
             const detailsList=res.entity.fieldGroups; 
-            this.toDetails(res,this.props.type)
+            this.detailTitle(res,this.props.type)
             this.renderList(detailsList)
             if(res.history){                   
                 const detailHistory=this.renderHistoryList(res.history);
@@ -66,7 +66,7 @@ export default class Detail extends React.Component{
             const data=JSON.parse(storage[typecode]);
             const detailsList=data.entity.fieldGroups;
             this.renderList(detailsList)
-            this.toDetails(data,this.props.type) 
+            this.detailTitle(data,this.props.type) 
             if(data.history){
                 const detailHistory=this.renderHistoryList(data.history);
                 this.setState({
@@ -106,7 +106,7 @@ export default class Detail extends React.Component{
             }                 
         }).then((res)=>{
             const detailsList=res.entity.fieldGroups; 
-            this.toDetails(res,this.props.type)
+            this.detailTitle(res,this.props.type)
             this.renderList(detailsList)
             if(res.history){                   
                 const detailHistory=this.renderHistoryList(res.history);
@@ -118,7 +118,7 @@ export default class Detail extends React.Component{
         })
 
     }
-    toDetails=(data,type)=>{
+    detailTitle=(data,type)=>{
 		let detailsTitle="";
 		const moduleTitle=data.module.title;
 		const entityTitle=data.entity.title;
@@ -169,8 +169,9 @@ export default class Detail extends React.Component{
     }
     renderColumns=(data,obj)=>{
         let isRelation=false;
-        if(obj && obj.addType===5){
-            isRelation=true;
+        const type=this.props.type
+        if(obj && obj.addType===5){//判断是否有关系属性
+            isRelation=true; 
         }
 		if(data){
 			data.map((item,index)=>{
@@ -178,15 +179,69 @@ export default class Detail extends React.Component{
                 item["dataIndex"]=fieldName;	
                 item["key"]=index; 
                 return false      					
-            })           
+            })                          
             if(isRelation===true){           
                 let rela={}
                 rela["dataIndex"]="关系"
                 rela["title"]="关系"
                 data.unshift(rela)
+            }         
+            const order={
+                title: '序号',
+                key: 'order',
+                render: (text, record,index) => (
+                    <span>
+                        {index+1}
+                    </span>
+                    ),
+            } 
+            data.unshift(order)
+            if(type==="edit"){
+                const act={
+                    title: '操作',
+                    key: 'action',
+                    render: (record) => (
+                    <span>
+                        <Button type='danger' icon="delete" size="small" onClick={()=>this.removeList(record)}>删除</Button>
+                    </span>
+                    ),
+                }  
+                data.push(act) 
             }
             return data
 		}		
+    }
+    removeList=(record)=>{
+        const deleKey=record.key
+        const dataSource =[...this.state.dataSource];
+        let newData=[]
+        let newDataSource=[]
+        dataSource.map((item)=>{
+            if(item.length>1){
+                item.map((it)=>{
+                    if(it.key!==deleKey){
+                       newData.push(it)
+                    }
+                    return false
+                })
+                newDataSource.push(newData)
+            }else{
+                newDataSource.push([])
+            }
+            return false
+        })
+        console.log(dataSource)
+        console.log(newDataSource)
+        this.setState({
+            dataSource:newDataSource
+        })
+        records.map((item)=>{
+            let index=records.indexOf(item)
+            if(item.key===deleKey){
+                records.splice(index, 1); 
+            }
+            return false
+        })
     }
     handleChange = (name,e) =>{ //更改原有datasource
         origData[name]=e.target.value
@@ -209,7 +264,6 @@ export default class Detail extends React.Component{
         }) 
     }
     requestTableList=(data)=>{
-        console.log(data)
         const res=[]  
         const modelType=this.props.type;    
         if(data.array){
@@ -220,7 +274,7 @@ export default class Detail extends React.Component{
                 list["key"]=code;        
                 list[data.title+`[${index}].唯一编码`]=code;      
                 if(data.composite.relationKey){
-                    list[data.title+".$$label$$"]=item.relation;    
+                    list[data.title+`[${index}].$$label$$`]=item.relation;    
                     list["关系"]=modelType==="edit"?<Select defaultValue={data.composite.relationSubdomain[0]}>                                   
                                     {data.composite.relationSubdomain.map((item,index)=>{
                                             return <Option value={item} key={index}>{item}</Option>
@@ -244,7 +298,7 @@ export default class Detail extends React.Component{
                         if(fieldType==="text"){
                             list[fieldName]=<Input defaultValue={fieldValue} onChange={(e)=>this.handleChange(data.title+`[${index}].`+title,e)}/>;
                         }else if(fieldType==="file"){
-                            list[fieldName]=<div className="editPic"><NewUpload fieldValue={fieldValue} fieldName={fieldName} onChange={(file)=>this.uploadChange(file,[data.title+`[${index}].`+title])}/> </div>                                          
+                            list[fieldName]=<div className="editPic"><NewUpload fieldValue={fieldValue} onChange={(file)=>this.uploadChange(file,[data.title+`[${index}].`+title])}/> </div>                                          
                         }else if(fieldType==="decimal"){
                             list[fieldName]=<InputNumber defaultValue={fieldValue} onChange={(e)=>this.handlleNumber(data.title+`[${index}].`+title,e)}/>
                         }
@@ -277,7 +331,7 @@ export default class Detail extends React.Component{
         const code=this.props.code;          
         const baseInfo=this.state.baseValue;
 
-        formData.append('唯一编码', code);
+        formData.append('唯一编码', this.props.flag?"":code);
         formData.append('%fuseMode%', this.state.fuseMode);
         for(let k in baseInfo){
             formData.append(k, baseInfo[k]);
@@ -286,7 +340,9 @@ export default class Detail extends React.Component{
         let res={}
         records.map((item)=>{
             for(let k in item){
-                res[k]=item[k] //去重
+                if(item[k]){
+                    res[k]=item[k] //去重
+                }
             }          
             return false
         })  
@@ -319,6 +375,7 @@ export default class Detail extends React.Component{
                     const code=this.props.code;	
                     storage.removeItem("edit"+code)//删除数据，这样再次进入页面会重新请求
                     storage.removeItem("detail"+code)
+                    this.loadRequest()
                 }else{
                     message.success(res.body.status)
                 }
@@ -392,15 +449,6 @@ export default class Detail extends React.Component{
             return false
         })
     }
-    deleSource=(deleKey)=>{
-        records.map((item)=>{
-            let index=records.indexOf(item)
-            if(item.key===deleKey){
-                records.splice(index, 1); 
-            }
-            return false
-        })
-    }
     handleMenuClick=(e)=>{
         console.log('click', e);
       }
@@ -468,7 +516,6 @@ export default class Detail extends React.Component{
                     cardTitle={this.state.cardTitle}
                     itemDescs={this.state.itemDescs}
                     callbackdatasource={this.callbackdatasource}
-                    deleSource={this.deleSource}
                     flag={this.props.flag}
                     uploadChange={this.uploadChange}
                 />

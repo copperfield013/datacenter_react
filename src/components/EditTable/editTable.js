@@ -6,9 +6,6 @@ export default class EditTable extends React.Component{
     callbackdatasource=(datasource)=>{
         this.props.callbackdatasource(datasource)
     }
-    deleSource=(deleKey)=>{
-        this.props.deleSource(deleKey)
-    }
     uploadChange=(file,name)=>{
         this.props.uploadChange(file,name)
     }
@@ -32,8 +29,7 @@ export default class EditTable extends React.Component{
                                     columns={this.props.columns[index]}
                                     dataSource={flag?null:this.props.dataSource[index]} //判断是否是创建记录
                                     item={item}
-                                    count={this.props.dataSource[index].length}
-                                    deleSource={this.deleSource}
+                                    count={flag?null:this.props.dataSource[index].length}
                                     uploadChange={this.uploadChange}
                                     callbackdatasource={this.callbackdatasource}
                                 />

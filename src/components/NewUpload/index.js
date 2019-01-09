@@ -45,7 +45,6 @@ export default class NewUpload extends React.Component{
     }
     render(){
         const fieldValue=this.props.fieldValue;
-        const fieldName=this.props.fieldName;
         return (
             <div>                                           
                 <Upload
@@ -55,7 +54,6 @@ export default class NewUpload extends React.Component{
                     defaultFileList={fieldValue?[{
                         uid:"-1",
                         status: 'done',
-                        name:fieldName,
                         url: `/file-server/${fieldValue}`,
                     }]:""}
                     onChange={this.handleChange}

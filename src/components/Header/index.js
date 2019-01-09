@@ -30,7 +30,7 @@ export default class Header extends React.Component{
 			<div className="header">
 				<Row className="header-top">	
 					<Col span={24}>
-						<Dropdown overlay={menu} placement="bottomCenter">
+						<Dropdown overlay={menu} placement="bottomCenter" trigger={['click']}>
 							<div className="userLogin">
 								<Icon type="user" />
 								<span>
