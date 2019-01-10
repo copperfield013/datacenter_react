@@ -92,6 +92,7 @@ export default class Admin extends React.Component{
 						menuId={this.state.menuId}
 						code={this.state.code}
 						scrollIds={this.scrollIds}
+						remove={this.remove}
 					/>
 			case newcode:
 			return <Detail

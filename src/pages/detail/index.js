@@ -31,8 +31,8 @@ export default class Detail extends React.Component{
         files=[]
         origData={}
     }
-    loadRequest=()=>{    
-        const typecode=this.props.type+this.props.code;    
+    loadRequest=()=>{
+        const typecode=this.props.type+this.props.code;
         this.setState({loading:true})
         const menuId=this.props.menuId;
         const code=this.props.code;
@@ -53,7 +53,7 @@ export default class Detail extends React.Component{
                     detailHistory
                 }) 
             }
-            this.setState({loading:false})
+            this.setState({loading:false})          
         }) 
     }
     requestLists=()=>{
@@ -213,37 +213,48 @@ export default class Detail extends React.Component{
     }
     removeList=(record)=>{
         const deleKey=record.key
-        const dataSource =[...this.state.dataSource];
-        let newData=[]
-        let newDataSource=[]
+        const dataSource =[...this.state.dataSource];      
+        const newDataSource=[]
         dataSource.map((item)=>{
-            if(item.length>1){
-                item.map((it)=>{
-                    if(it.key!==deleKey){
-                       newData.push(it)
-                    }
-                    return false
-                })
-                newDataSource.push(newData)
-            }else{
-                newDataSource.push([])
-            }
+            const newData=[]
+            item.map((it)=>{
+                if(it.key!==deleKey){
+                    newData.push(it)
+                }
+                return false
+            })
+            newDataSource.push(newData)
+            
             return false
         })
-        console.log(dataSource)
-        console.log(newDataSource)
         this.setState({
             dataSource:newDataSource
         })
-        records.map((item)=>{
-            let index=records.indexOf(item)
+        records.map((item,index)=>{
+            let ins=records.indexOf(item)
             if(item.key===deleKey){
-                records.splice(index, 1); 
-            }
+                records.splice(ins, 1); 
+            }        
             return false
         })
+        // console.log(records)
+        // records.map((item,index)=>{
+        //     let list={}
+        //     let ins=records.indexOf(item)
+        //     for(let k in item){
+        //         let nk=k.replace(/\[.*?\]/g,`[${index}]`)
+        //         list[nk]=item[k]
+        //     }
+        //     records.splice(ins, 1,list); //替换里面的数据
+        // })       
+        // console.log(dataSource)
+        // console.log(newDataSource)
+        console.log(dataSource)
     }
-    handleChange = (name,e) =>{ //更改原有datasource
+    changeKey=(source)=>{
+
+    }
+    handleChange = (name,e) =>{ //更改原来有值的datasource
         origData[name]=e.target.value
         this.removeOrivalue()  
     }
@@ -269,8 +280,7 @@ export default class Detail extends React.Component{
         if(data.array){
             data.array.map((item,index)=>{  
                 const list={};   
-                const code=item.code;          
-                list[data.title+".$$flag$$"]=true; 
+                const code=item.code;
                 list["key"]=code;        
                 list[data.title+`[${index}].唯一编码`]=code;      
                 if(data.composite.relationKey){
@@ -338,6 +348,12 @@ export default class Detail extends React.Component{
         }
         
         let res={}
+        this.state.cardTitle.map((item)=>{ //添加$$flag$$
+            const list={}
+            list[`${item}.$$flag$$`]=true;
+            records.push(list)
+            return false
+        })
         records.map((item)=>{
             for(let k in item){
                 if(item[k]){
@@ -353,6 +369,7 @@ export default class Detail extends React.Component{
                 }
             }
         }
+        
         files.map((item)=>{
             for(let k in item){
                 if(item[k]){
@@ -362,7 +379,7 @@ export default class Detail extends React.Component{
             }
             return false
         })
-        let loading=document.getElementById('ajaxLoading')
+        const loading=document.getElementById('ajaxLoading')
         loading.style.display="block"
         superagent
             .post(`/api/entity/curd/update/${menuId}`)
@@ -375,7 +392,8 @@ export default class Detail extends React.Component{
                     const code=this.props.code;	
                     storage.removeItem("edit"+code)//删除数据，这样再次进入页面会重新请求
                     storage.removeItem("detail"+code)
-                    this.loadRequest()
+                    const typecode=this.props.type+this.props.code;
+                    this.props.remove(typecode)
                 }else{
                     message.success(res.body.status)
                 }
@@ -417,6 +435,7 @@ export default class Detail extends React.Component{
     }
     showModal = () => {
         this.child.handleBaseInfoSubmit()
+        console.log(records)
         this.setState({
             visibleModal: true,
         });

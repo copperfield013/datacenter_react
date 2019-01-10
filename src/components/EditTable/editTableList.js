@@ -8,30 +8,14 @@ const Option = Select.Option;
 export default class EditTableList extends React.Component {
   state={
     selectedRowKeys: [],
+    count:this.props.count
   }
   componentDidMount(){
     const data=this.props.dataSource?this.props.dataSource:[]
-    const getFlag=this.props.item
-    if(getFlag.composite.name){  //列表记录从无到有时添加$$flag$$
-      const arr=[];
-      const record={}
-      record[`${getFlag.composite.name}.$$flag$$`]=true;
-      if(getFlag.composite.addType===5){
-        record[`${getFlag.composite.name}[0].$$label$$`]=getFlag.composite.name;
-      }
-      arr.push(record)
-      this.props.callbackdatasource(arr)
-    }
     data.map((item)=>{
       for(let k in item){
         if(typeof(item[k]) === 'string' && item[k].indexOf("download-files")>-1){
           delete item[k] //删除datasource图片
-        }else if(k.indexOf("flag")>-1){
-          const arr=[];
-          const record={}
-          record[k]=item[k]
-          arr.push(record)
-          this.props.callbackdatasource(arr) //列表记录从有到无时添加$$flag$$
         }
       }
       return false
@@ -53,7 +37,7 @@ export default class EditTableList extends React.Component {
     this.props.uploadChange(file,name)
   }
   handleAdd=()=> {
-    const count =this.props.count;
+    const count =this.state.count;
     const newDataSource = this.props.dataSource?this.props.dataSource:[]
     const itemList=this.props.item
     const itemTitle=itemList.title   
@@ -89,7 +73,7 @@ export default class EditTableList extends React.Component {
     })
     const arr=[];
     arr.push(list)
-    console.log(list)
+    //console.log(list)
     this.props.callbackdatasource(arr)
     newDataSource.push(list)
     this.setState({
