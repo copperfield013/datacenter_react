@@ -190,9 +190,7 @@ export default class Detail extends React.Component{
                 title: '序号',
                 key: 'order',
                 render: (text, record,index) => (
-                    <span>
-                        {index+1}
-                    </span>
+                    <label>{index+1}</label>
                     ),
             } 
             data.unshift(order)
@@ -201,9 +199,7 @@ export default class Detail extends React.Component{
                     title: '操作',
                     key: 'action',
                     render: (record) => (
-                    <span>
-                        <Button type='danger' icon="delete" size="small" onClick={()=>this.removeList(record)}>删除</Button>
-                    </span>
+                    <label><Button type='danger' icon="delete" size="small" onClick={()=>this.removeList(record)}></Button></label>
                     ),
                 }  
                 data.push(act) 
@@ -223,36 +219,40 @@ export default class Detail extends React.Component{
                 }
                 return false
             })
-            newDataSource.push(newData)
-            
+            newData.map((item,index)=>{
+                let list={}
+                let ins=newData.indexOf(item)
+                for(let k in item){
+                    let nk=k.replace(/\[.*?\]/g,`[${index}]`)
+                    list[nk]=item[k]
+                }
+                newData.splice(ins, 1,list)
+                return false
+            })
+            newDataSource.push(newData)           
             return false
         })
+        // for(let i=0;i<dataSource.length;i++){
+        //         let list={}
+        //         let ins=records.indexOf(item[i])
+        //         for(let k in item[i]){
+        //             let nk=k.replace(/\[.*?\]/g,`[${i}]`)
+        //             list[nk]=item[i][k]
+        //         }
+        //         records.splice(ins, 1,list)
+        //         console.log(i)
+        // }
         this.setState({
             dataSource:newDataSource
         })
-        records.map((item,index)=>{
+        records.map((item)=>{
             let ins=records.indexOf(item)
             if(item.key===deleKey){
                 records.splice(ins, 1); 
             }        
             return false
         })
-        // console.log(records)
-        // records.map((item,index)=>{
-        //     let list={}
-        //     let ins=records.indexOf(item)
-        //     for(let k in item){
-        //         let nk=k.replace(/\[.*?\]/g,`[${index}]`)
-        //         list[nk]=item[k]
-        //     }
-        //     records.splice(ins, 1,list); //替换里面的数据
-        // })       
-        // console.log(dataSource)
-        // console.log(newDataSource)
-        console.log(dataSource)
-    }
-    changeKey=(source)=>{
-
+        //console.log(records)
     }
     handleChange = (name,e) =>{ //更改原来有值的datasource
         origData[name]=e.target.value
@@ -369,7 +369,6 @@ export default class Detail extends React.Component{
                 }
             }
         }
-        
         files.map((item)=>{
             for(let k in item){
                 if(item[k]){
@@ -395,7 +394,7 @@ export default class Detail extends React.Component{
                     const typecode=this.props.type+this.props.code;
                     this.props.remove(typecode)
                 }else{
-                    message.success(res.body.status)
+                    message.error(res.body.status)
                 }
             })
         this.setState({
@@ -417,11 +416,16 @@ export default class Detail extends React.Component{
             okText: "确认",
             cancelText: "取消",
             onOk() {
+                const loading=document.getElementById('ajaxLoading')
+                loading.style.display="block"
                 Super.super({
                     url:`/api/entity/export/export_detail/${menuId}/${code}`,                 
                 }).then((res)=>{
+                    loading.style.display="none"
                     if(res.status==="suc"){
                         Units.downloadFile(`/api/entity/export/download/${res.uuid}`)
+                    }else{
+                        message.error(res.status)
                     }
                 })
             },
@@ -434,8 +438,8 @@ export default class Detail extends React.Component{
         });
     }
     showModal = () => {
-        this.child.handleBaseInfoSubmit()
-        console.log(records)
+        this.child.handleBaseInfoSubmit() //获取BaseInfo数据
+        //console.log(records)
         this.setState({
             visibleModal: true,
         });

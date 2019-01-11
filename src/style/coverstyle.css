@@ -24,10 +24,8 @@
 }
 .ant-card{
 	min-width: 740px;
+	width:91%
 }
 .ant-tabs-bar{
 	z-index: 99;
-}
-.ant-form{
-	width:90%;
 }

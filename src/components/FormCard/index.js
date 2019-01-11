@@ -41,6 +41,7 @@ class FormCard extends React.Component{
                                     baseInfo={this.baseInfo}
                                     onRef={this.onRef}
                                     form={this.props.form}
+                                    width={220}
                                     />
                             </Card>
                 formItemList.push(BASE)         

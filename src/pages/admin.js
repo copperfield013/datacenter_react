@@ -92,7 +92,7 @@ export default class Admin extends React.Component{
 						menuId={this.state.menuId}
 						code={this.state.code}
 						scrollIds={this.scrollIds}
-						remove={this.remove}
+						remove={this.remove} //保存成功关闭页面
 					/>
 			case newcode:
 			return <Detail
@@ -101,6 +101,7 @@ export default class Admin extends React.Component{
 						code={this.state.newRecordCode}
 						flag="creatNewRecord"
 						scrollIds={this.scrollIds}
+						remove={this.remove}//保存成功关闭页面
 					/>
 			case importCode:
 			return <ImportData 

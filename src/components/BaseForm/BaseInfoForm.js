@@ -35,6 +35,7 @@ export default class BaseInfoForm extends React.Component{
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
         const formList=this.props.formList;
+        const width=this.props.width;
         const formItemList=[];
         if(formList && formList.length>0){
             formList.forEach((item)=>{
@@ -51,7 +52,7 @@ export default class BaseInfoForm extends React.Component{
                                                   }]:"",
                                         })(
                                             <DatePicker 
-                                                style={{width:220}} 
+                                                style={{width:width}} 
                                                 locale={locale} 
                                                 getCalendarContainer={trigger => trigger.parentNode}
                                                 />
@@ -67,7 +68,7 @@ export default class BaseInfoForm extends React.Component{
                                                 required: true, message: `请输入${fieldName}`,
                                               }]:"",
                                     })(
-                                        <Input type="text" style={{width:220}}/>
+                                        <Input type="text" style={{width:width}}/>
                                     )}
                                 </FormItem>   
                     formItemList.push(TEXT)                
@@ -80,7 +81,7 @@ export default class BaseInfoForm extends React.Component{
                                                         required: true, message: `请输入${fieldName}`,
                                                       }]:"",
                                         })(
-                                            <Select style={{width:220}} 
+                                            <Select style={{width:width}} 
                                                 onMouseEnter={()=>this.requestSelectOptions(field)}
                                                 placeholder={`请输入${fieldName}`}
                                                 getPopupContainer={trigger => trigger.parentNode}
@@ -100,7 +101,7 @@ export default class BaseInfoForm extends React.Component{
                                                         required: true, message: `请输入${fieldName}`,
                                                       }]:"",
                                             })(
-                                            <Select mode="multiple" style={{width:220}} 
+                                            <Select mode="multiple" style={{width:width}} 
                                                     onMouseEnter={()=>this.requestSelectOptions(field)}
                                                     placeholder={`请输入${fieldName}`}
                                                     getPopupContainer={trigger => trigger.parentNode}
@@ -118,7 +119,7 @@ export default class BaseInfoForm extends React.Component{
                     const CASELECT= <FormItem label={fieldName} key={field} className='labelcss'>
                                         {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         fieldValue?<div>
-                                            <Input style={{width:220}} value={fieldValue} onClick={this.changeCascader} readOnly/>
+                                            <Input style={{width:width}} value={fieldValue} onClick={this.changeCascader} readOnly/>
                                             {
                                                 this.state.visiCascader==="inline-block"?getFieldDecorator(fieldName,{
                                                     rules:item.validators==="required"?[{
@@ -155,7 +156,7 @@ export default class BaseInfoForm extends React.Component{
                                         getFieldDecorator(fieldName)(
                                             <NewUpload
                                                 fieldValue={fieldValue}
-                                                width={220}
+                                                width={width}
                                             />
                                         )}
                                 </FormItem>
