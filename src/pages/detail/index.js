@@ -371,7 +371,7 @@ export default class Detail extends React.Component{
         })
         newRecord.map((item)=>{
             for(let k in item){
-                if(item[k]){
+                if(k!=="key" && item[k]){
                     formData.append(k, item[k]);
                 }
             }
@@ -476,7 +476,6 @@ export default class Detail extends React.Component{
             newRecord.push(item)
             return false
         })
-        console.log(newRecord)
     }
     handleMenuClick=(e)=>{
         console.log('click', e);
