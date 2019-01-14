@@ -101,9 +101,17 @@ export default class actTable extends React.Component{
         if(data){
             data.map((item)=>{
                 let value=item.title;
-                item["dataIndex"]=value;
-                return false								
+                item["dataIndex"]=value;	
+                return false						
             })
+            const order={
+                title: '序号',
+                key: 'order',
+                render: (text, record,index) => (
+                    <label>{index+1}</label>
+                    ),
+            } 
+            data.unshift(order) 
             const act={
                 title: '操作',
                 key: 'action',

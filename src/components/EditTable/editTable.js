@@ -9,6 +9,9 @@ export default class EditTable extends React.Component{
     uploadChange=(file,name)=>{
         this.props.uploadChange(file,name)
     }
+    newRecords=(datasource)=>{
+        this.props.newRecords(datasource)
+    }
     initDetailsList=()=>{
         const detailsList=this.props.detailsList;
         const detailsItemList=[];
@@ -22,7 +25,7 @@ export default class EditTable extends React.Component{
                                 className="hoverable" 
                                 headStyle={{background:"#f2f4f5"}}
                                 >
-                                <EditTableList 
+                                <EditTableList
                                     type={this.props.type}
                                     pagination={false}
                                     bordered
@@ -32,10 +35,11 @@ export default class EditTable extends React.Component{
                                     count={flag?null:this.props.dataSource[index].length}
                                     uploadChange={this.uploadChange}
                                     callbackdatasource={this.callbackdatasource}
+                                    newRecords={this.newRecords}
                                 />
                             </Card>
                 detailsItemList.push(RANGE)         
-                return false            
+                return false                  
             })          
         }
         return detailsItemList;

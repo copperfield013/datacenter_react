@@ -54,3 +54,7 @@
 .detailPage h3{
     font-size: 18px;
 }
+.detailPage .ant-card{
+	min-width: 740px;
+	width:91%
+}

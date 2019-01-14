@@ -56,6 +56,7 @@ export default class Admin extends React.Component{
 		}
 	}
 	onChange = (activeKey) => {
+		console.log(activeKey)
 		this.setState({activeKey});	
 		this.children.handleOpenKey(activeKey);	
 		this.judgeActiveKey(activeKey,this.state.panes)
@@ -93,6 +94,7 @@ export default class Admin extends React.Component{
 						code={this.state.code}
 						scrollIds={this.scrollIds}
 						remove={this.remove} //保存成功关闭页面
+						fresh={this.handleFresh} //保存成功刷新列表页
 					/>
 			case newcode:
 			return <Detail
@@ -102,6 +104,8 @@ export default class Admin extends React.Component{
 						flag="creatNewRecord"
 						scrollIds={this.scrollIds}
 						remove={this.remove}//保存成功关闭页面
+						fresh={this.handleFresh}//保存成功刷新列表页act
+						activeKey={this.state.activeKey}
 					/>
 			case importCode:
 			return <ImportData 
@@ -229,6 +233,9 @@ export default class Admin extends React.Component{
 			showShutAll:"none"
 		})
 		this.children.handleOpenKey(null);//复原菜单		
+	}
+	handleFresh=(info)=>{
+		this.child.fresh(info)
 	}
 	render(){
 		const operations = <Button onClick={this.shutAll} style={{display:this.state.showShutAll}}>关闭所有</Button>;

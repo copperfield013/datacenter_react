@@ -108,6 +108,11 @@ export default class ModelImport extends React.Component{
             message.info("请选择模板")
         }
     }
+    setModelName=(e)=>{
+        this.setState({
+            modelName:e.target.value
+        })
+    }
     render(){
         const content = (
             <div>
@@ -153,7 +158,7 @@ export default class ModelImport extends React.Component{
                 </h3>
                 <div style={{marginBottom:20}}>
                     模板名称：
-                    <Input placeholder="输入导入模板名称" style={{ width: 200 }} value={this.state.modelName}/>
+                    <Input placeholder="输入导入模板名称" style={{ width: 200 }} value={this.state.modelName} onChange={this.setModelName}/>
                 </div>
                 <div style={{overflowY:"auto",height:300}}>                   
                     <Table

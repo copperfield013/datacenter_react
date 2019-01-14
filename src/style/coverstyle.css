@@ -22,10 +22,6 @@
 .ant-message{
 	z-index: 1090;
 }
-.ant-card{
-	min-width: 740px;
-	width:91%
-}
 .ant-tabs-bar{
 	z-index: 99;
 }

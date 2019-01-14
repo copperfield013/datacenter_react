@@ -28,7 +28,7 @@ export default class EditTableList extends React.Component {
     record[name]=e.target.value
     record["key"]=key
     arr.push(record)
-    this.props.callbackdatasource(arr)//新增记录
+    this.props.newRecords(arr)//新增记录
   }
   handleChange=(value)=> {
     console.log(`selected ${value}`);

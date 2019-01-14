@@ -15,6 +15,7 @@ const storage=window.sessionStorage;
 let records=[]
 let files=[]
 let origData={}
+let newRecord=[]
 export default class Detail extends React.Component{
     state={
         visibleModal: false,
@@ -30,6 +31,7 @@ export default class Detail extends React.Component{
         records=[] //切换清空原有数据
         files=[]
         origData={}
+        newRecord=[]
     }
     loadRequest=()=>{
         const typecode=this.props.type+this.props.code;
@@ -42,7 +44,6 @@ export default class Detail extends React.Component{
                 isShowLoading:true
             }          
         }).then((res)=>{
-            //console.log(res)
             storage[typecode]=JSON.stringify(res); //存储一条数据
             const detailsList=res.entity.fieldGroups; 
             this.detailTitle(res,this.props.type)
@@ -128,6 +129,7 @@ export default class Detail extends React.Component{
 		}else{
 			detailsTitle=entityTitle?moduleTitle+"-修改-"+entityTitle:moduleTitle+"-修改";
 		}			
+        		
 		this.setState({ 
             detailsTitle,
             moduleTitle,
@@ -232,27 +234,17 @@ export default class Detail extends React.Component{
             newDataSource.push(newData)           
             return false
         })
-        // for(let i=0;i<dataSource.length;i++){
-        //         let list={}
-        //         let ins=records.indexOf(item[i])
-        //         for(let k in item[i]){
-        //             let nk=k.replace(/\[.*?\]/g,`[${i}]`)
-        //             list[nk]=item[i][k]
-        //         }
-        //         records.splice(ins, 1,list)
-        //         console.log(i)
-        // }
         this.setState({
             dataSource:newDataSource
         })
-        records.map((item)=>{
-            let ins=records.indexOf(item)
-            if(item.key===deleKey){
-                records.splice(ins, 1); 
-            }        
+        records=[]
+        newDataSource.map((item)=>{
+            item.map((it)=>{
+                records.push(it)
+                return false
+            })
             return false
         })
-        //console.log(records)
     }
     handleChange = (name,e) =>{ //更改原来有值的datasource
         origData[name]=e.target.value
@@ -374,7 +366,14 @@ export default class Detail extends React.Component{
                 if(item[k]){
                     formData.append(k, item[k]);
                 }
-                //console.log(item[k])
+            }
+            return false
+        })
+        newRecord.map((item)=>{
+            for(let k in item){
+                if(item[k]){
+                    formData.append(k, item[k]);
+                }
             }
             return false
         })
@@ -387,14 +386,15 @@ export default class Detail extends React.Component{
             .end((req,res)=>{
                 loading.style.display="none"
                 if(res.body.status==="suc"){
-                    message.success("保存成功！")
+                    const typecode=this.props.type+this.props.code;
                     const code=this.props.code;	
                     storage.removeItem("edit"+code)//删除数据，这样再次进入页面会重新请求
                     storage.removeItem("detail"+code)
-                    const typecode=this.props.type+this.props.code;
-                    this.props.remove(typecode)
+                    this.props.flag?this.props.remove(this.props.activeKey):this.props.remove(typecode) //保存成功，关闭页面
+                    this.props.fresh("保存成功！") //保存成功，刷新列表页面，并提醒
                 }else{
                     message.error(res.body.status)
+                    this.loadRequest()
                 }
             })
         this.setState({
@@ -404,9 +404,12 @@ export default class Detail extends React.Component{
       }
     baseInfo=(baseValue)=>{
         //console.log(baseValue)
+        if(baseValue){           
         this.setState({
+                visibleModal: true,
             baseValue
         });
+    }
     }
     exportDetail=()=>{
         const menuId=this.props.menuId;
@@ -439,10 +442,6 @@ export default class Detail extends React.Component{
     }
     showModal = () => {
         this.child.handleBaseInfoSubmit() //获取BaseInfo数据
-        //console.log(records)
-        this.setState({
-            visibleModal: true,
-        });
     }
     //调用子组件方法
 	onRef=(ref)=>{
@@ -471,6 +470,13 @@ export default class Detail extends React.Component{
             records.push(item)
             return false
         })
+    }
+    newRecords=(dataSource)=>{
+        dataSource.map((item)=>{            
+            newRecord.push(item)
+            return false
+        })
+        console.log(newRecord)
     }
     handleMenuClick=(e)=>{
         console.log('click', e);
@@ -514,7 +520,6 @@ export default class Detail extends React.Component{
                                 onClick={this.showModal} key="btn" 
                                 style={{background:this.state.fuseMode===true?"#001529":""}}
                                 >保存</Button>
-
                             </div>
                             <Switch checkedChildren="开" unCheckedChildren="关" style={{marginRight:10}} title="融合模式" onChange={this.fuseMode}/>
                             <Button className="hoverbig" title="刷新" onClick={this.loadRequest}><Icon type="sync" /></Button>
@@ -541,6 +546,7 @@ export default class Detail extends React.Component{
                     callbackdatasource={this.callbackdatasource}
                     flag={this.props.flag}
                     uploadChange={this.uploadChange}
+                    newRecords={this.newRecords}
                 />
                 <Modal
                     visible={this.state.visibleModal}
