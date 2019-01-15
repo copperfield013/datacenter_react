@@ -2,13 +2,15 @@ import React from 'react'
 import { Table, Input, Button,Select,InputNumber} from 'antd';
 import Units from './../../units'
 import NewUpload from './../NewUpload'
+//import Highlighter from 'react-highlight-words';
 import "./index.css"
 const Option = Select.Option;
 
 export default class EditTableList extends React.Component {
   state={
     selectedRowKeys: [],
-    count:this.props.count
+    count:this.props.count,
+    searchWords:this.props.searchWords?this.props.searchWords:[]
   }
   componentDidMount(){
     const data=this.props.dataSource?this.props.dataSource:[]
@@ -82,6 +84,7 @@ export default class EditTableList extends React.Component {
     });
   }
   render() {
+    const dataSource=this.props.dataSource;
     return (
       <div className="editTableList">
           {this.props.type==="edit"?<Button 
@@ -93,10 +96,10 @@ export default class EditTableList extends React.Component {
                                       :""}
           <Table
             bordered
-            dataSource={this.props.dataSource}
+            dataSource={dataSource}
             columns={this.props.columns}    
             pagination={false}
-          />        
+          />  
       </div>
     );
   }

@@ -25,3 +25,6 @@
 .ant-tabs-bar{
 	z-index: 99;
 }
+.ant-card-extra{
+	padding:10px 0;
+}

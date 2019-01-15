@@ -179,7 +179,15 @@ export default class Detail extends React.Component{
 			data.map((item,index)=>{
                 let fieldName=item.fieldName;
                 item["dataIndex"]=fieldName;	
-                item["key"]=index; 
+                item["key"]=index;
+                if(this.props.type==="detail"){
+                    if(fieldName.indexOf("价格")>-1 || fieldName.indexOf("工号")>-1){
+                        item["sorter"]=(a, b) => parseInt(a[fieldName]) - parseInt(b[fieldName]); 
+                    }else{
+                        item["sorter"]=(a, b) => a[fieldName].length - b[fieldName].length; 
+                    }
+                } 
+                             
                 return false      					
             })                          
             if(isRelation===true){           
@@ -191,6 +199,7 @@ export default class Detail extends React.Component{
             const order={
                 title: '序号',
                 key: 'order',
+                width:65,
                 render: (text, record,index) => (
                     <label>{index+1}</label>
                     ),
