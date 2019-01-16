@@ -23,6 +23,7 @@ export default class Detail extends React.Component{
         loading:false,
         visibleExport:false,
         fuseMode:false,
+        searchText:""
     }
     componentWillMount(){
         this.requestLists()
@@ -177,17 +178,16 @@ export default class Detail extends React.Component{
         }
 		if(data){
 			data.map((item,index)=>{
-                let fieldName=item.fieldName;
+                const fieldName=item.fieldName;
                 item["dataIndex"]=fieldName;	
-                item["key"]=index;
+                item["key"]=index;                
                 if(this.props.type==="detail"){
                     if(fieldName.indexOf("价格")>-1 || fieldName.indexOf("工号")>-1){
                         item["sorter"]=(a, b) => parseInt(a[fieldName]) - parseInt(b[fieldName]); 
                     }else{
                         item["sorter"]=(a, b) => a[fieldName].length - b[fieldName].length; 
                     }
-                } 
-                             
+                }           
                 return false      					
             })                          
             if(isRelation===true){           
