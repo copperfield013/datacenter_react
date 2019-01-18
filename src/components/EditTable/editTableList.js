@@ -10,7 +10,8 @@ export default class EditTableList extends React.Component {
   state={
     selectedRowKeys: [],
     count:this.props.count,
-    searchText:""
+    dataSource:this.props.dataSource,
+    searchText:"",
   }
   componentDidMount(){
     const data=this.props.dataSource?this.props.dataSource:[]
@@ -83,83 +84,52 @@ export default class EditTableList extends React.Component {
         count: count + 1,
     });
   }
-  handleSearch = (selectedKeys,confirm) => {
-    confirm()
-    this.setState({ searchText: selectedKeys[0] });
-  }
-  handleReset = (clearFilters) => {
-    clearFilters();
-    this.setState({ searchText: '' });
-  }
+  
   onChange=(pagination, filters, sorter) => {
     console.log('Various parameters', pagination, filters, sorter);
   }
-  render() {
+  searchValue=(e)=>{
+    const columns=this.props.columns
     const dataSource=this.props.dataSource
+    const txt=e.target.value
+    const data=[]
+    columns.map((item)=>{
+      const fieldName=item.fieldName;
+      if(fieldName && fieldName.indexOf("封面")===-1){
+        if(e.target.value){
+          data.push(...dataSource.filter(item=>item[fieldName].indexOf(txt)>-1))
+        }else{
+          if(data.indexOf(...dataSource)===-1){
+            data.push(...dataSource)
+          }
+        }  
+        item["render"]=(text) => (<Highlighter
+                                      highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                                      searchWords={[this.state.searchText]}
+                                      autoEscape
+                                      textToHighlight={text.toString()}
+                                      />)        
+      }
+        return false
+    })
+    this.setState({
+      searchText:e.target.value,
+      dataSource:data
+    })
+  }
+  render() {
     const cardTitle=this.props.cardTitle
     const columns=this.props.columns
-    if(this.props.type==="detail"){
-      columns.map((item)=>{
-        const fieldName=item.fieldName;
-        if(fieldName){               
-            item["filterDropdown"]=({
-                setSelectedKeys, selectedKeys, confirm, clearFilters,
-              }) => (
-                <div className="SearchForm">
-                  <Input
-                    ref={node => { this.searchInput = node; }}
-                    placeholder={`${fieldName}`}
-                    value={selectedKeys[0]}
-                    onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-                    onPressEnter={() => this.handleSearch(selectedKeys,confirm)}
-                    style={{ width: 188, marginBottom: 8, display: 'block' }}
-                  />
-                  <Button
-                    type="primary"
-                    onClick={() => this.handleSearch(selectedKeys,confirm)}
-                    icon="search"
-                    size="small"
-                    style={{ width: 90, marginRight: 8 }}
-                  >
-                    搜索
-                  </Button>
-                  <Button
-                    onClick={() => this.handleReset(clearFilters)}
-                    size="small"
-                    style={{ width: 90 }}
-                  >
-                    重置
-                  </Button>
-                </div>
-              )
-          item["filterIcon"]=filtered => <Icon type="search" style={{ color: filtered ? '#1890ff' : undefined }} /> 
-          item["onFilter"]=(value, record) => record[fieldName].includes(value)        
-          item["onFilterDropdownVisibleChange"]= (visible) => {
-                                                      if (visible) {
-                                                        setTimeout(() => this.searchInput.select());
-                                                      }
-                                                    }    
-          item["render"]=(text) => (<Highlighter
-                                    highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-                                    searchWords={[this.state.searchText]}
-                                    autoEscape
-                                    textToHighlight={text.toString()}
-                                    />)
-          }
-          return false
-      })
-      console.log(columns)
-  }
     return (
       <Card 
           title={cardTitle} 
           id={cardTitle} 
           className="hoverable" 
           headStyle={{background:"#f2f4f5"}}
-          // extra={this.props.type==="detail"?<Input placeholder="关键字搜索"
-          //                                         onChange={(e)=>this.searchValue(e)}
-          //                                         addonBefore={<Icon type="search"/>}
-          //                                         />:""}
+          extra={this.props.type==="detail"?<Input placeholder="关键字搜索"
+                                                  onChange={this.searchValue}
+                                                  addonBefore={<Icon type="search"/>}
+                                                  />:""}
           >
           <div className="editTableList">
             {this.props.type==="edit"?<Button 
@@ -171,7 +141,7 @@ export default class EditTableList extends React.Component {
                                           :""}
               <Table
                 bordered
-                dataSource={dataSource}
+                dataSource={this.props.type==="edit"?this.props.dataSource:this.state.dataSource}
                 columns={columns}    
                 pagination={false}
                 onChange={this.onChange}
