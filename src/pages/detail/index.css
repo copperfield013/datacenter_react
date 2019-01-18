@@ -10,7 +10,12 @@
     border:1px solid #e8e8e8;
     border-radius: 4px;
     z-index: 100;
-    box-shadow: 2px 2px 10px rgba(0,0,0,.2)
+    box-shadow: 2px 2px 10px rgba(0,0,0,.2);
+    max-height:186px;
+    overflow:auto;
+}
+.rightBar::-webkit-scrollbar {
+    display: none;
 }
 .rightBar ul{
     padding:0;

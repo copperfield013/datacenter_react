@@ -20,7 +20,11 @@ export default class Admin extends React.Component{
 			activeKey: panes[0].key,
 			panes,
 			showShutAll:"none",
+			L:""
 		};
+	}
+	componentDidMount(){
+		
 	}
 	judgeActiveKey=(activeKey,panes)=>{		
 		let type;
@@ -43,6 +47,7 @@ export default class Admin extends React.Component{
 				xqTitle,
 				type,
 				code:activeKey,
+				L:"ooo"
 			})
 		}else if(activeKey.indexOf(",")>-1){ //新增记录
 			const title=activeKey.split(",")[0]
@@ -56,7 +61,7 @@ export default class Admin extends React.Component{
 		}
 	}
 	onChange = (activeKey) => {
-		console.log(activeKey)
+		//console.log(activeKey)
 		this.setState({activeKey});	
 		this.children.handleOpenKey(activeKey);	
 		this.judgeActiveKey(activeKey,this.state.panes)
@@ -86,7 +91,7 @@ export default class Admin extends React.Component{
 	Welcome = (title,xqTitle,newcode,importCode) => {
 		switch(title){
 			case "主页":
-			return <Home />
+			return <Home /> 
 			case xqTitle:
 			return <Detail
 						type={this.state.type}
@@ -122,6 +127,7 @@ export default class Admin extends React.Component{
 						newRecordCallback={this.newRecordCallback}
 						importCallback={this.importCallback}
 						onRef={this.onRef} 
+						L={this.state.L} //待解决的加载
 					/>
 		}  	
 	}
@@ -179,7 +185,7 @@ export default class Admin extends React.Component{
 		const scrollTop  = e.target.scrollTop;  //页面滚动高度
 		const scrollHeight = e.target.scrollHeight;//页面总高度
 		const clientHeight   = e.target.clientHeight  ;
-		const scrollIds=this.state.scrollIds;		
+		const scrollIds=this.state.scrollIds;
 		const mainTopArr = []; 
 		let k=0;
 		if(scrollIds){	//滑动锁定导航

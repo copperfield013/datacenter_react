@@ -23,7 +23,11 @@ export default class Detail extends React.Component{
         loading:false,
         visibleExport:false,
         fuseMode:false,
-        searchText:""
+        searchText:"",
+        scrollIds:[]
+    }
+    componentDidMount(){
+        this.handleNav()
     }
     componentWillMount(){
         this.requestLists()
@@ -168,6 +172,7 @@ export default class Detail extends React.Component{
             dataSource,
             cardTitle,
             formTitle,
+            scrollIds
         })
     }
     renderColumns=(data,obj)=>{
@@ -489,7 +494,37 @@ export default class Detail extends React.Component{
     handleMenuClick=(e)=>{
         console.log('click', e);
       }
-      
+    handleNav=()=>{
+        const obj=document.getElementsByClassName("main")[0]		
+		const scrollTop  = obj.scrollTop;  //页面滚动高度
+        const clientHeight   = obj.clientHeight  ;
+        const scrollIds=this.state.scrollIds;
+		const mainTopArr = []; 
+		let k=0;
+		if(scrollIds){	//滑动锁定导航
+			for(let i=0;i<scrollIds.length;i++){
+                let node=document.getElementById(scrollIds[i])
+				if(node){
+					let top = Math.floor(node.offsetTop); 	
+					mainTopArr.push(top);
+				}		
+			} 
+			//console.log(mainTopArr)
+			for(let i=0;i<mainTopArr.length;i++){ 
+				if((scrollTop+clientHeight/2)>=mainTopArr[i]){ 
+				k=i; 
+				} 
+			} 
+			const list=document.getElementsByClassName("rightBar")[0]
+			if(list){
+				const lis=list.getElementsByTagName("li")
+				for(let i=0;i<lis.length;i++){
+					lis[i].style.backgroundColor="#fff"
+				}
+				lis[k].style.backgroundColor="#cfe3f5"
+			}
+        }
+    } 
     render(){
         const content = (
             <div className="btns">

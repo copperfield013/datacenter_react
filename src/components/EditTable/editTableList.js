@@ -84,10 +84,6 @@ export default class EditTableList extends React.Component {
         count: count + 1,
     });
   }
-  
-  onChange=(pagination, filters, sorter) => {
-    console.log('Various parameters', pagination, filters, sorter);
-  }
   searchValue=(e)=>{
     const columns=this.props.columns
     const dataSource=this.props.dataSource
@@ -117,9 +113,21 @@ export default class EditTableList extends React.Component {
       dataSource:data
     })
   }
+  tableChange=(pagination)=>{
+    console.log(pagination)
+    this.props.columns.map((item)=>{
+      if(item.key==="order"){
+        item["render"]=(text, record,index) => (
+              <label>{(pagination.current-1)*pagination.pageSize+index+1}</label>
+          )       
+      }
+      return false
+    })
+  }
   render() {
     const cardTitle=this.props.cardTitle
     const columns=this.props.columns
+    const page={pageSize:5,hideOnSinglePage:true}
     return (
       <Card 
           title={cardTitle} 
@@ -143,8 +151,8 @@ export default class EditTableList extends React.Component {
                 bordered
                 dataSource={this.props.type==="edit"?this.props.dataSource:this.state.dataSource}
                 columns={columns}    
-                pagination={false}
-                onChange={this.onChange}
+                pagination={this.props.type==="edit"?false:page}
+                onChange={this.tableChange}
               />
           </div>
             

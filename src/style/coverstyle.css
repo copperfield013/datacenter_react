@@ -26,5 +26,14 @@
 	z-index: 99;
 }
 .ant-card-extra{
-	padding:10px 0;
+	padding:0;
+}
+.ant-card-head{
+	min-height: 40px;
+}
+.ant-table{
+	line-height: 1;
+}
+.ant-table-pagination.ant-pagination{
+	margin:0 0 10px;
 }

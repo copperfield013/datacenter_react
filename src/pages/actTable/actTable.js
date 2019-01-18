@@ -19,9 +19,6 @@ export default class actTable extends React.Component{
         this.props.onRef(this)
         this.requestList()
     }
-    componentWillMount(){
-        
-    }
     handleFilter=(params)=>{
         //console.log(params)
         this.props.searchParams(params)
@@ -31,14 +28,16 @@ export default class actTable extends React.Component{
     }
     requestList=()=>{ 
         const menuId=this.props.menuId;
-        this.setState({loading:true,Loading:true,})
+        const loading=document.getElementById('ajaxLoading')
+        if(!this.props.L){
+            loading.style.display="block"
+        }
         Super.super({
             url:`/api/entity/curd/list/${menuId}`,                
         }).then((res)=>{
+            loading.style.display="none"
             if(res){
                 this.setState({
-                    loading:false,
-                    Loading:false,
                     pageNo:res.pageInfo.pageNo,
                     pageSize:res.pageInfo.pageSize,
                 })
@@ -277,6 +276,7 @@ export default class actTable extends React.Component{
     fresh=(msg)=>{
         const menuId=this.props.menuId;
         this.setState({Loading:true})
+        this.child.reset()
         Super.super({
             url:`/api/entity/curd/list/${menuId}`,                
         }).then((res)=>{
@@ -287,6 +287,9 @@ export default class actTable extends React.Component{
                 message.success(msg)
             }
         })
+    }
+    onRef=(ref)=>{
+		this.child=ref
     }
     // onClickRow=(record)=>{
     //     return {
@@ -346,6 +349,7 @@ export default class actTable extends React.Component{
                         actions={this.state.actions}
                         handleActions={this.handleActions}
                         disabled={this.state.selectedRowKeys.length>0?false:true}
+                        onRef={this.onRef}
                         />          
                 </Card>
                 <Table
