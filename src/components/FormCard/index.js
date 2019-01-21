@@ -24,26 +24,25 @@ class FormCard extends React.Component{
         })
     }
     initDetailsList=()=>{
-        const formList=this.props.formList;
+        const { formList,type,flag,form,loading,title }=this.props
         const formItemList=[];
         if(formList && formList.length>0){
             formList.map((item,index)=>{
-                const cardTitle=this.props.title[index]
                 const BASE=<Card 
-                                title={cardTitle} 
-                                key={cardTitle} 
-                                id={cardTitle} 
+                                title={title[index]} 
+                                key={title[index]} 
+                                id={title[index]} 
                                 className="hoverable" 
                                 headStyle={{background:"#f2f4f5"}}
-                                loading={this.props.loading}
+                                loading={loading}
                                 >
                                 <BaseInfoForm 
                                     formList={formList[index]} 
-                                    type={this.props.type} 
-                                    flag={this.props.flag}
+                                    type={type} 
+                                    flag={flag}
                                     baseInfo={this.baseInfo}
                                     onRef={this.onRef}
-                                    form={this.props.form}
+                                    form={form}
                                     width={220}
                                     />
                             </Card>

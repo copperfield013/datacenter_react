@@ -125,8 +125,7 @@ export default class EditTableList extends React.Component {
     })
   }
   render() {
-    const cardTitle=this.props.cardTitle
-    const columns=this.props.columns
+    const { cardTitle,columns,type,dataSource }=this.props
     const page={pageSize:5,hideOnSinglePage:true}
     return (
       <Card 
@@ -134,13 +133,13 @@ export default class EditTableList extends React.Component {
           id={cardTitle} 
           className="hoverable" 
           headStyle={{background:"#f2f4f5"}}
-          extra={this.props.type==="detail"?<Input placeholder="关键字搜索"
+          extra={type==="detail"?<Input placeholder="关键字搜索"
                                                   onChange={this.searchValue}
                                                   addonBefore={<Icon type="search"/>}
                                                   />:""}
           >
           <div className="editTableList">
-            {this.props.type==="edit"?<Button 
+            {type==="edit"?<Button 
                                           type='primary' 
                                           icon="plus" 
                                           onClick={()=>{this.handleAdd()}} 
@@ -149,9 +148,9 @@ export default class EditTableList extends React.Component {
                                           :""}
               <Table
                 bordered
-                dataSource={this.props.type==="edit"?this.props.dataSource:this.state.dataSource}
+                dataSource={type==="edit"?dataSource:this.state.dataSource}
                 columns={columns}    
-                pagination={this.props.type==="edit"?false:page}
+                pagination={type==="edit"?false:page}
                 onChange={this.tableChange}
               />
           </div>

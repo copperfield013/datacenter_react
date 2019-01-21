@@ -87,6 +87,7 @@ export default class NavLeft extends React.Component{
 		return false
 	}
 	render(){
+		const { openKeys,menuTreeNode }=this.state
 		return (
 			<div>
 				<div className="logo">
@@ -95,12 +96,12 @@ export default class NavLeft extends React.Component{
 				 <Menu 
 					mode="inline"
 					theme="dark"
-					openKeys={this.state.openKeys}
+					openKeys={openKeys}
 					onClick={this.handleMenu}
 					onOpenChange={this.handleOpen} //手风琴
 					selectedKeys={this.props.activeKey}
 				 >
-					{this.state.menuTreeNode}
+					{menuTreeNode}
 				 </Menu>
 			</div>
 		)

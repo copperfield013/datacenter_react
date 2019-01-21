@@ -14,25 +14,21 @@ export default class EditTable extends React.Component{
     }
     
     initDetailsList=()=>{
-        const detailsList=this.props.detailsList;
+        const { detailsList,type,itemDescs,flag,cardTitle,dataSource,columns }=this.props
         const detailsItemList=[];
-        const flag=this.props.flag
         if(detailsList && detailsList.length>0){
-            this.props.itemDescs.map((item,index)=>{
-                const cardTitle=this.props.cardTitle[index]
-                const dataSource=this.props.dataSource[index]
-                const columns=this.props.columns[index]
+            itemDescs.map((item,index)=>{
                 const RANGE=<EditTableList               
-                                key={cardTitle} 
-                                type={this.props.type}
-                                columns={columns}
-                                dataSource={flag?null:dataSource} //判断是否是创建记录
+                                key={cardTitle[index]} 
+                                type={type}
+                                columns={columns[index]}
+                                dataSource={flag?null:dataSource[index]} //判断是否是创建记录
                                 item={item}
-                                count={flag?null:dataSource.length}
+                                count={flag?null:dataSource[index].length}
                                 uploadChange={this.uploadChange}
                                 callbackdatasource={this.callbackdatasource}
                                 newRecords={this.newRecords}
-                                cardTitle={cardTitle}
+                                cardTitle={cardTitle[index]}
                             />
                 detailsItemList.push(RANGE)         
                 return false                  

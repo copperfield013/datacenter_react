@@ -26,7 +26,7 @@ class Loginit extends React.Component{
         }
     };
     loadAccountInfo = () => {
-        let accountInfo = Units.getCookie('accountInfo');
+        const accountInfo = Units.getCookie('accountInfo');
         if(Boolean(accountInfo) === false){
             return false;
         }else{
@@ -43,6 +43,7 @@ class Loginit extends React.Component{
         }
     };
 	handleSubmit =()=>{       
+        const {username,password,remember}=this.state
         this.props.form.validateFields((err,values)=>{            
             if(!err){
                 Super.super({
@@ -56,8 +57,8 @@ class Loginit extends React.Component{
                             message.info('服务器连接失败');
                         }else{
                             if(res.status === 'suc'){ 
-                                if(this.state.remember){
-                                    let accountInfo = this.state.username+ '&' +this.state.password;
+                                if(remember){
+                                    const accountInfo = username+ '&' +password;
                                     Units.setCookie('accountInfo',accountInfo,30);
                                 }else {
                                     Units.delCookie('accountInfo');
@@ -84,6 +85,7 @@ class Loginit extends React.Component{
         this.setState({remember: event.target.checked });
     };
 	render(){
+        const {username,password}=this.state
         const { getFieldDecorator } = this.props.form;
 		return(
 			<Row className="container login">
@@ -92,7 +94,7 @@ class Loginit extends React.Component{
 					    <h3>欢迎登录</h3>
                         <FormItem>
                             {getFieldDecorator('username', {
-                                    initialValue:this.state.username,
+                                    initialValue:username,
                                     rules: [
                                         { required: true, message: '请输入用户名!' },
                                         {max:5,min:0,message:'输入0-5个字符'},
@@ -107,7 +109,7 @@ class Loginit extends React.Component{
                         </FormItem>
                         <FormItem>
                             {getFieldDecorator('password', {
-                                    initialValue: this.state.password,
+                                    initialValue:password,
                                     rules: [
                                         { required: true, message: '请输入密码!' },
                                         {min:5,message:"输入大于5个字符"}

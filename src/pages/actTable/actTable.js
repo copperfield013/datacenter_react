@@ -27,7 +27,7 @@ export default class actTable extends React.Component{
         return `共 ${total} 条`;
     }
     requestList=()=>{ 
-        const menuId=this.props.menuId;
+        const { menuId }=this.props
         const loading=document.getElementById('ajaxLoading')
         if(!this.props.L){
             loading.style.display="block"
@@ -116,8 +116,20 @@ export default class actTable extends React.Component{
                 key: 'action',
                 render: (text, record) => (
                 <span>
-                    <Button type="primary" icon="align-left" size="small" onClick={(e)=>this.handleOperate("detail",record,e)}>详情</Button>
-                    <Button type="dashed" icon="edit" size="small" onClick={(e)=>this.handleOperate("edit",record,e)}>修改</Button>
+                    <Button 
+                        type="primary" 
+                        icon="align-left" 
+                        size="small" 
+                        onClick={(e)=>this.handleOperate("detail",record,e)}>
+                        详情
+                    </Button>
+                    <Button 
+                        type="dashed" 
+                        icon="edit" 
+                        size="small" 
+                        onClick={(e)=>this.handleOperate("edit",record,e)}>
+                        修改
+                    </Button>
                 </span>
                 ),
             }
@@ -127,7 +139,7 @@ export default class actTable extends React.Component{
     } 
     handleOperate=(type,record,e)=>{
         e.stopPropagation();//阻止事件冒泡，防止点击按钮选中整行
-		const menuId=this.props.menuId
+		const {menuId}=this.props
         this.setState({loading:true,Loading:true})
         if(type==="delete"){
             Modal.confirm({
@@ -161,7 +173,7 @@ export default class actTable extends React.Component{
 		}
     }   
     handleDetail=({record},type)=>{
-		const panes = this.props.panes;
+		const {panes} = this.props
 		let flag = false;
         let dcode=type; 
         const code=record.code
@@ -224,7 +236,7 @@ export default class actTable extends React.Component{
 		})			
     }
     handleNew=(title,newRecordCode)=>{
-		const panes = this.props.panes;
+		const {panes} = this.props
 		let flag = false;
 		const newcode=title+"--创建"
 		const newK=title+","+newRecordCode
@@ -241,7 +253,7 @@ export default class actTable extends React.Component{
         this.props.newRecordCallback(panes,newK,newcode,newRecordCode)
     }
     handleImport=(title)=>{
-        const panes = this.props.panes;
+        const {panes} = this.props
 		let flag = false;
 		const importCode=title+"导入"
 		for(let ops of panes){			
@@ -257,7 +269,7 @@ export default class actTable extends React.Component{
         this.props.importCallback(panes,importCode)
     }
     handleActions=(actionId)=>{
-        const menuId=this.props.menuId;
+        const {menuId}=this.props
         this.setState({Loading:true})
         Super.super({
             url:`/api/entity/curd/do_action/${menuId}/${actionId}`, 
@@ -274,14 +286,18 @@ export default class actTable extends React.Component{
         })
     }
     fresh=(msg)=>{
-        const menuId=this.props.menuId;
+        const {menuId}=this.props
         this.setState({Loading:true})
         this.child.reset()
         Super.super({
             url:`/api/entity/curd/list/${menuId}`,                
         }).then((res)=>{
             if(res){
-                this.setState({currentPage:1,Loading:false,selectedRowKeys: [],})
+                this.setState({
+                    currentPage:1,
+                    Loading:false,
+                    selectedRowKeys: [],
+                })
                 storage[menuId]=JSON.stringify(res); //存储一个列表数据
                 this.editList(res)
                 message.success(msg)
@@ -308,13 +324,14 @@ export default class actTable extends React.Component{
     //       };
     // }
     render(){
+        const {selectedRowKeys,pageNo,pageSize,filterOptions,moduleTitle,list,
+            newRecordCode,loading,formList,actions,columns,Loading,currentPage,pageCount } = this.state;
         const content = <ExportFrame //导出组件
                             menuId={this.props.menuId}
-                            pageNo={this.state.pageNo}
-                            pageSize={this.state.pageSize}
-                            filterOptions={this.state.filterOptions}
+                            pageNo={pageNo}
+                            pageSize={pageSize}
+                            filterOptions={filterOptions}
                             /> 
-        const {selectedRowKeys } = this.state;
         const rowSelection = {
             selectedRowKeys,
             onChange: (selectedRowKeys, selectedRows) => {
@@ -331,46 +348,61 @@ export default class actTable extends React.Component{
         return(
             <div className="actTable">
                 <h3>
-                    {this.state.moduleTitle}
+                    {moduleTitle}
                     <p className="fr">
-                        <Button className="hoverbig" title="创建" onClick={()=>this.handleNew(this.state.moduleTitle,this.state.newRecordCode)}><Icon type="plus"/></Button>
-                        <Button className="hoverbig" title="导入" onClick={()=>this.handleImport(this.state.moduleTitle,this.state.newRecordCode)}><Icon type="download" /></Button>
+                        <Button 
+                            className="hoverbig" 
+                            title="创建" 
+                            onClick={()=>this.handleNew(moduleTitle,newRecordCode)}>
+                            <Icon type="plus"/>
+                        </Button>
+                        <Button 
+                            className="hoverbig" 
+                            title="导入" 
+                            onClick={()=>this.handleImport(moduleTitle,newRecordCode)}>
+                            <Icon type="download" />
+                        </Button>
                         <Popover content={content} title="导出" placement="bottomRight" trigger="click">
                             <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
                         </Popover>                       
-                        <Button className="hoverbig" title="刷新" onClick={()=>this.fresh("刷新成功！")}><Icon type="sync" /></Button>
+                        <Button 
+                            className="hoverbig" 
+                            title="刷新" 
+                            onClick={()=>this.fresh("刷新成功！")}>
+                            <Icon type="sync" />
+                        </Button>
                     </p>
                 </h3>
-                <Card className="hoverable" headStyle={{background:"#f2f4f5"}} loading={this.state.loading}>
+                <Card className="hoverable" headStyle={{background:"#f2f4f5"}} loading={loading}>
                     <BaseForm 
-                        formList={this.state.formList} 
+                        formList={formList} 
                         filterSubmit={this.searchList} 
                         handleOperate={this.handleOperate}
-                        actions={this.state.actions}
+                        actions={actions}
                         handleActions={this.handleActions}
-                        disabled={this.state.selectedRowKeys.length>0?false:true}
+                        disabled={selectedRowKeys.length>0?false:true}
                         onRef={this.onRef}
                         />          
                 </Card>
                 <Table
                     rowSelection={rowSelection}
-                    columns={this.state.columns}
-                    dataSource={this.state.list}
+                    columns={columns}
+                    dataSource={list}
                     bordered
                     pagination={false}
-                    style={{display:this.state.columns?"block":"none"}}
-                    loading={this.state.Loading}
+                    style={{display:columns?"block":"none"}}
+                    loading={Loading}
                     //onRow={this.onClickRow}
                 >
                 </Table>
                 <Pagination 
                     showQuickJumper 
                     defaultCurrent={1} 
-                    current={this.state.currentPage}
-                    total={this.state.pageCount} 
+                    current={currentPage}
+                    total={pageCount} 
                     onChange={this.searchList} 
                     hideOnSinglePage={true}
-                    showTotal={()=>this.showTotal(this.state.pageCount)}
+                    showTotal={()=>this.showTotal(pageCount)}
                     />
             </div>
            

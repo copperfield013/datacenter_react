@@ -42,7 +42,7 @@ export default class ModelImport extends React.Component{
                     return false
                 })
                 this.setState({
-                    lightId:res.tmpl.id,
+                    tmplId:res.tmpl.id,
                     dataSource:data,
                     modelName:res.tmpl.title,
                     listLength:res.tmpl.fields.length,
@@ -57,7 +57,7 @@ export default class ModelImport extends React.Component{
     }
     // handleSave=()=>{
     //     const menuId=this.props.menuId;
-    //     const tmplId=this.state.lightId;
+    //     const tmplId=this.state.tmplId;
     //     const title=this.state.modelName;
     //     const fields=this.state.fields
     //     Super.super({
@@ -77,15 +77,13 @@ export default class ModelImport extends React.Component{
     //     })
     // }
     handleDownload=()=>{       
-        const menuId=this.props.menuId;
-        const tmplId=this.state.lightId;
-        if(tmplId){         
-            const title=this.state.modelName;
-            const fields=this.state.fields
+        const { menuId }=this.props
+        const { tmplId,modelName,fields,listLength }=this.state
+        if(tmplId){
             const tokenName=storage.getItem('tokenName')
             confirm({
                 title: `确认下载`,
-                content: `当前模板[${this.state.modelName}]，模板内共有${this.state.listLength}个字段`,
+                content: `当前模板[${modelName}]，模板内共有${listLength}个字段`,
                 okText: '是的',
                 cancelText: '取消',
                 onOk() {
@@ -93,7 +91,7 @@ export default class ModelImport extends React.Component{
                         url:`/api/entity/import/save_tmpl/${menuId}`, 
                         data:{
                             tmplId,
-                            title,
+                            modelName,
                             fields,
                         }     
                     },"json").then((res)=>{
@@ -118,7 +116,7 @@ export default class ModelImport extends React.Component{
             <div>
                 {this.state.modelList.map((item)=>{
                         return  <div key={item.id} className="modelList" onClick={()=>this.handelModel(item.id)}>
-                                    <span className={this.state.lightId===item.id?"light":""}><Icon type="bulb" style={{color:"#fff",fontSize:20}}/></span>
+                                    <span className={this.state.tmplId===item.id?"light":""}><Icon type="bulb" style={{color:"#fff",fontSize:20}}/></span>
                                     <p className="tit">{item.title}</p>
                                     <p>{Units.formateDate(item.createTime)}</p>
                                 </div>
@@ -144,12 +142,13 @@ export default class ModelImport extends React.Component{
                 </span>
             ),
           }, ]
+        const { visible,modelName,dataSource }=this.state
         return (
             <div style={{height:400}}>
                 <h3>
                     导入模板配置
                     <p className="fr">   
-                        <Popover content={content} placement="bottomRight" trigger="click" visible={this.state.visible} onVisibleChange={this.handleVisibleChange}>
+                        <Popover content={content} placement="bottomRight" trigger="click" visible={visible} onVisibleChange={this.handleVisibleChange}>
                             <Button className="hoverbig" title="切换模板" onClick={this.switchTemplate}><Icon type="snippets" /></Button>
                         </Popover>                       
                         {/* <Button className="hoverbig" title="保存模板" onClick={this.handleSave}><Icon type="save" /></Button> */}
@@ -158,13 +157,13 @@ export default class ModelImport extends React.Component{
                 </h3>
                 <div style={{marginBottom:20}}>
                     模板名称：
-                    <Input placeholder="输入导入模板名称" style={{ width: 200 }} value={this.state.modelName} onChange={this.setModelName}/>
+                    <Input placeholder="输入导入模板名称" style={{ width: 200 }} value={modelName} onChange={this.setModelName}/>
                 </div>
                 <div style={{overflowY:"auto",height:300}}>                   
                     <Table
                         bordered
                         columns={columns}
-                        dataSource={this.state.dataSource}
+                        dataSource={dataSource}
                         size="small"
                         pagination={false}
                     />

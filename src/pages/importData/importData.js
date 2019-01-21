@@ -25,8 +25,8 @@ export default class Detail extends React.Component{
     
     handleUpload = () => {
         const { fileList } = this.state;
+        const { menuId }=this.props
         const formData = new FormData();
-        const menuId=this.props.menuId;
         const tokenName=storage.getItem('tokenName')
         formData.append('file', ...fileList);
         this.setState({
@@ -138,7 +138,7 @@ export default class Detail extends React.Component{
         })
     }
     render(){
-        const { uploading, fileList } = this.state;
+        const { uploading, fileList,begin,importbtn,percent,importAgain,checkedList,copyText,statusMsg,messages,visible } = this.state;
         const props = {
             accept:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.ms-excel",
             onChange : () => {
@@ -184,23 +184,23 @@ export default class Detail extends React.Component{
                                     <Icon type="upload"/>选择导入文件
                                 </Button>
                             </Upload>
-                            <Progress percent={this.state.percent} size="small" status="active" />
+                            <Progress percent={percent} size="small" status="active" />
                             <div className="importBtns">
                                 <Button
                                     type="primary"
                                     onClick={this.handleUpload}
-                                    disabled={this.state.begin}
+                                    disabled={begin}
                                     loading={uploading}
-                                    style={{display:this.state.importbtn}}
+                                    style={{display:importbtn}}
                                     >
                                     {uploading ? '正在导入' : '开始导入' }
                                 </Button>
                                 <Button
                                     type="primary"
                                     onClick={this.handleUpload}
-                                    disabled={this.state.begin}
+                                    disabled={begin}
                                     loading={uploading}
-                                    style={{display:this.state.importAgain}}
+                                    style={{display:importAgain}}
                                     >
                                     {uploading ? '正在导入' : '重新导入' }
                                 </Button>
@@ -210,14 +210,14 @@ export default class Detail extends React.Component{
                                         <div className="listHeader">
                                             <h4>导入日志</h4>
                                             <div className="checks">              
-                                                <CheckboxGroup value={this.state.checkedList} onChange={this.onChange}>
+                                                <CheckboxGroup value={checkedList} onChange={this.onChange}>
                                                     <Checkbox value="INFO" className="infoColor">常规</Checkbox>
                                                     <Checkbox value="SUC" className="sucColor">成功</Checkbox>
                                                     <Checkbox value="ERROR"  className="errorColor">错误</Checkbox>
                                                     <Checkbox value="WARN"  className="warnColor">警告</Checkbox>
                                                 </CheckboxGroup>                             
                                                 <CopyToClipboard 
-                                                    text={this.state.copyText}
+                                                    text={copyText}
                                                     onCopy={() => {
                                                         this.setState({copied: true})
                                                         message.success("复制成功！")
@@ -227,9 +227,9 @@ export default class Detail extends React.Component{
                                             </div>
                                         </div>
                                         }
-                                footer={<div>{this.state.statusMsg}</div>}
+                                footer={<div>{statusMsg}</div>}
                                 bordered
-                                dataSource={this.state.messages}
+                                dataSource={messages}
                                 renderItem={item => (<List.Item>{item}</List.Item>)}
                                 className="importList"
                                 />
@@ -238,7 +238,7 @@ export default class Detail extends React.Component{
                 </Row>
                 <Modal
                     title="字段"
-                    visible={this.state.visible}
+                    visible={visible}
                     onCancel={this.handleCancel}
                     footer={null}
                     width={750}

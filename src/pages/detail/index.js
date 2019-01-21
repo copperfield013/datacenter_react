@@ -39,10 +39,9 @@ export default class Detail extends React.Component{
         newRecord=[]
     }
     loadRequest=()=>{
-        const typecode=this.props.type+this.props.code;
+        const { menuId,code,type }=this.props
+        const typecode=type+code;
         this.setState({loading:true})
-        const menuId=this.props.menuId;
-        const code=this.props.code;
         Super.super({
             url:`/api/entity/curd/detail/${menuId}/${code}`,       
             data:{
@@ -51,7 +50,7 @@ export default class Detail extends React.Component{
         }).then((res)=>{
             storage[typecode]=JSON.stringify(res); //存储一条数据
             const detailsList=res.entity.fieldGroups; 
-            this.detailTitle(res,this.props.type)
+            this.detailTitle(res,type)
             this.renderList(detailsList)
             if(res.history){                   
                 const detailHistory=this.renderHistoryList(res.history);
@@ -63,7 +62,8 @@ export default class Detail extends React.Component{
         }) 
     }
     requestLists=()=>{
-        const typecode=this.props.type+this.props.code;	
+        const { code,type }=this.props
+        const typecode=type+code;
         if(!storage[typecode]){//判断是否存储数据,tab切换减少请求
             //console.log("未存")
             this.loadRequest()          
@@ -72,7 +72,7 @@ export default class Detail extends React.Component{
             const data=JSON.parse(storage[typecode]);
             const detailsList=data.entity.fieldGroups;
             this.renderList(detailsList)
-            this.detailTitle(data,this.props.type) 
+            this.detailTitle(data,type) 
             if(data.history){
                 const detailHistory=this.renderHistoryList(data.history);
                 this.setState({
@@ -101,10 +101,9 @@ export default class Detail extends React.Component{
 		})
     }
     toHistory=(e)=>{
+        const { menuId,code,type }=this.props
         this.setState({loading:true})
         const historyId=e.target.getAttribute("id");
-        const menuId=this.props.menuId;
-        const code=this.props.code;
         Super.super({
             url:`/api/entity/curd/detail/${menuId}/${code}`,  
             data:{
@@ -112,7 +111,7 @@ export default class Detail extends React.Component{
             }                 
         }).then((res)=>{
             const detailsList=res.entity.fieldGroups; 
-            this.detailTitle(res,this.props.type)
+            this.detailTitle(res,type)
             this.renderList(detailsList)
             if(res.history){                   
                 const detailHistory=this.renderHistoryList(res.history);
@@ -141,7 +140,7 @@ export default class Detail extends React.Component{
 		});
 	}
     renderList=(detailsList)=>{
-        //console.log("渲染")       
+        //console.log("渲染")
         const itemDescs=[]
         const columns=[]
         const dataSource=[]
@@ -343,18 +342,16 @@ export default class Detail extends React.Component{
         this.setState({loading:true})
         const tokenName=storage.getItem('tokenName')
         const formData = new FormData();
-        const menuId=this.props.menuId;
-        const code=this.props.code;          
-        const baseInfo=this.state.baseValue;
-
-        formData.append('唯一编码', this.props.flag?"":code);
-        formData.append('%fuseMode%', this.state.fuseMode);
-        for(let k in baseInfo){
-            formData.append(k, baseInfo[k]);
+        const { menuId,code,flag,type,activeKey }=this.props       
+        const { baseValue,fuseMode,cardTitle }=this.state
+        formData.append('唯一编码', flag?"":code);
+        formData.append('%fuseMode%',fuseMode);
+        for(let k in baseValue){
+            formData.append(k, baseValue[k]);
         }
         
         let res={}
-        this.state.cardTitle.map((item)=>{ //添加$$flag$$
+        cardTitle.map((item)=>{ //添加$$flag$$
             const list={}
             list[`${item}.$$flag$$`]=true;
             records.push(list)
@@ -400,11 +397,10 @@ export default class Detail extends React.Component{
             .end((req,res)=>{
                 loading.style.display="none"
                 if(res.body.status==="suc"){
-                    const typecode=this.props.type+this.props.code;
-                    const code=this.props.code;	
+                    const typecode=type+code;
                     storage.removeItem("edit"+code)//删除数据，这样再次进入页面会重新请求
                     storage.removeItem("detail"+code)
-                    this.props.flag?this.props.remove(this.props.activeKey):this.props.remove(typecode) //保存成功，关闭页面
+                    flag?this.props.remove(activeKey):this.props.remove(typecode) //保存成功，关闭页面
                     this.props.fresh("保存成功！") //保存成功，刷新列表页面，并提醒
                 }else{
                     message.error(res.body.status)
@@ -426,8 +422,7 @@ export default class Detail extends React.Component{
     }
     }
     exportDetail=()=>{
-        const menuId=this.props.menuId;
-        const code=this.props.code;  
+        const {menuId,code}=this.props
         confirm({
             title: '确认导出当前详情页？',            
             okText: "确认",
@@ -526,6 +521,9 @@ export default class Detail extends React.Component{
         }
     } 
     render(){
+        const { moduleTitle,detailsTitle,fuseMode,formTitle,formList,loading,detailsList,
+            columns,dataSource,cardTitle,itemDescs,visibleModal,visibleDrawer,detailHistory }=this.state
+        const { flag,type }=this.props
         const content = (
             <div className="btns">
               <Button>Actions</Button>
@@ -538,10 +536,10 @@ export default class Detail extends React.Component{
             <div className="detailPage">
                 <h3>
                     {
-                        this.props.flag?this.state.moduleTitle+"--创建":this.state.detailsTitle
+                        flag?moduleTitle+"--创建":detailsTitle
                     }   
                     {
-                        this.props.type==="detail"?
+                        type==="detail"?
                         <div className="fr">
                             <Button className="hoverbig" title="导出" onClick={this.exportDetail}><Icon type="upload" /></Button>
                             <Button className="hoverbig" title="查看历史" onClick={this.showHistory}><Icon type="schedule" /></Button>                                                      
@@ -561,8 +559,9 @@ export default class Detail extends React.Component{
                                 icon="cloud-upload" 
                                 className="submitBtn" 
                                 onClick={this.showModal} key="btn" 
-                                style={{background:this.state.fuseMode===true?"#001529":""}}
-                                >保存</Button>
+                                style={{background:fuseMode===true?"#001529":""}}>
+                                保存
+                            </Button>
                             </div>
                             <Switch checkedChildren="开" unCheckedChildren="关" style={{marginRight:10}} title="融合模式" onChange={this.fuseMode}/>
                             <Button className="hoverbig" title="刷新" onClick={this.loadRequest}><Icon type="sync" /></Button>
@@ -571,28 +570,28 @@ export default class Detail extends React.Component{
                     
                 </h3>
                 <FormCard 
-                    title={this.state.formTitle} 
-                    formList={this.state.formList}
-                    type={this.props.type} 
-                    flag={this.props.flag}
+                    title={formTitle} 
+                    formList={formList}
+                    type={type} 
+                    flag={flag}
                     baseInfo={this.baseInfo}
-                    loading={this.state.loading}
+                    loading={loading}
                     onRef={this.onRef}
                 />
                 <EditTable 
-                    detailsList={this.state.detailsList}
-                    type={this.props.type}
-                    columns={this.state.columns}
-                    dataSource={this.state.dataSource}
-                    cardTitle={this.state.cardTitle}
-                    itemDescs={this.state.itemDescs}
+                    detailsList={detailsList}
+                    type={type}
+                    columns={columns}
+                    dataSource={dataSource}
+                    cardTitle={cardTitle}
+                    itemDescs={itemDescs}
                     callbackdatasource={this.callbackdatasource}
-                    flag={this.props.flag}
+                    flag={flag}
                     uploadChange={this.uploadChange}
                     newRecords={this.newRecords}
                 />
                 <Modal
-                    visible={this.state.visibleModal}
+                    visible={visibleModal}
                     onOk={this.handleOk}
                     onCancel={this.handleCancel}
                     okText="确认"
@@ -604,25 +603,24 @@ export default class Detail extends React.Component{
                     title="查看历史"
                     closable={false}
                     onClose={this.onClose}
-                    visible={this.state.visibleDrawer}
+                    visible={visibleDrawer}
                     width={400}
                     >
                     <Timeline mode="alternate" pending="没有更多了...">
-                        {this.state.detailHistory}
+                        {detailHistory}
                     </Timeline>
                 </Drawer>
                 {
-                    !this.state.cardTitle||this.state.cardTitle.length<1?"":
+                    !cardTitle||cardTitle.length<1?"":
                     <div className="rightBar">
                     <ul>
                         {
-                            this.state.formTitle.map((item)=>{
+                            formTitle.map((item)=>{
                                 return <li onClick={()=>this.scrollToAnchor(item)} key={item}>{item}</li>
                             })
                         }
                         {
-                            this.state.cardTitle?
-                            this.state.cardTitle.map((item)=>{
+                            cardTitle?cardTitle.map((item)=>{
                                 return <li onClick={()=>this.scrollToAnchor(item)} key={item}>{item}</li>
                             }):""
                         }

@@ -34,17 +34,16 @@ export default class BaseInfoForm extends React.Component{
     }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
-        const formList=this.props.formList;
-        const width=this.props.width;
+        const { formList,width,flag,type }=this.props
         const formItemList=[];
         if(formList && formList.length>0){
             formList.forEach((item)=>{
                 const fieldName=item.fieldName;
                 const field=item.fieldId
-                const fieldValue=this.props.flag?null:item.value;
+                const fieldValue=flag?null:item.value;
                 if(item.type==="date"){
                     const DATE= <FormItem label={fieldName} key={field} className='labelcss'>
-                                    {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
+                                    {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
                                             initialValue:!fieldValue||fieldValue===""?null:moment(fieldValue,'YYYY-MM-DD'),
                                             rules:item.validators==="required"?[{
@@ -61,7 +60,7 @@ export default class BaseInfoForm extends React.Component{
                     formItemList.push(DATE)                
                 }else if(item.type==="text"){
                     const TEXT= <FormItem label={fieldName} key={field} className='labelcss'>
-                                    {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
+                                    {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
                                         initialValue:fieldValue,
                                         rules:item.validators==="required"?[{
@@ -74,7 +73,7 @@ export default class BaseInfoForm extends React.Component{
                     formItemList.push(TEXT)                
                 }else if(item.type==="select"){
                     const SELECT= <FormItem label={fieldName} key={[field]} className='labelcss'>
-                                        {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
+                                        {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                             getFieldDecorator(fieldName,{
                                                 initialValue:fieldValue,
                                                 rules:item.validators==="required"?[{
@@ -94,7 +93,7 @@ export default class BaseInfoForm extends React.Component{
                 }else if(item.type==="label"){
                     const result=fieldValue?fieldValue.split(','):[];                    
                     const LABEL= <FormItem label={fieldName} key={field} className='labelcss'>
-                                        {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
+                                        {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                             getFieldDecorator(fieldName,{
                                                 initialValue:result,
                                                 rules:item.validators==="required"?[{
@@ -117,7 +116,7 @@ export default class BaseInfoForm extends React.Component{
                     //     arrVal=fieldValue.split("->")
                     // }
                     const CASELECT= <FormItem label={fieldName} key={field} className='labelcss'>
-                                        {this.props.type==="detail"?<span className="infoStyle">{fieldValue}</span>:
+                                        {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         fieldValue?<div>
                                             <Input style={{width:width}} value={fieldValue} onClick={this.changeCascader} readOnly/>
                                             {
@@ -147,7 +146,7 @@ export default class BaseInfoForm extends React.Component{
                     formItemList.push(CASELECT)   
                 }else if(item.type==="file"){
                     const FILE= <FormItem label={fieldName} key={field} className='labelcss'>
-                                        {this.props.type==="detail"?
+                                        {type==="detail"?
                                             fieldValue?<span className="downAvatar">
                                                 <Avatar shape="square" src={`/file-server/${fieldValue}`}/>
                                                 <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a>

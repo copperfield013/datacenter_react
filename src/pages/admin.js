@@ -23,9 +23,6 @@ export default class Admin extends React.Component{
 			L:""
 		};
 	}
-	componentDidMount(){
-		
-	}
 	judgeActiveKey=(activeKey,panes)=>{		
 		let type;
 		let xqTitle;
@@ -70,7 +67,7 @@ export default class Admin extends React.Component{
 		this[action](targetKey);
 	}
 	remove = (targetKey) => {
-		let activeKey = this.state.activeKey;
+		let { activeKey } = this.state
 		let lastIndex;
 		this.state.panes.forEach((pane, i) => {
 			if (pane.key === targetKey) {
@@ -89,14 +86,15 @@ export default class Admin extends React.Component{
 		this.judgeActiveKey(activeKey,panes)		
 	}	
 	Welcome = (title,xqTitle,newcode,importCode) => {
+		const { type,menuId,code,newRecordCode,activeKey,panes }=this.state
 		switch(title){
 			case "主页":
 			return <Home /> 
 			case xqTitle:
 			return <Detail
-						type={this.state.type}
-						menuId={this.state.menuId}
-						code={this.state.code}
+						type={type}
+						menuId={menuId}
+						code={code}
 						scrollIds={this.scrollIds}
 						remove={this.remove} //保存成功关闭页面
 						fresh={this.handleFresh} //保存成功刷新列表页
@@ -104,25 +102,25 @@ export default class Admin extends React.Component{
 			case newcode:
 			return <Detail
 						type="edit"
-						menuId={this.state.menuId}
-						code={this.state.newRecordCode}
+						menuId={menuId}
+						code={newRecordCode}
 						flag="creatNewRecord"
 						scrollIds={this.scrollIds}
 						remove={this.remove}//保存成功关闭页面
 						fresh={this.handleFresh}//保存成功刷新列表页act
-						activeKey={this.state.activeKey}
+						activeKey={activeKey}
 					/>
 			case importCode:
 			return <ImportData 
-						importCode={this.state.importCode}
-						menuId={this.state.menuId}
+						importCode={importCode}
+						menuId={menuId}
 						/>
 			default:
 			return <ActTable 
 						handleDetail={this.handleDetail}
-						menuId={this.state.menuId}
+						menuId={menuId}
 						handleNew={this.handleNew}
-						panes={this.state.panes}
+						panes={panes}
 						actCallBackAdmin={this.actCallBackAdmin}
 						newRecordCallback={this.newRecordCallback}
 						importCallback={this.importCallback}
@@ -185,7 +183,7 @@ export default class Admin extends React.Component{
 		const scrollTop  = e.target.scrollTop;  //页面滚动高度
 		const scrollHeight = e.target.scrollHeight;//页面总高度
 		const clientHeight   = e.target.clientHeight  ;
-		const scrollIds=this.state.scrollIds;
+		const { scrollIds }=this.state
 		const mainTopArr = []; 
 		let k=0;
 		if(scrollIds){	//滑动锁定导航
@@ -218,7 +216,7 @@ export default class Admin extends React.Component{
 			obj.style.top = '0';	
 			obj.style.background='#002140'	
 			obj.style.width='100%'	
-			obj.style.zIndex='1000'			
+			obj.style.zIndex='1000'		
 		}else{
 			obj.style.position = 'static';
 		}
@@ -244,14 +242,15 @@ export default class Admin extends React.Component{
 		this.child.fresh(info)
 	}
 	render(){
-		const operations = <Button onClick={this.shutAll} style={{display:this.state.showShutAll}}>关闭所有</Button>;
+		const { panes,showShutAll,activeKey,xqTitle,newcode,importCode }=this.state
+		const operations = <Button onClick={this.shutAll} style={{display:showShutAll}}>关闭所有</Button>;
 		return(
 			<Row className="container">
 				<Col span={4} className="nav-left">
 					<NavLeft
 						callBackAdmin={this.setPanes}
-						panes={this.state.panes}
-						activeKey={[this.state.activeKey]}
+						panes={panes}
+						activeKey={[activeKey]}
 						onRef2={this.onRef2} 
 					/>
 				</Col>
@@ -261,18 +260,18 @@ export default class Admin extends React.Component{
 						<Tabs 
 							hideAdd
 							onChange={this.onChange}
-							activeKey={this.state.activeKey}
+							activeKey={activeKey}
 							type="editable-card"
 							onEdit={this.onEdit}
 							tabBarStyle={{background:"#002140",padding:"0 20px"}}
 							tabBarExtraContent={operations}
 						>
-							{this.state.panes.map(pane => <TabPane
+							{panes.map(pane => <TabPane
 													tab={pane.title} 
 													key={pane.key} 
 													closable={pane.closable}
 													>
-													{this.Welcome(pane.title,this.state.xqTitle,this.state.newcode,this.state.importCode)}
+													{this.Welcome(pane.title,xqTitle,newcode,importCode)}
 												</TabPane>)}
 						</Tabs>
 					</Content>					

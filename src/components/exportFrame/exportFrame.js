@@ -24,13 +24,14 @@ export default class ExportFrame extends React.Component{
         });
     }
     handleStart=()=>{
+        const { menuId,pageNo,pageSize,filterOptions }=this.props
+        const { radioValue,withDetail,v1,v2 }=this.state
         this.setState({
             started:"block",
             isStart:"none",
         });
-        const menuId=this.props.menuId;
         let scope=""
-        if(this.state.radioValue===1){
+        if(radioValue===1){
             scope="current";
             this.setState({
                 radioDisabled2:true,
@@ -46,14 +47,14 @@ export default class ExportFrame extends React.Component{
             url:`/api/entity/export/start/${menuId}`,    
             data:{
                 scope,
-                withDetail:this.state.withDetail,
+                withDetail:withDetail,
                 parameters:{
-                    pageNo:this.props.pageNo.toString(),
-                    pageSize:this.props.pageSize.toString(),
-                    ...this.props.filterOptions,
+                    pageNo:pageNo.toString(),
+                    pageSize:pageSize.toString(),
+                    ...filterOptions,
                 },               
-                rangeStart:this.state.v1,
-                rangeEnd:this.state.v2,
+                rangeStart:v1,
+                rangeEnd:v2,
             }            
 		},"json").then((res)=>{
 			if(res.uuid){
@@ -113,27 +114,49 @@ export default class ExportFrame extends React.Component{
         })
     }
     render(){
+        const { radioValue,radioDisabled1,radioDisabled2,inputDisabled,
+            isStart,started,isDisabled,percent,statusMsg }=this.state
         return (
             <div className="exportFrame">
-                <RadioGroup onChange={this.onChangeRadio} value={this.state.radioValue}>
-                    <Radio value={1} disabled={this.state.radioDisabled1} >导出当前页</Radio>
-                    <Radio value={2} disabled={this.state.radioDisabled2}>导出所有</Radio>
+                <RadioGroup onChange={this.onChangeRadio} value={radioValue}>
+                    <Radio value={1} disabled={radioDisabled1} >导出当前页</Radio>
+                    <Radio value={2} disabled={radioDisabled2}>导出所有</Radio>
                 </RadioGroup>
                 <Divider />
-                { this.state.radioValue===2?
+                {radioValue===2?
                     <div>
                         数据范围：
-                        <InputNumber min={1} max={10} placeholder="开始序号" onChange={this.setValue1} disabled={this.state.inputDisabled}/>-
-                        <InputNumber min={1} max={10} placeholder="结束序号" onChange={this.setValue2} disabled={this.state.inputDisabled}/>
+                        <InputNumber 
+                            min={1} 
+                            max={10} 
+                            placeholder="开始序号" 
+                            onChange={this.setValue1} 
+                            disabled={inputDisabled}/>-
+                        <InputNumber 
+                            min={1} 
+                            max={10} 
+                            placeholder="结束序号" 
+                            onChange={this.setValue2} 
+                            disabled={inputDisabled}/>
                         <Divider />
                     </div>:"" }
-                <div style={{textAlign:"center",display:this.state.isStart}}>
-                    <Checkbox onChange={this.onChange}>详情</Checkbox><Button type="primary" onClick={this.handleStart}>开始导出</Button>
+                <div style={{textAlign:"center",display:isStart}}>
+                    <Checkbox onChange={this.onChange}>
+                        详情
+                    </Checkbox>
+                    <Button type="primary" onClick={this.handleStart}>
+                        开始导出
+                    </Button>
                 </div>
-                <div style={{textAlign:"center",display:this.state.started}}>
-                    <Button type="primary" disabled={this.state.isDisabled} onClick={this.download}>下载导出文件</Button><Button style={{marginLeft:10}} onClick={this.handleCancel}>取消导出</Button>
-                    <Progress percent={this.state.percent} size="small" status="active" />
-                    <p>{this.state.statusMsg}</p>
+                <div style={{textAlign:"center",display:started}}>
+                    <Button type="primary" 
+                            disabled={isDisabled} 
+                            onClick={this.download}>
+                            下载导出文件
+                    </Button>
+                    <Button style={{marginLeft:10}} onClick={this.handleCancel}>取消导出</Button>
+                    <Progress percent={percent} size="small" status="active" />
+                    <p>{statusMsg}</p>
                 </div>
             </div>
         )

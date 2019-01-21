@@ -44,7 +44,7 @@ export default class NewUpload extends React.Component{
         return false;
     }
     render(){
-        const fieldValue=this.props.fieldValue;
+        const {fieldValue,width}=this.props
         return (
             <div>                                           
                 <Upload
@@ -59,7 +59,7 @@ export default class NewUpload extends React.Component{
                     onChange={this.handleChange}
                 >    
                 {
-                    this.state.fileList.length>=1?"":<Button style={{width:this.props.width}}>
+                    this.state.fileList.length>=1?"":<Button style={{width:width}}>
                                                         <Icon type="upload" /> 点击上传
                                                     </Button>
                 }                                           

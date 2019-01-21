@@ -14,7 +14,7 @@ export default class NewCascader extends React.Component{
         this.triggerChange(res)
     }
     triggerChange = (changedValue) => {
-        const onChange = this.props.onChange;
+        const { onChange } = this.props
         if (onChange) {
           onChange(changedValue);
         }
@@ -83,8 +83,7 @@ export default class NewCascader extends React.Component{
       }
     
     render(){
-        const optionKey=this.props.optionKey;
-        const fieldName=this.props.fieldName;
+        const { optionKey,fieldName }=this.props
         return (
             <Cascader
                 onClick={()=>this.requestLinkage(optionKey)}
