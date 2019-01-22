@@ -16,6 +16,9 @@ class Loginit extends React.Component{
         this.loadAccountInfo();
         window.addEventListener('keydown', this.handleKeyDown)
     }
+    componentWillUnmount(){
+        window.removeEventListener('keydown', this.handleKeyDown)
+    }
     handleKeyDown = (event) => { //按下enter键，触发login事件
         switch (event.keyCode) {
             case 13:
