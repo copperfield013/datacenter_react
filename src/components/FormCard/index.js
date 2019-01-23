@@ -23,6 +23,9 @@ class FormCard extends React.Component{
             }
         })
     }
+    getOptions=(id)=>{
+        this.props.getOptions(id)
+    }
     initDetailsList=()=>{
         const { formList,type,flag,form,loading,title }=this.props
         const formItemList=[];
@@ -44,6 +47,8 @@ class FormCard extends React.Component{
                                     onRef={this.onRef}
                                     form={form}
                                     width={220}
+                                    getOptions={this.props.getOptions}
+                                    options={this.props.options}
                                     />
                             </Card>
                 formItemList.push(BASE)         

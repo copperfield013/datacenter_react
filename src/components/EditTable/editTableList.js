@@ -1,8 +1,10 @@
 import React from 'react'
-import {Table,Input,Button,Select,InputNumber,Card,Icon} from 'antd';
+import {Table,Input,Button,Select,InputNumber,Card,Icon,DatePicker} from 'antd';
 import Units from './../../units'
 import NewUpload from './../NewUpload'
 import Highlighter from 'react-highlight-words';
+import Super from './../../super'
+import locale from 'antd/lib/date-picker/locale/zh_CN';
 import "./index.css"
 const Option = Select.Option;
 
@@ -39,6 +41,16 @@ export default class EditTableList extends React.Component {
   uploadChange=(file,name)=>{
     this.props.uploadChange(file,name)
   }
+  requestSelectOptions=(id)=>{//下拉框
+      Super.super({
+    url:`/api/field/options?fieldIds=${id}`,                
+  }).then((res)=>{
+          const key=res.keyPrefix+id
+          this.setState({
+              optionList:res.optionsMap[key]
+          })
+  })
+  }
   handleAdd=()=> {
     const count =this.state.count;
     const newDataSource = this.props.dataSource?this.props.dataSource:[]
@@ -46,13 +58,19 @@ export default class EditTableList extends React.Component {
     const itemTitle=itemList.title   
     const list={}     
     const rendom=Units.RndNum(10)
-    list["key"]=rendom  //自定义随机数作key值 
-    list[`${itemTitle}.$$flag$$`]=true
+    list["key"]=rendom  //自定义随机数作key值
     itemList.descs.map((item)=>{
         const fieldName=item.fieldName;
-        const title=item.title;
+        const field=item.fieldId;
+        let a="";
+        let b="";
+        if(fieldName) {
+          a=fieldName.split(".")[0]
+          b=fieldName.split(".")[1]
+          list[`${a}.$$flag$$`]=true
+        } 
         if(itemList.composite.addType===5){
-          list[itemTitle+`[${count}].$$label$$`]=itemTitle
+          list[a+`[${count}].$$label$$`]=itemTitle
           list["关系"]=<Select defaultValue={itemList.composite.relationSubdomain[0]} onChange={this.handleChange}>                                   
                           {
                               itemList.composite.relationSubdomain.map((item,index)=>{
@@ -65,13 +83,27 @@ export default class EditTableList extends React.Component {
           list[fieldName]=<Input type="text" 
                           key={[itemTitle+count]} 
                           placeholder={`请输入${fieldName}`}
-                          onBlur={(e)=>this.update(e,[itemTitle+`[${count}].`+title],rendom)}
+                          onBlur={(e)=>this.update(e,[a+`[${count}].`+b],rendom)}
                           />   
         }else if(item.type==="file"){
-          list[fieldName]=<NewUpload width={110} onChange={(file)=>this.uploadChange(file,[itemTitle+`[${count}].`+title])}/>
+          list[fieldName]=<NewUpload width={110} onChange={(file)=>this.uploadChange(file,[a+`[${count}].`+b])}/>
         }else if(item.type==="decimal"){
-          list[fieldName]=<InputNumber onBlur={(e)=>this.update(e,[itemTitle+`[${count}].`+title],rendom)}/>
-        }
+          list[fieldName]=<InputNumber onBlur={(e)=>this.update(e,[a+`[${count}].`+b],rendom)}/>
+        }else if(item.type==="select"){
+          list[fieldName]=<Select
+                              style={{width:86}}
+                              onMouseEnter={()=>this.props.getOptions(field)}
+                              placeholder={`请输入${fieldName}`}
+                              getPopupContainer={trigger => trigger.parentNode}
+                              >
+                              {Units.getSelectList(this.props.options)}
+                          </Select>
+        }else if(item.type==="date"){
+          list[fieldName]=<DatePicker
+                              locale={locale} 
+                              getCalendarContainer={trigger => trigger.parentNode}
+                              />
+        }   
         return false                            
     })
     const arr=[];

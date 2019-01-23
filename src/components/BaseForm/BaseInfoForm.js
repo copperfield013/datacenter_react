@@ -1,6 +1,5 @@
 import React from 'react'
 import {Input,Form,Select,DatePicker,Avatar,Icon} from 'antd'
-import Super from "./../../super"
 import Units from "../../units";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
@@ -16,16 +15,16 @@ export default class BaseInfoForm extends React.Component{
         flag:false,
         visiCascader:"none"
     }   
-    requestSelectOptions=(id)=>{//下拉框
-        Super.super({
-			url:`/api/field/options?fieldIds=${id}`,                
-		}).then((res)=>{
-			const key=res.keyPrefix+id
-            this.setState({
-                list:res.optionsMap[key]
-            })
-		})
-    }
+    // requestSelectOptions=(id)=>{//下拉框
+    //     Super.super({
+	// 		url:`/api/field/options?fieldIds=${id}`,                
+	// 	}).then((res)=>{
+	// 		const key=res.keyPrefix+id
+    //         this.setState({
+    //             list:res.optionsMap[key]
+    //         })
+	// 	})
+    // }
     changeCascader=(e)=>{
         e.target.style.display="none"
         this.setState({
@@ -81,11 +80,11 @@ export default class BaseInfoForm extends React.Component{
                                                       }]:"",
                                         })(
                                             <Select style={{width:width}} 
-                                                onMouseEnter={()=>this.requestSelectOptions(field)}
+                                                onMouseEnter={()=>this.props.getOptions(field)}
                                                 placeholder={`请输入${fieldName}`}
                                                 getPopupContainer={trigger => trigger.parentNode}
                                                 >
-                                                {Units.getSelectList(this.state.list)}
+                                                {Units.getSelectList(this.props.options)}
                                             </Select>
                                         )}
                                     </FormItem> 

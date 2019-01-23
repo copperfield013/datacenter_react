@@ -12,7 +12,9 @@ export default class EditTable extends React.Component{
     newRecords=(datasource)=>{
         this.props.newRecords(datasource)
     }
-    
+    getOptions=(id)=>{
+        this.props.getOptions(id)
+    }
     initDetailsList=()=>{
         const { detailsList,type,itemDescs,flag,cardTitle,dataSource,columns }=this.props
         const detailsItemList=[];
@@ -28,7 +30,9 @@ export default class EditTable extends React.Component{
                                 uploadChange={this.uploadChange}
                                 callbackdatasource={this.callbackdatasource}
                                 newRecords={this.newRecords}
-                                cardTitle={cardTitle[index]}
+                                cardTitle={cardTitle[index]}                                
+                                getOptions={this.props.getOptions}
+                                options={this.props.options}
                             />
                 detailsItemList.push(RANGE)         
                 return false                  

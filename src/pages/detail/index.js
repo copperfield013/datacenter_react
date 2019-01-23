@@ -1,10 +1,11 @@
 import React from 'react'
 import superagent from 'superagent'
-import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Select,InputNumber,Input,Popover} from 'antd'
+import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Select,InputNumber,Input,Popover,DatePicker} from 'antd'
 import Super from "./../../super"
 import Units from '../../units'
 import './index.css'
 import 'moment/locale/zh-cn';
+import locale from 'antd/lib/date-picker/locale/zh_CN';
 import EditTable from './../../components/EditTable/editTable'
 import FormCard from './../../components/FormCard'
 import NewUpload from './../../components/NewUpload'
@@ -16,6 +17,7 @@ let records=[]
 let files=[]
 let origData={}
 let newRecord=[]
+let optArr=[]
 export default class Detail extends React.Component{
     state={
         visibleModal: false,
@@ -24,7 +26,8 @@ export default class Detail extends React.Component{
         visibleExport:false,
         fuseMode:false,
         searchText:"",
-        scrollIds:[]
+        scrollIds:[],
+        options:[]
     }
     componentDidMount(){
         this.handleNav()
@@ -37,7 +40,9 @@ export default class Detail extends React.Component{
         files=[]
         origData={}
         newRecord=[]
+        optArr=[]
     }
+    
     loadRequest=()=>{
         const { menuId,code,type }=this.props
         const typecode=type+code;
@@ -146,19 +151,22 @@ export default class Detail extends React.Component{
         const dataSource=[]
         const cardTitle=[]
         const formList=[]  
-        const formTitle=[]  
+        const formTitle=[]
+        const descsFlag=[]
         detailsList.map((item)=>{
             if(item.descs){
                 cardTitle.push(item.title)
                 itemDescs.push(item)
+                descsFlag.push(item.descs)
                 columns.push(this.renderColumns(item.descs,item.composite))
                 dataSource.push(this.requestTableList(item))
             }else if(item.fields){
                 formList.push(item.fields)
                 formTitle.push(item.title)
-            }     
+            }
             return false
         }) 
+        this.requestSelect(formList,itemDescs)
         let scrollIds=[]
         scrollIds.push(...formTitle)
         scrollIds.push(...cardTitle)
@@ -171,7 +179,8 @@ export default class Detail extends React.Component{
             dataSource,
             cardTitle,
             formTitle,
-            scrollIds
+            scrollIds,
+            descsFlag //为了加$$flag$$
         })
     }
     renderColumns=(data,obj)=>{
@@ -221,6 +230,43 @@ export default class Detail extends React.Component{
             }
             return data
 		}		
+    }
+    requestSelect=(formList,detailsList)=>{
+        const { type }=this.props; 
+        const tokenName=storage.getItem('tokenName')
+        const selectId=[]
+        if(type==="edit"){
+            formList.map((item)=>{
+                item.map((it)=>{
+                    if(it.type==="select"){
+                        selectId.push(it.fieldId)
+                    }
+                    return false
+                })
+                return false
+            })
+            detailsList.map((item)=>{
+                item.descs.map((it)=>{
+                    if(it.type==="select"){
+                        selectId.push(it.fieldId)
+                    }
+                    return false
+                })
+                return false
+            })
+        }
+        const formData = new FormData();
+        selectId.map((item)=>{
+            formData.append('fieldIds',item);
+            return false
+        })
+        superagent
+            .post(`/api/field/options`)
+            .set({"datamobile-token":tokenName})
+            .send(formData)
+            .end((req,res)=>{
+                optArr.push(res.body.optionsMap)
+            })
     }
     removeList=(record)=>{
         const deleKey=record.key
@@ -286,21 +332,15 @@ export default class Detail extends React.Component{
             data.array.map((item,index)=>{  
                 const list={};   
                 const code=item.code;
-                list["key"]=code;        
-                list[data.title+`[${index}].唯一编码`]=code;      
-                if(data.composite.relationKey){
-                    list[data.title+`[${index}].$$label$$`]=item.relation;    
-                    list["关系"]=modelType==="edit"?<Select defaultValue={data.composite.relationSubdomain[0]}>                                   
-                                    {data.composite.relationSubdomain.map((item,index)=>{
-                                            return <Option value={item} key={index}>{item}</Option>
-                                        })}
-                                </Select>:item.relation
-                }     
+                let fieldName=""
+                list["key"]=code;               
                 item.fields.map((it)=>{
-                    const title=it.title;
-                    const fieldName=it.fieldName
+                    fieldName=it.fieldName
                     const fieldValue=it.value;     
                     const fieldType=it.type;
+                    const field=it.fieldId                   
+                    const a=fieldName.split(".")[0]
+                    const b=fieldName.split(".")[1]
                     if(modelType==="detail"){
                         if(fieldType==="file"){
                             list[fieldName]=fieldValue?<span className="downEditPic"><img style={{width:55}} src={`/file-server/${fieldValue}`} alt="图片加载失败"/>
@@ -311,14 +351,38 @@ export default class Detail extends React.Component{
                         }                        
                     }else{
                         if(fieldType==="text"){
-                            list[fieldName]=<Input defaultValue={fieldValue} onChange={(e)=>this.handleChange(data.title+`[${index}].`+title,e)}/>;
+                            list[fieldName]=<Input defaultValue={fieldValue} onChange={(e)=>this.handleChange(a+`[${index}].`+b,e)}/>;
                         }else if(fieldType==="file"){
-                            list[fieldName]=<div className="editPic"><NewUpload fieldValue={fieldValue} onChange={(file)=>this.uploadChange(file,[data.title+`[${index}].`+title])}/> </div>                                          
+                            list[fieldName]=<div className="editPic"><NewUpload fieldValue={fieldValue} onChange={(file)=>this.uploadChange(file,[a+`[${index}].`+b])}/> </div>                                          
                         }else if(fieldType==="decimal"){
-                            list[fieldName]=<InputNumber defaultValue={fieldValue} onChange={(e)=>this.handlleNumber(data.title+`[${index}].`+title,e)}/>
+                            list[fieldName]=<InputNumber defaultValue={fieldValue} onChange={(e)=>this.handlleNumber(a+`[${index}].`+b,e)}/>
+                        }else if(fieldType==="select"){
+                            list[fieldName]= <Select
+                                                onMouseEnter={()=>this.getOptions(field)}
+                                                placeholder={`请输入${fieldName}`}
+                                                getPopupContainer={trigger => trigger.parentNode}
+                                                defaultValue={fieldValue?fieldValue:null}
+                                                >
+                                                {Units.getSelectList(this.state.options)}
+                                            </Select>
+                        }else if(fieldType==="date"){
+                            list[fieldName]=<DatePicker
+                                                locale={locale} 
+                                                getCalendarContainer={trigger => trigger.parentNode}
+                                                defaultValue={fieldValue?fieldValue:null}
+                                                />
                         }
                     }
-                    list[data.title+`[${index}].`+title]=fieldValue?fieldValue:"";
+                    list[a+`[${index}].唯一编码`]=code; 
+                    list[a+`[${index}].`+b]=fieldValue?fieldValue:"";
+                    if(data.composite.relationKey){
+                        list[a+`[${index}].$$label$$`]=item.relation;    
+                        list["关系"]=modelType==="edit"?<Select defaultValue={data.composite.relationSubdomain[0]}>                                   
+                                        {data.composite.relationSubdomain.map((item,index)=>{
+                                                return <Option value={item} key={index}>{item}</Option>
+                                            })}
+                                    </Select>:item.relation
+                    }   
                     return false
                 })
                 res.push(list) 
@@ -343,20 +407,27 @@ export default class Detail extends React.Component{
         const tokenName=storage.getItem('tokenName')
         const formData = new FormData();
         const { menuId,code,flag,type,activeKey }=this.props       
-        const { baseValue,fuseMode,cardTitle }=this.state
+        const { baseValue,fuseMode,descsFlag }=this.state
         formData.append('唯一编码', flag?"":code);
         formData.append('%fuseMode%',fuseMode);
         for(let k in baseValue){
             formData.append(k, baseValue[k]);
         }
         
-        let res={}
-        cardTitle.map((item)=>{ //添加$$flag$$
-            const list={}
-            list[`${item}.$$flag$$`]=true;
-            records.push(list)
+        descsFlag.map((item)=>{ //添加$$flag$$
+            item.map((it)=>{
+                const fieldName=it.fieldName;
+                if(fieldName){               
+                    const list={}
+                    const a=fieldName.split(".")[0]
+                    list[`${a}.$$flag$$`]=true;
+                    records.push(list)
+                }
+                return false
+            })
             return false
         })
+        let res={}
         records.map((item)=>{
             for(let k in item){
                 if(item[k]){
@@ -520,6 +591,19 @@ export default class Detail extends React.Component{
 			}
         }
     } 
+    getOptions=(id)=>{
+        optArr.map((item)=>{
+            for(let k in item){
+                if(k===`field_${id}`){ 
+                    console.log(item[k])               
+                    this.setState({
+                        options:item[k]
+                    })
+                }
+            }
+            return false
+        })
+    }
     render(){
         const { moduleTitle,detailsTitle,fuseMode,formTitle,formList,loading,detailsList,
             columns,dataSource,cardTitle,itemDescs,visibleModal,visibleDrawer,detailHistory }=this.state
@@ -577,6 +661,8 @@ export default class Detail extends React.Component{
                     baseInfo={this.baseInfo}
                     loading={loading}
                     onRef={this.onRef}
+                    getOptions={this.getOptions}
+                    options={this.state.options}
                 />
                 <EditTable 
                     detailsList={detailsList}
@@ -589,6 +675,8 @@ export default class Detail extends React.Component{
                     flag={flag}
                     uploadChange={this.uploadChange}
                     newRecords={this.newRecords}
+                    getOptions={this.getOptions}
+                    options={this.state.options}
                 />
                 <Modal
                     visible={visibleModal}
