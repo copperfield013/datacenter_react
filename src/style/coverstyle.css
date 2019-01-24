@@ -33,7 +33,7 @@
 }
 .ant-table{
 	line-height: 1;
-	overflow: auto
+	overflow-x: auto;
 }
 .ant-table-thead > tr > th, .ant-table-tbody > tr > td{
 	padding:8px 10px;

@@ -5,6 +5,7 @@ import Super from "./../../super"
 import Units from '../../units'
 import './index.css'
 import 'moment/locale/zh-cn';
+import moment from 'moment';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
 import EditTable from './../../components/EditTable/editTable'
 import FormCard from './../../components/FormCard'
@@ -42,7 +43,6 @@ export default class Detail extends React.Component{
         newRecord=[]
         optArr=[]
     }
-    
     loadRequest=()=>{
         const { menuId,code,type }=this.props
         const typecode=type+code;
@@ -254,7 +254,6 @@ export default class Detail extends React.Component{
                 })
                 return false
             })
-        }
         const formData = new FormData();
         selectId.map((item)=>{
             formData.append('fieldIds',item);
@@ -265,8 +264,10 @@ export default class Detail extends React.Component{
             .set({"datamobile-token":tokenName})
             .send(formData)
             .end((req,res)=>{
+                console.log(res)
                 optArr.push(res.body.optionsMap)
             })
+        }
     }
     removeList=(record)=>{
         const deleKey=record.key
@@ -360,7 +361,6 @@ export default class Detail extends React.Component{
                             list[fieldName]= <Select
                                                 onMouseEnter={()=>this.getOptions(field)}
                                                 placeholder={`请输入${fieldName}`}
-                                                getPopupContainer={trigger => trigger.parentNode}
                                                 defaultValue={fieldValue?fieldValue:null}
                                                 >
                                                 {Units.getSelectList(this.state.options)}
@@ -368,8 +368,7 @@ export default class Detail extends React.Component{
                         }else if(fieldType==="date"){
                             list[fieldName]=<DatePicker
                                                 locale={locale} 
-                                                getCalendarContainer={trigger => trigger.parentNode}
-                                                defaultValue={fieldValue?fieldValue:null}
+                                                defaultValue={fieldValue?moment(fieldValue,'YYYY-MM-DD'):null}
                                                 />
                         }
                     }
@@ -487,7 +486,7 @@ export default class Detail extends React.Component{
         //console.log(baseValue)
         if(baseValue){           
         this.setState({
-                visibleModal: true,
+            visibleModal: true,
             baseValue
         });
     }
@@ -594,8 +593,7 @@ export default class Detail extends React.Component{
     getOptions=(id)=>{
         optArr.map((item)=>{
             for(let k in item){
-                if(k===`field_${id}`){ 
-                    console.log(item[k])               
+                if(k===`field_${id}`){               
                     this.setState({
                         options:item[k]
                     })

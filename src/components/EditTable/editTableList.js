@@ -94,14 +94,12 @@ export default class EditTableList extends React.Component {
                               style={{width:86}}
                               onMouseEnter={()=>this.props.getOptions(field)}
                               placeholder={`请输入${fieldName}`}
-                              getPopupContainer={trigger => trigger.parentNode}
                               >
                               {Units.getSelectList(this.props.options)}
                           </Select>
         }else if(item.type==="date"){
           list[fieldName]=<DatePicker
-                              locale={locale} 
-                              getCalendarContainer={trigger => trigger.parentNode}
+                              locale={locale}
                               />
         }   
         return false                            
