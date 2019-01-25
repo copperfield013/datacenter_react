@@ -1,17 +1,14 @@
 import React from 'react'
 import superagent from 'superagent'
-import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Select,InputNumber,Input,Popover,DatePicker} from 'antd'
+import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Popover} from 'antd'
 import Super from "./../../super"
 import Units from '../../units'
 import './index.css'
 import 'moment/locale/zh-cn';
-import moment from 'moment';
-import locale from 'antd/lib/date-picker/locale/zh_CN';
 import EditTable from './../../components/EditTable/editTable'
 import FormCard from './../../components/FormCard'
-import NewUpload from './../../components/NewUpload'
+import ModelForm from './../../components/ModelForm/modelForm'
 const confirm = Modal.confirm;
-const Option = Select.Option;
 
 const storage=window.sessionStorage;
 let records=[]
@@ -28,7 +25,8 @@ export default class Detail extends React.Component{
         fuseMode:false,
         searchText:"",
         scrollIds:[],
-        options:[]
+        options:[],
+        visibleForm:false,
     }
     componentDidMount(){
         this.handleNav()
@@ -150,9 +148,9 @@ export default class Detail extends React.Component{
         const columns=[]
         const dataSource=[]
         const cardTitle=[]
-        const formList=[]  
-        const formTitle=[]
+        const formList=[] 
         const descsFlag=[]
+        let scrollIds=[]
         detailsList.map((item)=>{
             if(item.descs){
                 cardTitle.push(item.title)
@@ -161,15 +159,12 @@ export default class Detail extends React.Component{
                 columns.push(this.renderColumns(item.descs,item.composite))
                 dataSource.push(this.requestTableList(item))
             }else if(item.fields){
-                formList.push(item.fields)
-                formTitle.push(item.title)
+                formList.push(item)
             }
+            scrollIds.push(item.title)
             return false
         }) 
         this.requestSelect(formList,itemDescs)
-        let scrollIds=[]
-        scrollIds.push(...formTitle)
-        scrollIds.push(...cardTitle)
         this.props.scrollIds(scrollIds)
         this.setState({
             detailsList,
@@ -178,7 +173,6 @@ export default class Detail extends React.Component{
             columns,
             dataSource,
             cardTitle,
-            formTitle,
             scrollIds,
             descsFlag //为了加$$flag$$
         })
@@ -223,7 +217,10 @@ export default class Detail extends React.Component{
                     title: '操作',
                     key: 'action',
                     render: (record) => (
-                    <label><Button type='danger' icon="delete" size="small" onClick={()=>this.removeList(record)}></Button></label>
+                    <div className="editbtn">
+                        <Button type='primary' icon="edit" size="small"  onClick={()=>this.visibleForm(record)}></Button>
+                        <Button type='danger' icon="delete" size="small" onClick={()=>this.removeList(record)}></Button>
+                    </div>
                     ),
                 }  
                 data.push(act) 
@@ -237,15 +234,15 @@ export default class Detail extends React.Component{
         const selectId=[]
         if(type==="edit"){
             formList.map((item)=>{
-                item.map((it)=>{
-                    if(it.type==="select"){
+                item.fields.map((it)=>{
+                    if(it.type==="select" || it.type==="label"){
                         selectId.push(it.fieldId)
                     }
                     return false
                 })
                 return false
             })
-            detailsList.map((item)=>{
+            detailsList.map((item)=>{ 
                 item.descs.map((it)=>{
                     if(it.type==="select"){
                         selectId.push(it.fieldId)
@@ -264,7 +261,6 @@ export default class Detail extends React.Component{
             .set({"datamobile-token":tokenName})
             .send(formData)
             .end((req,res)=>{
-                console.log(res)
                 optArr.push(res.body.optionsMap)
             })
         }
@@ -327,63 +323,47 @@ export default class Detail extends React.Component{
         }) 
     }
     requestTableList=(data)=>{
-        const res=[]  
-        const modelType=this.props.type;    
+        const res=[]    
         if(data.array){
-            data.array.map((item,index)=>{  
+            data.array.map((item,index)=>{
                 const list={};   
                 const code=item.code;
                 let fieldName=""
-                list["key"]=code;               
+                list["key"]=code;   
+                const total=[];   
+                const relation=item.relation        
+                if(data.composite.relationKey){
+                    const list={}
+                    list["fieldName"]="关系";
+                    list["title"]="关系";
+                    list["type"]="relation";
+                    list["value"]=relation;
+                    list["options"]=data.composite.relationSubdomain
+                    total.push(list)
+                }         
                 item.fields.map((it)=>{
                     fieldName=it.fieldName
                     const fieldValue=it.value;     
-                    const fieldType=it.type;
-                    const field=it.fieldId                   
-                    const a=fieldName.split(".")[0]
-                    const b=fieldName.split(".")[1]
-                    if(modelType==="detail"){
-                        if(fieldType==="file"){
-                            list[fieldName]=fieldValue?<span className="downEditPic"><img style={{width:55}} src={`/file-server/${fieldValue}`} alt="图片加载失败"/>
-                            <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a></span>
-                            :"无文件"
-                        }else{
-                            list[fieldName]=fieldValue?fieldValue:"";
-                        }                        
+                    const fieldType=it.type;                
+                    // const a=fieldName.split(".")[0]
+                    // const b=fieldName.split(".")[1];
+                    if(fieldType==="file"){
+                        list[fieldName]=fieldValue?<span className="downEditPic"><img style={{width:55}} src={`/file-server/${fieldValue}`} alt="图片加载失败"/>
+                        <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a></span>
+                        :"无文件"
                     }else{
-                        if(fieldType==="text"){
-                            list[fieldName]=<Input defaultValue={fieldValue} onChange={(e)=>this.handleChange(a+`[${index}].`+b,e)}/>;
-                        }else if(fieldType==="file"){
-                            list[fieldName]=<div className="editPic"><NewUpload fieldValue={fieldValue} onChange={(file)=>this.uploadChange(file,[a+`[${index}].`+b])}/> </div>                                          
-                        }else if(fieldType==="decimal"){
-                            list[fieldName]=<InputNumber defaultValue={fieldValue} onChange={(e)=>this.handlleNumber(a+`[${index}].`+b,e)}/>
-                        }else if(fieldType==="select"){
-                            list[fieldName]= <Select
-                                                onMouseEnter={()=>this.getOptions(field)}
-                                                placeholder={`请输入${fieldName}`}
-                                                defaultValue={fieldValue?fieldValue:null}
-                                                >
-                                                {Units.getSelectList(this.state.options)}
-                                            </Select>
-                        }else if(fieldType==="date"){
-                            list[fieldName]=<DatePicker
-                                                locale={locale} 
-                                                defaultValue={fieldValue?moment(fieldValue,'YYYY-MM-DD'):null}
-                                                />
-                        }
-                    }
-                    list[a+`[${index}].唯一编码`]=code; 
-                    list[a+`[${index}].`+b]=fieldValue?fieldValue:"";
+                        list[fieldName]=fieldValue?fieldValue:"";
+                    } 
+                    //list[a+`[${index}].唯一编码`]=code;
+                    //list[a+`[${index}].`+b]=fieldValue?fieldValue:"";
                     if(data.composite.relationKey){
-                        list[a+`[${index}].$$label$$`]=item.relation;    
-                        list["关系"]=modelType==="edit"?<Select defaultValue={data.composite.relationSubdomain[0]}>                                   
-                                        {data.composite.relationSubdomain.map((item,index)=>{
-                                                return <Option value={item} key={index}>{item}</Option>
-                                            })}
-                                    </Select>:item.relation
-                    }   
+                        //list[a+`[${index}].$$label$$`]=item.relation;    
+                        list["关系"]=relation
+                    }
+                    total.push(it); 
                     return false
                 })
+                list["total"]=total
                 res.push(list) 
                 return false             
             })
@@ -485,11 +465,11 @@ export default class Detail extends React.Component{
     baseInfo=(baseValue)=>{
         //console.log(baseValue)
         if(baseValue){           
-        this.setState({
-            visibleModal: true,
-            baseValue
-        });
-    }
+            this.setState({
+                visibleModal: true,
+                baseValue
+            });
+        }
     }
     exportDetail=()=>{
         const {menuId,code}=this.props
@@ -517,6 +497,7 @@ export default class Detail extends React.Component{
     handleCancel = () => {
         this.setState({
             visibleModal: false,
+            visibleForm: false,
         });
     }
     showModal = () => {
@@ -525,6 +506,9 @@ export default class Detail extends React.Component{
     //调用子组件方法
 	onRef=(ref)=>{
 		this.child=ref
+    }
+    onRef2=(ref)=>{
+		this.children=ref
     }
     scrollToAnchor = (anchorName) => {
         if (anchorName) {
@@ -590,10 +574,10 @@ export default class Detail extends React.Component{
 			}
         }
     } 
-    getOptions=(id)=>{
+    getOptions=(id)=>{    
         optArr.map((item)=>{
             for(let k in item){
-                if(k===`field_${id}`){               
+                if(k===`field_${id}`){         
                     this.setState({
                         options:item[k]
                     })
@@ -602,8 +586,75 @@ export default class Detail extends React.Component{
             return false
         })
     }
+    getForm=(record)=>{
+        let editFormList=[]
+        record.total.map((item)=>{
+            const list={}
+            if(item.fieldId){
+                list["fieldId"]=item.fieldId;
+            }else if(item.options){
+                const arr=[]
+                item.options.map((item)=>{
+                    const op={}
+                    op["title"]=item;
+                    op["value"]=item
+                    arr.push(op);
+                    return false;
+                })
+                list["options"]=arr
+            }
+            list["key"]=record.key;
+            list["title"]=item.title;
+            list["fieldName"]=item.fieldName;
+            list["value"]=item.value;
+            list["type"]=item.type
+            editFormList.push(list)
+            return false
+        })
+        this.setState({
+            editFormList,
+        })
+    }
+    visibleForm=(record)=>{
+        this.getForm(record)
+        this.children.handleReset()
+        this.setState({
+            visibleForm:true
+        })
+    }
+    modelhandleOk=(fieldsValue)=>{   
+        const key= fieldsValue.key 
+        let { dataSource }=this.state
+        dataSource.map((item)=>{
+            item.map((it)=>{
+                if(it.key===key){
+                    for(let k in fieldsValue){
+                        it.total.map((i)=>{
+                            if(i.fieldName.indexOf(k)>-1){
+                                i.value=fieldsValue[k]
+                            }
+                            return false
+                        })                       
+                        for(let ki in it){
+                            if(ki.indexOf(k)>-1){
+                                it[ki]=fieldsValue[k]
+                            }
+                        }
+                    }
+                }
+                return false
+            })
+            return false
+        })
+        // console.log(fieldsValue)
+        // console.log(dataSource)
+        this.setState({
+            dataSource,
+            visibleForm:false
+        })
+    }
     render(){
-        const { moduleTitle,detailsTitle,fuseMode,formTitle,formList,loading,detailsList,
+        const { moduleTitle,detailsTitle,fuseMode,formList,loading,detailsList,visibleForm,editFormList,
             columns,dataSource,cardTitle,itemDescs,visibleModal,visibleDrawer,detailHistory }=this.state
         const { flag,type }=this.props
         const content = (
@@ -651,8 +702,7 @@ export default class Detail extends React.Component{
                     }               
                     
                 </h3>
-                <FormCard 
-                    title={formTitle} 
+                <FormCard
                     formList={formList}
                     type={type} 
                     flag={flag}
@@ -684,7 +734,17 @@ export default class Detail extends React.Component{
                     cancelText="取消"
                     >
                     <p>确认提交数据吗？</p>
-                </Modal>
+                </Modal>               
+                <ModelForm
+                    handleCancel={this.handleCancel}
+                    handleOk={this.modelhandleOk}
+                    visibleForm={visibleForm}
+                    formList={editFormList}
+                    type="edit"                       
+                    getOptions={this.getOptions}
+                    options={this.state.options}
+                    onRef2={this.onRef2}
+                />
                 <Drawer
                     title="查看历史"
                     closable={false}
@@ -701,8 +761,8 @@ export default class Detail extends React.Component{
                     <div className="rightBar">
                     <ul>
                         {
-                            formTitle.map((item)=>{
-                                return <li onClick={()=>this.scrollToAnchor(item)} key={item}>{item}</li>
+                            formList.map((item)=>{
+                                return <li onClick={()=>this.scrollToAnchor(item.title)} key={item.title}>{item.title}</li>
                             })
                         }
                         {
