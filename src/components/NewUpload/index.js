@@ -26,7 +26,7 @@ export default class NewUpload extends React.Component{
         this.setState({fileList})
         if(fileList.length>=1){
             fileList.map((item)=>{
-                this.triggerChange(item.originFileObj);
+                this.triggerChange(item);
                 return false
             })
         }

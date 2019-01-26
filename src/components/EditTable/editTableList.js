@@ -1,118 +1,19 @@
 import React from 'react'
-import {Table,Input,Button,Select,InputNumber,Card,Icon,DatePicker} from 'antd';
-import Units from './../../units'
-import NewUpload from './../NewUpload'
+import {Table,Input,Button,Card,Icon} from 'antd';
 import Highlighter from 'react-highlight-words';
-import Super from './../../super'
-import locale from 'antd/lib/date-picker/locale/zh_CN';
 import "./index.css"
-const Option = Select.Option;
 
 export default class EditTableList extends React.Component {
   state={
-    selectedRowKeys: [],
     count:this.props.count,
     dataSource:this.props.dataSource,
     searchText:"",
   }
   componentDidMount(){
-    const data=this.props.dataSource?this.props.dataSource:[]
-    data.map((item)=>{
-      for(let k in item){
-        if(typeof(item[k]) === 'string' && item[k].indexOf("download-files")>-1){
-          delete item[k] //删除datasource图片
-        }
-      }
-      return false
-    })
-    this.props.callbackdatasource(data)//传递原始记录
-  }
-  update=(e,name,key)=>{
-    const record={}
-    const arr=[];
-    record[name]=e.target.value
-    record["key"]=key
-    arr.push(record)
-    this.props.newRecords(arr)//新增记录
+
   }
   handleChange=(value)=> {
     console.log(`selected ${value}`);
-  }
-  uploadChange=(file,name)=>{
-    this.props.uploadChange(file,name)
-  }
-  requestSelectOptions=(id)=>{//下拉框
-      Super.super({
-    url:`/api/field/options?fieldIds=${id}`,                
-  }).then((res)=>{
-          const key=res.keyPrefix+id
-          this.setState({
-              optionList:res.optionsMap[key]
-          })
-  })
-  }
-  handleAdd=()=> {
-    const count =this.state.count;
-    const newDataSource = this.props.dataSource?this.props.dataSource:[]
-    const itemList=this.props.item
-    const itemTitle=itemList.title   
-    const list={}     
-    const rendom=Units.RndNum(10)
-    list["key"]=rendom  //自定义随机数作key值
-    itemList.descs.map((item)=>{
-        const fieldName=item.fieldName;
-        const field=item.fieldId;
-        let a="";
-        let b="";
-        if(fieldName) {
-          a=fieldName.split(".")[0]
-          b=fieldName.split(".")[1]
-          list[`${a}.$$flag$$`]=true
-        } 
-        if(itemList.composite.addType===5){
-          list[a+`[${count}].$$label$$`]=itemTitle
-          list["关系"]=<Select defaultValue={itemList.composite.relationSubdomain[0]} onChange={this.handleChange}>                                   
-                          {
-                              itemList.composite.relationSubdomain.map((item,index)=>{
-                                  return <Option value={item} key={index}>{item}</Option>
-                              })
-                          }
-                      </Select>
-        }
-        if(item.type==="text"){
-          list[fieldName]=<Input type="text" 
-                          key={[itemTitle+count]} 
-                          placeholder={`请输入${fieldName}`}
-                          onBlur={(e)=>this.update(e,[a+`[${count}].`+b],rendom)}
-                          />   
-        }else if(item.type==="file"){
-          list[fieldName]=<NewUpload width={110} onChange={(file)=>this.uploadChange(file,[a+`[${count}].`+b])}/>
-        }else if(item.type==="decimal"){
-          list[fieldName]=<InputNumber onBlur={(e)=>this.update(e,[a+`[${count}].`+b],rendom)}/>
-        }else if(item.type==="select"){
-          list[fieldName]=<Select
-                              style={{width:86}}
-                              onMouseEnter={()=>this.props.getOptions(field)}
-                              placeholder={`请输入${fieldName}`}
-                              >
-                              {Units.getSelectList(this.props.options)}
-                          </Select>
-        }else if(item.type==="date"){
-          list[fieldName]=<DatePicker
-                              locale={locale}
-                              />
-        }   
-        return false                            
-    })
-    const arr=[];
-    arr.push(list)
-    //console.log(list)
-    this.props.callbackdatasource(arr)
-    newDataSource.push(list)
-    this.setState({
-        dataSource:newDataSource ,
-        count: count + 1,
-    });
   }
   searchValue=(e)=>{
     const columns=this.props.columns
@@ -164,18 +65,19 @@ export default class EditTableList extends React.Component {
           className="hoverable" 
           headStyle={{background:"#f2f4f5"}}
           extra={type==="detail"?<Input placeholder="关键字搜索"
-                                                  onChange={this.searchValue}
-                                                  addonBefore={<Icon type="search"/>}
-                                                  />:""}
+                                        onChange={this.searchValue}
+                                        addonBefore={<Icon type="search"/>}
+                                        />:""}
           >
           <div className="editTableList">
             {type==="edit"?<Button 
-                                          type='primary' 
-                                          icon="plus" 
-                                          onClick={()=>{this.handleAdd()}} 
-                                          style={{marginBottom:10,marginRight:10}}
-                                          >新增</Button>
-                                          :""}
+                              type='primary' 
+                              icon="plus" 
+                              size="small"
+                              onClick={this.props.handleAdd} 
+                              style={{marginBottom:10,marginRight:10}}
+                              >新增</Button>
+                              :""}
               <Table
                 bordered
                 dataSource={type==="edit"?dataSource:this.state.dataSource}

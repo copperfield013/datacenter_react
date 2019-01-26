@@ -14,17 +14,7 @@ export default class BaseInfoForm extends React.Component{
         fileList:[],
         flag:false,
         visiCascader:"none"
-    }   
-    // requestSelectOptions=(id)=>{//下拉框
-    //     Super.super({
-	// 		url:`/api/field/options?fieldIds=${id}`,                
-	// 	}).then((res)=>{
-	// 		const key=res.keyPrefix+id
-    //         this.setState({
-    //             list:res.optionsMap[key]
-    //         })
-	// 	})
-    // }
+    }
     changeCascader=(e)=>{
         e.target.style.display="none"
         this.setState({

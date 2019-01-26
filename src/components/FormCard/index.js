@@ -17,6 +17,8 @@ class FormCard extends React.Component{
                         fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
                     }else if(!fieldsValue[k]){ //去除undefined
                         fieldsValue[k]=""
+                    }else if(typeof fieldsValue[k]==="object"){ //去除undefined
+                        fieldsValue[k]=fieldsValue[k].originFileObj
                     }
                 }
                 this.props.baseInfo(fieldsValue)

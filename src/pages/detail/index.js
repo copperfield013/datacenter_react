@@ -12,9 +12,7 @@ const confirm = Modal.confirm;
 
 const storage=window.sessionStorage;
 let records=[]
-let files=[]
-let origData={}
-let newRecord=[]
+//let files=[]
 let optArr=[]
 export default class Detail extends React.Component{
     state={
@@ -36,9 +34,7 @@ export default class Detail extends React.Component{
     }
     componentWillUnmount(){      
         records=[] //切换清空原有数据
-        files=[]
-        origData={}
-        newRecord=[]
+        //files=[]
         optArr=[]
     }
     loadRequest=()=>{
@@ -156,14 +152,14 @@ export default class Detail extends React.Component{
                 cardTitle.push(item.title)
                 itemDescs.push(item)
                 descsFlag.push(item.descs)
-                columns.push(this.renderColumns(item.descs,item.composite))
+                columns.push(this.renderColumns(item))
                 dataSource.push(this.requestTableList(item))
             }else if(item.fields){
                 formList.push(item)
             }
             scrollIds.push(item.title)
             return false
-        }) 
+        })
         this.requestSelect(formList,itemDescs)
         this.props.scrollIds(scrollIds)
         this.setState({
@@ -177,14 +173,10 @@ export default class Detail extends React.Component{
             descsFlag //为了加$$flag$$
         })
     }
-    renderColumns=(data,obj)=>{
-        let isRelation=false;
-        const type=this.props.type
-        if(obj && obj.addType===5){//判断是否有关系属性
-            isRelation=true; 
-        }
-		if(data){
-			data.map((item,index)=>{
+    renderColumns=(item)=>{
+        const type=this.props.type        
+		if(item.descs){
+			item.descs.map((item,index)=>{
                 const fieldName=item.fieldName;
                 item["dataIndex"]=fieldName;	
                 item["key"]=index;                
@@ -196,13 +188,16 @@ export default class Detail extends React.Component{
                     }
                 }           
                 return false      					
-            })                          
-            if(isRelation===true){           
+            })  
+            if(item.composite && item.composite.addType===5){//判断是否有关系属性
                 let rela={}
                 rela["dataIndex"]="关系"
+                rela["fieldName"]="关系"
                 rela["title"]="关系"
-                data.unshift(rela)
-            }         
+                rela["type"]="relation"
+                rela["options"]=item.composite.relationSubdomain
+                item.descs.unshift(rela) 
+            }      
             const order={
                 title: '序号',
                 key: 'order',
@@ -211,21 +206,21 @@ export default class Detail extends React.Component{
                     <label>{index+1}</label>
                     ),
             } 
-            data.unshift(order)
+            item.descs.unshift(order)
             if(type==="edit"){
                 const act={
                     title: '操作',
                     key: 'action',
                     render: (record) => (
                     <div className="editbtn">
-                        <Button type='primary' icon="edit" size="small"  onClick={()=>this.visibleForm(record)}></Button>
+                        <Button type='primary' icon="edit" size="small"  onClick={()=>this.visibleForm(record,item.descs)}></Button>
                         <Button type='danger' icon="delete" size="small" onClick={()=>this.removeList(record)}></Button>
                     </div>
                     ),
                 }  
-                data.push(act) 
+                item.descs.push(act) 
             }
-            return data
+            return item.descs
 		}		
     }
     requestSelect=(formList,detailsList)=>{
@@ -277,7 +272,7 @@ export default class Detail extends React.Component{
                 }
                 return false
             })
-            newData.map((item,index)=>{
+            newData.map((item,index)=>{ //删除行，更改数字标签
                 let list={}
                 let ins=newData.indexOf(item)
                 for(let k in item){
@@ -296,31 +291,17 @@ export default class Detail extends React.Component{
         records=[]
         newDataSource.map((item)=>{
             item.map((it)=>{
-                records.push(it)
+                let list={}
+                for(let k in it){
+                    if(k.indexOf("[")>-1){ //去除key，total，object，fieldName
+                        list[k]=it[k]
+                    }
+                }
+                records.push(list)
                 return false
             })
             return false
         })
-    }
-    handleChange = (name,e) =>{ //更改原来有值的datasource
-        origData[name]=e.target.value
-        this.removeOrivalue()  
-    }
-    handlleNumber=(name,value)=>{
-        origData[name]=value;
-        this.removeOrivalue()
-    }
-    removeOrivalue=()=>{
-        records.map((item)=>{
-            for(let k in item){
-                for(let key in origData){
-                    if(k===key){
-                        item[k]=origData[key]
-                    }
-                }
-            }
-            return false
-        }) 
     }
     requestTableList=(data)=>{
         const res=[]    
@@ -329,41 +310,39 @@ export default class Detail extends React.Component{
                 const list={};   
                 const code=item.code;
                 let fieldName=""
-                list["key"]=code;   
-                const total=[];   
+                list["key"]=code;    
                 const relation=item.relation        
                 if(data.composite.relationKey){
-                    const list={}
                     list["fieldName"]="关系";
                     list["title"]="关系";
                     list["type"]="relation";
                     list["value"]=relation;
                     list["options"]=data.composite.relationSubdomain
-                    total.push(list)
                 }         
                 item.fields.map((it)=>{
                     fieldName=it.fieldName
                     const fieldValue=it.value;     
                     const fieldType=it.type;                
-                    // const a=fieldName.split(".")[0]
-                    // const b=fieldName.split(".")[1];
+                    const a=fieldName.split(".")[0]
+                    const b=fieldName.split(".")[1];
                     if(fieldType==="file"){
-                        list[fieldName]=fieldValue?<span className="downEditPic"><img style={{width:55}} src={`/file-server/${fieldValue}`} alt="图片加载失败"/>
-                        <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a></span>
+                        list[fieldName]=fieldValue?
+                        <span className="downEditPic">
+                            <img style={{width:55}} src={`/file-server/${fieldValue}`} alt="图片加载失败"/>
+                            <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a>
+                        </span>
                         :"无文件"
                     }else{
                         list[fieldName]=fieldValue?fieldValue:"";
                     } 
-                    //list[a+`[${index}].唯一编码`]=code;
-                    //list[a+`[${index}].`+b]=fieldValue?fieldValue:"";
+                    list[a+`[${index}].唯一编码`]=code;
+                    list[a+`[${index}].`+b]=fieldValue?fieldValue:"";
                     if(data.composite.relationKey){
-                        //list[a+`[${index}].$$label$$`]=item.relation;    
+                        list[a+`[${index}].$$label$$`]=item.relation;    
                         list["关系"]=relation
                     }
-                    total.push(it); 
                     return false
                 })
-                list["total"]=total
                 res.push(list) 
                 return false             
             })
@@ -392,11 +371,10 @@ export default class Detail extends React.Component{
         for(let k in baseValue){
             formData.append(k, baseValue[k]);
         }
-        
         descsFlag.map((item)=>{ //添加$$flag$$
             item.map((it)=>{
                 const fieldName=it.fieldName;
-                if(fieldName){               
+                if(fieldName && fieldName!=="关系"){               
                     const list={}
                     const a=fieldName.split(".")[0]
                     list[`${a}.$$flag$$`]=true;
@@ -417,27 +395,18 @@ export default class Detail extends React.Component{
         })  
         if(res){
             for(let k in res){
-                if(k!=="key" && k!=="关系" && typeof res[k]!=="object"){ //删除无意义的值
-                    formData.append(k, res[k]);
-                }
+                formData.append(k, res[k]);              
             }
         }
-        files.map((item)=>{
-            for(let k in item){
-                if(item[k]){
-                    formData.append(k, item[k]);
-                }
-            }
-            return false
-        })
-        newRecord.map((item)=>{
-            for(let k in item){
-                if(k!=="key" && item[k]){
-                    formData.append(k, item[k]);
-                }
-            }
-            return false
-        })
+        //console.log(res)
+        // files.map((item)=>{
+        //     for(let k in item){
+        //         if(item[k]){
+        //             formData.append(k, item[k]);
+        //         }
+        //     }
+        //     return false
+        // })
         const loading=document.getElementById('ajaxLoading')
         loading.style.display="block"
         superagent
@@ -463,7 +432,7 @@ export default class Detail extends React.Component{
         });
       }
     baseInfo=(baseValue)=>{
-        //console.log(baseValue)
+        console.log(baseValue)
         if(baseValue){           
             this.setState({
                 visibleModal: true,
@@ -500,15 +469,37 @@ export default class Detail extends React.Component{
             visibleForm: false,
         });
     }
+    getRecords=()=>{
+        const dataSource =[...this.state.dataSource];
+        dataSource.map((item)=>{
+            item.map((it)=>{
+                let list={}
+                console.log(it)
+                for(let k in it){
+                    if(k.indexOf("[")>-1){
+                        if(typeof it[k]==="object"){ //图片，取自定义的owlner属性
+                            list[k]=it[k].props.owlner
+                        }else{
+                            list[k]=it[k]
+                        }
+                    }
+                }
+                records.push(list)
+                return false
+            })
+            return false
+        })
+    }
     showModal = () => {
-        this.child.handleBaseInfoSubmit() //获取BaseInfo数据
+        this.baseinfo.handleBaseInfoSubmit() //获取BaseInfo数据
+        this.getRecords()
     }
     //调用子组件方法
 	onRef=(ref)=>{
-		this.child=ref
+		this.baseinfo=ref
     }
     onRef2=(ref)=>{
-		this.children=ref
+		this.modelform=ref
     }
     scrollToAnchor = (anchorName) => {
         if (anchorName) {
@@ -519,25 +510,6 @@ export default class Detail extends React.Component{
     fuseMode=(checked)=>{
         this.setState({
             fuseMode:checked
-        })
-    }
-    uploadChange=(file,name)=>{
-        if(file){
-            const tip={}
-            tip[name]=file
-            files.push(tip)
-        }
-    }
-    callbackdatasource=(dataSource)=>{
-        dataSource.map((item)=>{            
-            records.push(item)
-            return false
-        })
-    }
-    newRecords=(dataSource)=>{
-        dataSource.map((item)=>{            
-            newRecord.push(item)
-            return false
         })
     }
     handleMenuClick=(e)=>{
@@ -586,72 +558,122 @@ export default class Detail extends React.Component{
             return false
         })
     }
-    getForm=(record)=>{
+    getForm=(record,data)=>{
         let editFormList=[]
-        record.total.map((item)=>{
-            const list={}
-            if(item.fieldId){
-                list["fieldId"]=item.fieldId;
-            }else if(item.options){
-                const arr=[]
-                item.options.map((item)=>{
-                    const op={}
-                    op["title"]=item;
-                    op["value"]=item
-                    arr.push(op);
-                    return false;
-                })
-                list["options"]=arr
+        data.map((item)=>{
+            if(item.fieldName){
+                const list={}
+                if(item.fieldId){
+                    list["fieldId"]=item.fieldId;
+                }else if(item.options){
+                    const arr=[]
+                    item.options.map((item)=>{
+                        const op={}
+                        op["title"]=item;
+                        op["value"]=item
+                        arr.push(op);
+                        return false;
+                    })
+                    list["options"]=arr
+                }
+                list["key"]=record.key;
+                list["title"]=item.title;
+                list["fieldName"]=item.fieldName;
+                list["type"]=item.type
+                for(let k in record){
+                    if(k.indexOf(item.fieldName)>-1){
+                        list["value"]=record[k]                        
+                    }
+                }
+                editFormList.push(list)
             }
-            list["key"]=record.key;
-            list["title"]=item.title;
-            list["fieldName"]=item.fieldName;
-            list["value"]=item.value;
-            list["type"]=item.type
-            editFormList.push(list)
             return false
         })
+        //console.log(editFormList)
         this.setState({
             editFormList,
         })
     }
-    visibleForm=(record)=>{
-        this.getForm(record)
-        this.children.handleReset()
+    visibleForm=(record,data)=>{
+        this.getForm(record,data)
+        this.modelform.handleReset()
         this.setState({
-            visibleForm:true
+            visibleForm:true,
+            title:"编辑"
         })
     }
     modelhandleOk=(fieldsValue)=>{   
-        const key= fieldsValue.key 
-        let { dataSource }=this.state
-        dataSource.map((item)=>{
-            item.map((it)=>{
-                if(it.key===key){
-                    for(let k in fieldsValue){
-                        it.total.map((i)=>{
-                            if(i.fieldName.indexOf(k)>-1){
-                                i.value=fieldsValue[k]
-                            }
-                            return false
-                        })                       
-                        for(let ki in it){
-                            if(ki.indexOf(k)>-1){
-                                it[ki]=fieldsValue[k]
+        console.log(fieldsValue)       
+        const key=fieldsValue.key;
+        const totalName=fieldsValue.totalName;
+        let { dataSource }=this.state;
+        if(key.length===9){
+            let i="";
+            dataSource.map((item,index)=>{ //得知第几个数组新增
+                item.map((it)=>{
+                    for(let k in it){
+                        if(k.indexOf(totalName)>-1){
+                            i=index
+                        }
+                    }
+                    return false
+                })
+                return false
+            })
+            const list={}
+            list["key"]=key;
+            for(let k in fieldsValue){
+                if(k!=="key" && k!=="totalName"){
+                    list[`${totalName}.${k}`]=fieldsValue[k];
+                    list[`${totalName}[${dataSource[i].length}].${k}`]=fieldsValue[k];
+                }
+            }
+            dataSource[i].push(list)
+        }else{            
+            dataSource.map((item)=>{
+                item.map((it)=>{
+                    if(it.key===key){
+                        for(let k in fieldsValue){                      
+                            for(let ki in it){
+                                if(ki.indexOf(k)>-1){
+                                    it[ki]=fieldsValue[k]
+                                }
                             }
                         }
                     }
-                }
+                    return false
+                })
                 return false
             })
-            return false
-        })
-        // console.log(fieldsValue)
-        // console.log(dataSource)
+        }
         this.setState({
             dataSource,
             visibleForm:false
         })
+    }
+    getEptForm=(columns)=>{
+        let editFormList=[]
+        //console.log(columns)
+        columns.map((item)=>{
+            if(item.type){
+                const list={}
+                list["title"]=item.title;
+                list["fieldName"]=item.fieldName;
+                list["value"]="";
+                list["type"]=item.type;
+                editFormList.push(list)
+            }
+            return false
+        })
+        this.setState({
+            editFormList,
+            visibleForm:true,
+            title:"新增"
+        })
+    }
+    handleAdd=(columns)=>{
+        this.getEptForm(columns)//获取空表格
+        this.modelform.handleReset()
     }
     render(){
         const { moduleTitle,detailsTitle,fuseMode,formList,loading,detailsList,visibleForm,editFormList,
@@ -691,7 +713,8 @@ export default class Detail extends React.Component{
                                 type='primary' 
                                 icon="cloud-upload" 
                                 className="submitBtn" 
-                                onClick={this.showModal} key="btn" 
+                                key="btn" 
+                                onClick={this.showModal} 
                                 style={{background:fuseMode===true?"#001529":""}}>
                                 保存
                             </Button>
@@ -719,12 +742,11 @@ export default class Detail extends React.Component{
                     dataSource={dataSource}
                     cardTitle={cardTitle}
                     itemDescs={itemDescs}
-                    callbackdatasource={this.callbackdatasource}
                     flag={flag}
-                    uploadChange={this.uploadChange}
-                    newRecords={this.newRecords}
                     getOptions={this.getOptions}
                     options={this.state.options}
+                    handleAdd={this.handleAdd}
+                    onRef3={this.onRef3}
                 />
                 <Modal
                     visible={visibleModal}
@@ -744,6 +766,7 @@ export default class Detail extends React.Component{
                     getOptions={this.getOptions}
                     options={this.state.options}
                     onRef2={this.onRef2}
+                    title={this.state.title}
                 />
                 <Drawer
                     title="查看历史"

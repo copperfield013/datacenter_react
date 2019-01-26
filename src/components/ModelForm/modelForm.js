@@ -1,6 +1,7 @@
 import React from 'react'
 import {Form,Modal} from 'antd'
 import moment from 'moment';
+import Units from './../../units'
 import BaseInfoForm from './../BaseForm/BaseInfoForm'
 
 class ModelForm extends React.Component{
@@ -13,14 +14,20 @@ class ModelForm extends React.Component{
     } 
     handleOk=()=>{
         let fieldsValue=this.props.form.getFieldsValue();
+        const key=this.props.formList[0]["key"]
+        const totalName=this.props.formList[0]["fieldName"].split(".")[0]
+        const trueKey=key?key:Units.RndNum(9);//随机生成key，进行第二次更改
         for(let k in fieldsValue){
             if(k.indexOf("期")>-1 && fieldsValue[k]){ //日期格式转换
                 fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
             }else if(!fieldsValue[k]){ //去除undefined
                 fieldsValue[k]=""
+            }else if(typeof fieldsValue[k]==="object"){ //图片
+                fieldsValue[k]=<img style={{width:55}} src={fieldsValue[k].thumbUrl} owlner={fieldsValue[k].originFileObj} alt="" />
             }
         }
-        fieldsValue["key"]=this.props.formList[0]["key"]
+        fieldsValue["key"]=trueKey
+        fieldsValue["totalName"]=totalName
         this.props.handleOk(fieldsValue);
     } 
     initDetailsList=()=>{
@@ -43,7 +50,7 @@ class ModelForm extends React.Component{
     render(){
         return(
             <Modal
-                title="编辑"
+                title={this.props.title}
                 visible={this.props.visibleForm}
                 onOk={this.handleOk}
                 onCancel={this.props.handleCancel}
