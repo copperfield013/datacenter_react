@@ -12,7 +12,6 @@ const confirm = Modal.confirm;
 
 const storage=window.sessionStorage;
 let records=[]
-//let files=[]
 let optArr=[]
 export default class Detail extends React.Component{
     state={
@@ -25,6 +24,7 @@ export default class Detail extends React.Component{
         scrollIds:[],
         options:[],
         visibleForm:false,
+        isNew:false,
     }
     componentDidMount(){
         this.handleNav()
@@ -34,7 +34,6 @@ export default class Detail extends React.Component{
     }
     componentWillUnmount(){      
         records=[] //切换清空原有数据
-        //files=[]
         optArr=[]
     }
     loadRequest=()=>{
@@ -176,6 +175,7 @@ export default class Detail extends React.Component{
     renderColumns=(item)=>{
         const type=this.props.type        
 		if(item.descs){
+            const totalName=item.title
 			item.descs.map((item,index)=>{
                 const fieldName=item.fieldName;
                 item["dataIndex"]=fieldName;	
@@ -191,7 +191,7 @@ export default class Detail extends React.Component{
             })  
             if(item.composite && item.composite.addType===5){//判断是否有关系属性
                 let rela={}
-                rela["dataIndex"]="关系"
+                rela["dataIndex"]=`${totalName}.关系` //为了在表格中显示
                 rela["fieldName"]="关系"
                 rela["title"]="关系"
                 rela["type"]="relation"
@@ -304,6 +304,7 @@ export default class Detail extends React.Component{
         })
     }
     requestTableList=(data)=>{
+        console.log(data)
         const res=[]    
         if(data.array){
             data.array.map((item,index)=>{
@@ -339,7 +340,7 @@ export default class Detail extends React.Component{
                     list[a+`[${index}].`+b]=fieldValue?fieldValue:"";
                     if(data.composite.relationKey){
                         list[a+`[${index}].$$label$$`]=item.relation;    
-                        list["关系"]=relation
+                        list[a+".关系"]=relation
                     }
                     return false
                 })
@@ -398,15 +399,6 @@ export default class Detail extends React.Component{
                 formData.append(k, res[k]);              
             }
         }
-        //console.log(res)
-        // files.map((item)=>{
-        //     for(let k in item){
-        //         if(item[k]){
-        //             formData.append(k, item[k]);
-        //         }
-        //     }
-        //     return false
-        // })
         const loading=document.getElementById('ajaxLoading')
         loading.style.display="block"
         superagent
@@ -432,7 +424,7 @@ export default class Detail extends React.Component{
         });
       }
     baseInfo=(baseValue)=>{
-        console.log(baseValue)
+        //console.log(baseValue)
         if(baseValue){           
             this.setState({
                 visibleModal: true,
@@ -476,9 +468,11 @@ export default class Detail extends React.Component{
                 let list={}
                 console.log(it)
                 for(let k in it){
-                    if(k.indexOf("[")>-1){
+                    if(k.indexOf("[")>-1 && k.indexOf("关系")===-1){
                         if(typeof it[k]==="object"){ //图片，取自定义的owlner属性
                             list[k]=it[k].props.owlner
+                        }else if(typeof it[k]==="string" && it[k].indexOf("download-files")>-1){
+                            delete it[k]
                         }else{
                             list[k]=it[k]
                         }
@@ -575,14 +569,30 @@ export default class Detail extends React.Component{
                         return false;
                     })
                     list["options"]=arr
+                    console.log(arr)
                 }
                 list["key"]=record.key;
                 list["title"]=item.title;
                 list["fieldName"]=item.fieldName;
-                list["type"]=item.type
+                list["type"]=item.type;
                 for(let k in record){
                     if(k.indexOf(item.fieldName)>-1){
-                        list["value"]=record[k]                        
+                        let value=""
+                        if(typeof record[k]==="object"){  
+                            if(record[k].props.children){                                               
+                                record[k].props.children.map((item)=>{ //多了file-server/
+                                    if(item.props.src){
+                                        value=item.props.src.split("/.")[1]
+                                    }
+                                    return false
+                                })
+                            }else{
+                                value=record[k].props.src
+                            }
+                            list["value"]=value
+                        }else{
+                            list["value"]=record[k]
+                        }                       
                     }
                 }
                 editFormList.push(list)
@@ -592,6 +602,7 @@ export default class Detail extends React.Component{
         //console.log(editFormList)
         this.setState({
             editFormList,
+            isNew:false,
         })
     }
     visibleForm=(record,data)=>{
@@ -602,17 +613,17 @@ export default class Detail extends React.Component{
             title:"编辑"
         })
     }
-    modelhandleOk=(fieldsValue)=>{   
-        console.log(fieldsValue)       
+    modelhandleOk=(fieldsValue)=>{    
         const key=fieldsValue.key;
+        console.log(fieldsValue)
         const totalName=fieldsValue.totalName;
-        let { dataSource }=this.state;
-        if(key.length===9){
+        let { dataSource,isNew,columns }=this.state;
+        if(isNew){ //新增记录
             let i="";
-            dataSource.map((item,index)=>{ //得知第几个数组新增
+            columns.map((item,index)=>{ //得知第几个数组新增
                 item.map((it)=>{
                     for(let k in it){
-                        if(k.indexOf(totalName)>-1){
+                        if(typeof it[k]==="string" && it[k].indexOf(totalName)>-1){
                             i=index
                         }
                     }
@@ -627,9 +638,12 @@ export default class Detail extends React.Component{
                     list[`${totalName}.${k}`]=fieldsValue[k];
                     list[`${totalName}[${dataSource[i].length}].${k}`]=fieldsValue[k];
                 }
-            }
+                if(k==="关系"){
+                    list[`${totalName}[${dataSource[i].length}].$$label$$`]=fieldsValue[k];
+                }
+            }   
             dataSource[i].push(list)
-        }else{            
+        }else{     //修改记录       
             dataSource.map((item)=>{
                 item.map((it)=>{
                     if(it.key===key){
@@ -653,7 +667,6 @@ export default class Detail extends React.Component{
     }
     getEptForm=(columns)=>{
         let editFormList=[]
-        //console.log(columns)
         columns.map((item)=>{
             if(item.type){
                 const list={}
@@ -661,6 +674,17 @@ export default class Detail extends React.Component{
                 list["fieldName"]=item.fieldName;
                 list["value"]="";
                 list["type"]=item.type;
+                if(item.type==="relation"){
+                    const options=[]
+                    item.options.map((it)=>{
+                        const op={}
+                        op["title"]=it
+                        op["value"]=it
+                        options.push(op)
+                        return false
+                    })
+                    list["options"]=options
+                }
                 editFormList.push(list)
             }
             return false
@@ -668,7 +692,8 @@ export default class Detail extends React.Component{
         this.setState({
             editFormList,
             visibleForm:true,
-            title:"新增"
+            title:"新增",
+            isNew:true,
         })
     }
     handleAdd=(columns)=>{
@@ -743,8 +768,6 @@ export default class Detail extends React.Component{
                     cardTitle={cardTitle}
                     itemDescs={itemDescs}
                     flag={flag}
-                    getOptions={this.getOptions}
-                    options={this.state.options}
                     handleAdd={this.handleAdd}
                     onRef3={this.onRef3}
                 />

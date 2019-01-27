@@ -15,9 +15,7 @@ export default class EditTable extends React.Component{
                                 dataSource={flag?null:dataSource[index]} //判断是否是创建记录
                                 item={item}
                                 count={flag?null:dataSource[index].length}
-                                cardTitle={cardTitle[index]}                                
-                                getOptions={this.props.getOptions}
-                                options={this.props.options}
+                                cardTitle={cardTitle[index]}
                                 handleAdd={()=>this.props.handleAdd(columns[index])}
                             />
                 detailsItemList.push(RANGE)         
