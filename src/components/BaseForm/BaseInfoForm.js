@@ -12,7 +12,6 @@ const FormItem=Form.Item
 export default class BaseInfoForm extends React.Component{
     state={
         fileList:[],
-        flag:false,
         visiCascader:"none"
     }
     changeCascader=(e)=>{
@@ -23,14 +22,14 @@ export default class BaseInfoForm extends React.Component{
     }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
-        const { formList,width,flag,type }=this.props
+        const { formList,width,type }=this.props
         const formItemList=[];
         if(formList && formList.length>0){
             formList.forEach((item)=>{
                 const fieldName=item.fieldName;
                 const title=item.title;
                 const field=item.fieldId
-                const fieldValue=flag?null:item.value;
+                const fieldValue=type==="new"?null:item.value;
                 if(item.type==="date"){
                     const DATE= <FormItem label={title} key={field} className='labelcss'>
                                     {type==="detail"?<span className="infoStyle">{fieldValue}</span>:

@@ -16,22 +16,23 @@ export default class actTable extends React.Component{
         actions:[]
     }
     componentDidMount(){
-        this.props.onRef(this)
-        this.requestList()
+        const menuId=this.props.match.params.menuId;
+        this.setState({menuId})
+        this.requestList(menuId)
+    }
+    componentWillReceiveProps(){
+        const menuId=this.props.history.location.pathname.replace(/[^0-9]/ig,"");
+        this.setState({menuId})
+        this.requestList(menuId)
     }
     handleFilter=(params)=>{
-        //console.log(params)
         this.props.searchParams(params)
     }
     showTotal=(total)=>{
         return `共 ${total} 条`;
     }
-    requestList=()=>{ 
-        const { menuId }=this.props
+    requestList=(menuId)=>{ 
         const loading=document.getElementById('ajaxLoading')
-        if(!this.props.L){
-            loading.style.display="block"
-        }
         Super.super({
             url:`/api/entity/curd/list/${menuId}`,                
         }).then((res)=>{
@@ -41,7 +42,7 @@ export default class actTable extends React.Component{
                     pageNo:res.pageInfo.pageNo,
                     pageSize:res.pageInfo.pageSize,
                 })
-                storage[menuId]=JSON.stringify(res); //存储一个列表数据              
+                //storage[menuId]=JSON.stringify(res); //存储一个列表数据              
                 this.editList(res)
                 if(res.entities.length>0){
                     this.setState({
@@ -139,7 +140,7 @@ export default class actTable extends React.Component{
     } 
     handleOperate=(type,record,e)=>{
         e.stopPropagation();//阻止事件冒泡，防止点击按钮选中整行
-		const {menuId}=this.props
+		const menuId=storage.getItem("menuId")
         this.setState({loading:true,Loading:true})
         if(type==="delete"){
             Modal.confirm({
@@ -173,32 +174,11 @@ export default class actTable extends React.Component{
 		}
     }   
     handleDetail=({record},type)=>{
-		const {panes} = this.props
-		let flag = false;
-        let dcode=type; 
-        const code=record.code
-        const menuId=record.menuId;
-		dcode+=record.code;  //为了打开新页面，加入detail和eidt的code
-		//console.log(record.code)
-		for(let ops of panes){			
-		  if(ops.key === dcode){
-			flag = true;
-			break;
-		  }
-		  continue;
-		}
-		let xqTitle="";
-		if(type==="detail"){
-			xqTitle=record["姓名"]?`详情-${record["姓名"]}`:"详情"
-		}else{
-			xqTitle=record["姓名"]?`修改-${record["姓名"]}`:"修改"
-		}
-		if(flag === false){
-			panes.push({ title:xqTitle, key:dcode });
-        }		
+        const menuId=record.menuId
+        const code=record.code	
+        this.props.history.push(`/${menuId}/${type}/${code}`)	
+        console.log(record)
         this.setState({loading:false,Loading:false})
-        this.props.actCallBackAdmin(panes,dcode,xqTitle,menuId,code,type)
-		//console.log(record.code)
 	} 
     //搜索和页码
 	searchList=(params)=>{
@@ -235,41 +215,16 @@ export default class actTable extends React.Component{
 			})
 		})			
     }
-    handleNew=(title,newRecordCode)=>{
-		const {panes} = this.props
-		let flag = false;
-		const newcode=title+"--创建"
-		const newK=title+","+newRecordCode
-		for(let ops of panes){			
-			if(ops.key === newK){
-			  flag = true;
-			  break;
-			}
-			continue;
-          }
-		if(flag === false){
-			panes.push({ title:newcode, key:newK });
-        }
-        this.props.newRecordCallback(panes,newK,newcode,newRecordCode)
+    handleNew=()=>{
+        const {menuId,newRecordCode}=this.state
+        this.props.history.push(`/${menuId}/new/${newRecordCode}`)
     }
-    handleImport=(title)=>{
-        const {panes} = this.props
-		let flag = false;
-		const importCode=title+"导入"
-		for(let ops of panes){			
-			if(ops.key === importCode){
-			  flag = true;
-			  break;
-			}
-			continue;
-          }
-		if(flag === false){
-			panes.push({ title:importCode, key:importCode });
-        }
-        this.props.importCallback(panes,importCode)
+    handleImport=()=>{
+        const {menuId}=this.state
+        this.props.history.push(`/${menuId}/import`)
     }
     handleActions=(actionId)=>{
-        const {menuId}=this.props
+        const menuId=storage.getItem("menuId");
         this.setState({Loading:true})
         Super.super({
             url:`/api/entity/curd/do_action/${menuId}/${actionId}`, 
@@ -286,7 +241,7 @@ export default class actTable extends React.Component{
         })
     }
     fresh=(msg)=>{
-        const {menuId}=this.props
+        const menuId=storage.getItem("menuId");
         this.setState({Loading:true})
         this.child.reset()
         Super.super({
@@ -307,27 +262,11 @@ export default class actTable extends React.Component{
     onRef=(ref)=>{
 		this.child=ref
     }
-    // onClickRow=(record)=>{
-    //     return {
-    //         onClick: () => {
-    //             const selectedRowKeys=this.state.selectedRowKeys;
-    //             const i=selectedRowKeys.indexOf(record.key)
-    //             if(i===-1){
-    //                 selectedRowKeys.push(record.key) 
-    //             }else{
-    //                 selectedRowKeys.splice(i,1);
-    //             }              
-    //             this.setState({
-    //                 selectedRowKeys
-    //             })
-    //         },
-    //       };
-    // }
     render(){
-        const {selectedRowKeys,pageNo,pageSize,filterOptions,moduleTitle,list,
-            newRecordCode,loading,formList,actions,columns,Loading,currentPage,pageCount } = this.state;
+        const {selectedRowKeys,pageNo,pageSize,filterOptions,moduleTitle,list,loading,
+            formList,actions,columns,Loading,currentPage,pageCount,menuId } = this.state;
         const content = <ExportFrame //导出组件
-                            menuId={this.props.menuId}
+                            menuId={menuId}
                             pageNo={pageNo}
                             pageSize={pageSize}
                             filterOptions={filterOptions}
@@ -341,7 +280,6 @@ export default class actTable extends React.Component{
                     selectCodes+=item.code+","
                     return false
                 })
-                console.log(selectCodes)
                 this.setState({selectCodes,selectedRowKeys})
             },
           };
@@ -353,13 +291,13 @@ export default class actTable extends React.Component{
                         <Button 
                             className="hoverbig" 
                             title="创建" 
-                            onClick={()=>this.handleNew(moduleTitle,newRecordCode)}>
+                            onClick={()=>this.handleNew()}>
                             <Icon type="plus"/>
                         </Button>
                         <Button 
                             className="hoverbig" 
                             title="导入" 
-                            onClick={()=>this.handleImport(moduleTitle,newRecordCode)}>
+                            onClick={()=>this.handleImport()}>
                             <Icon type="download" />
                         </Button>
                         <Popover content={content} title="导出" placement="bottomRight" trigger="click">
@@ -392,7 +330,6 @@ export default class actTable extends React.Component{
                     pagination={false}
                     style={{display:columns?"block":"none"}}
                     loading={Loading}
-                    //onRow={this.onClickRow}
                 >
                 </Table>
                 <Pagination 

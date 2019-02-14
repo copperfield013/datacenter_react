@@ -11,7 +11,7 @@ const storage=window.sessionStorage;
 const CheckboxGroup = Checkbox.Group;
 let MSG=[];
 const checkedList = ['INFO', 'SUC', 'ERROR', 'WARN'];
-export default class Detail extends React.Component{
+export default class Import extends React.Component{
     state = {
         fileList:[],
         uploading: false,
@@ -22,10 +22,15 @@ export default class Detail extends React.Component{
         checkedList,
         visible:false,
     }
-    
+    componentWillUnmount(){
+        MSG=[];
+    }
+    componentDidMount(){
+        const menuId=this.props.match.params.menuId;
+        this.setState({menuId})
+    }
     handleUpload = () => {
-        const { fileList } = this.state;
-        const { menuId }=this.props
+        const { fileList,menuId } = this.state;
         const formData = new FormData();
         const tokenName=storage.getItem('tokenName')
         formData.append('file', ...fileList);
@@ -137,8 +142,21 @@ export default class Detail extends React.Component{
             visible:false,
         })
     }
+    fresh=()=>{
+        this.setState({
+            fileList:[],
+            uploading: false,
+            statusMsg:"",
+            begin:true,
+            importAgain:"none",
+            importbtn:"block",
+            percent:0,
+            messages:[]
+        })
+    }
     render(){
-        const { uploading, fileList,begin,importbtn,percent,importAgain,checkedList,copyText,statusMsg,messages,visible } = this.state;
+        const { uploading, fileList,begin,importbtn,percent,importAgain,checkedList,
+            copyText,statusMsg,messages,visible,menuId } = this.state;
         const props = {
             accept:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.ms-excel",
             onChange : () => {
@@ -168,9 +186,9 @@ export default class Detail extends React.Component{
         return(
             <div className="importData">
                 <h3>
-                    {this.props.importCode}
+                    导入
                     <p className="fr">                      
-                        <Button className="hoverbig" title="刷新"><Icon type="sync" /></Button>
+                        <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
                     </p>
                 </h3>              
                 <Row>
@@ -245,7 +263,7 @@ export default class Detail extends React.Component{
                     style={{top:40}}
                     >
                     <ModelImport 
-                        menuId={this.props.menuId}
+                        menuId={menuId}
                     />
                 </Modal>
             </div>

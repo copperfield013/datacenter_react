@@ -23,32 +23,19 @@ class ModelForm extends React.Component{
             }else if(!fieldsValue[k]){ //去除undefined
                 fieldsValue[k]=""
             }else if(typeof fieldsValue[k]==="object"){ //图片
-                fieldsValue[k]=<img style={{width:55}} src={fieldsValue[k].thumbUrl} owlner={fieldsValue[k].originFileObj} alt="" />
+                fieldsValue[k]=<img 
+                                style={{width:55}} 
+                                src={fieldsValue[k].thumbUrl} 
+                                owlner={fieldsValue[k].originFileObj} 
+                                alt="" />
             }
         }
         fieldsValue["key"]=trueKey
         fieldsValue["totalName"]=totalName
         this.props.handleOk(fieldsValue);
     } 
-    initDetailsList=()=>{
-        const { formList,type,form }=this.props
-        const formItemList=[];
-        const key=Units.RndNum(9)
-        if(formList && formList.length>0){
-            const BASE=<BaseInfoForm 
-                            key={key}
-                            formList={formList} 
-                            type={type} 
-                            form={form}
-                            width={220}
-                            getOptions={this.props.getOptions}
-                            options={this.props.options}
-                            />
-            formItemList.push(BASE)       
-        }
-        return formItemList;
-    }
     render(){
+        const { formList,type,form }=this.props;
         return(
             <Modal
                 title={this.props.title}
@@ -57,9 +44,18 @@ class ModelForm extends React.Component{
                 onCancel={this.props.handleCancel}
                 okText="确认"
                 cancelText="取消"
+                destroyOnClose
                 >
-                <Form layout="inline" autoComplete="off">  
-                    {this.initDetailsList()}          
+                <Form layout="inline" autoComplete="off" > 
+                    <BaseInfoForm
+                        formList={formList} 
+                        type={type} 
+                        form={form}
+                        width={220}
+                        getOptions={this.props.getOptions}
+                        options={this.props.options}
+                        flag={false}
+                        />          
                 </Form>                    
             </Modal> 
         )

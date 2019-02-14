@@ -26,7 +26,7 @@ class FormCard extends React.Component{
         })
     }
     initDetailsList=()=>{
-        const { formList,type,flag,form,loading }=this.props
+        const { formList,type,form,loading }=this.props
         const formItemList=[];
         if(formList && formList.length>0){
             formList.map((item)=>{
@@ -41,8 +41,7 @@ class FormCard extends React.Component{
                                 >
                                 <BaseInfoForm 
                                     formList={List} 
-                                    type={type} 
-                                    flag={flag}
+                                    type={type}
                                     form={form}
                                     width={220}
                                     getOptions={this.props.getOptions}

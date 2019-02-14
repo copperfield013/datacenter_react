@@ -10,7 +10,7 @@ export default class EditTableList extends React.Component {
     searchText:"",
   }
   componentDidMount(){
-
+    
   }
   handleChange=(value)=> {
     console.log(`selected ${value}`);
@@ -70,14 +70,13 @@ export default class EditTableList extends React.Component {
                                         />:""}
           >
           <div className="editTableList">
-            {type==="edit"?<Button 
+            {type==="detail"?"":<Button 
                               type='primary' 
                               icon="plus" 
                               size="small"
                               onClick={this.props.handleAdd} 
                               style={{marginBottom:10,marginRight:10}}
-                              >新增</Button>
-                              :""}
+                              >新增</Button>}
               <Table
                 bordered
                 dataSource={type==="edit"?dataSource:this.state.dataSource}

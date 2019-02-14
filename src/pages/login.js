@@ -70,7 +70,7 @@ class Loginit extends React.Component{
                                         password:"",
                                     })
                                 }
-                                window.location.href="/#/admin/home";
+                                window.location.href="/#/home";
                                 storage.setItem("tokenName",res.token)
                                 storage.setItem("name",values.username)
                             }else if(res.errorMsg){
