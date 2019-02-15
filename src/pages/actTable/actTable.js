@@ -5,7 +5,6 @@ import Super from "./../../super"
 import './index.css'
 import ExportFrame from './../../components/exportFrame/exportFrame'
 
-const storage=window.sessionStorage;
 export default class actTable extends React.Component{
     state={
         loading: false,
@@ -28,9 +27,6 @@ export default class actTable extends React.Component{
     handleFilter=(params)=>{
         this.props.searchParams(params)
     }
-    showTotal=(total)=>{
-        return `共 ${total} 条`;
-    }
     requestList=(menuId)=>{ 
         const loading=document.getElementById('ajaxLoading')
         Super.super({
@@ -38,15 +34,12 @@ export default class actTable extends React.Component{
         }).then((res)=>{
             loading.style.display="none"
             if(res){
-                this.setState({
-                    pageNo:res.pageInfo.pageNo,
-                    pageSize:res.pageInfo.pageSize,
-                })
-                //storage[menuId]=JSON.stringify(res); //存储一个列表数据              
-                this.editList(res)
+                this.editList(res)          
                 if(res.entities.length>0){
                     this.setState({
-                        newRecordCode:res.entities[0].code
+                        newRecordCode:res.entities[0].code,
+                        pageNo:res.pageInfo.pageNo,
+                        pageSize:res.pageInfo.pageSize,
                     })
                 }
             }
@@ -54,31 +47,32 @@ export default class actTable extends React.Component{
 	}
     editList=(data)=>{
 		const list=[]
-        const codes=[];
+        const codes=[]
+        const {menuId}=this.state
+        const moduleTitle=data.ltmpl.title
 		if(data.entities && data.entities.length!==0){
-			this.setState({
-				columns:this.renderColumns(data.entities[0].fields),
-				pageCount:data.pageInfo.count,
-            })
             data.entities.map((item)=>{			
                 codes.push(item.code)
                 list.push(item.fields)
                 return false
             })
+			this.setState({
+				columns:this.renderColumns(data.entities[0].fields),//之所以不用ltmpl.columns,因为后面渲染按钮
+                formList:data.criterias,
+                list:this.renderLists(list,menuId,codes),
+				pageCount:data.pageInfo.count,
+            })
 		}else if(data.entities && data.entities.length===0){
 			this.setState({
-				columns:'',
+				columns:"",
 				pageCount:'',
 			})
         }
 		this.setState({
-			formList:data.criterias,
-			list:this.renderLists(list,storage.getItem("menuId"),codes),
-            moduleTitle:data.ltmpl.title,
+            moduleTitle,
             actions:data.actions
 		})
     }
-    //list数据转换
 	renderLists=(data,menuId,codes)=>{
         const result=[];
         data.map((item,index)=>{
@@ -100,7 +94,7 @@ export default class actTable extends React.Component{
     renderColumns=(data)=>{
         if(data){
             data.map((item)=>{
-                let value=item.title;
+                const value=item.title;
                 item["dataIndex"]=value;	
                 return false						
             })
@@ -121,14 +115,14 @@ export default class actTable extends React.Component{
                         type="primary" 
                         icon="align-left" 
                         size="small" 
-                        onClick={(e)=>this.handleOperate("detail",record,e)}>
+                        onClick={()=>this.handleOperate("detail",record)}>
                         详情
                     </Button>
                     <Button 
                         type="dashed" 
                         icon="edit" 
                         size="small" 
-                        onClick={(e)=>this.handleOperate("edit",record,e)}>
+                        onClick={()=>this.handleOperate("edit",record)}>
                         修改
                     </Button>
                 </span>
@@ -138,9 +132,9 @@ export default class actTable extends React.Component{
             return data
         }		
     } 
-    handleOperate=(type,record,e)=>{
-        e.stopPropagation();//阻止事件冒泡，防止点击按钮选中整行
-		const menuId=storage.getItem("menuId")
+    handleOperate=(type,record)=>{
+        const { menuId,selectCodes }=this.state
+        const code=record.code
         this.setState({loading:true,Loading:true})
         if(type==="delete"){
             Modal.confirm({
@@ -152,7 +146,7 @@ export default class actTable extends React.Component{
 					Super.super({
                         url:`/api/entity/curd/remove/${menuId}`,
                         data:{
-                            codes:this.state.selectCodes
+                            codes:selectCodes
                         }            
 					}).then((res)=>{
                         this.setState({loading:false,Loading:false})
@@ -167,22 +161,14 @@ export default class actTable extends React.Component{
                     this.setState({loading:false,Loading:false})
                 }
 			})
-		}else if(type==="detail"){	
-			this.handleDetail({record},"detail")
-		}else if(type==="edit"){
-			this.handleDetail({record},"edit")
+		}else{
+            this.props.history.push(`/${menuId}/${type}/${code}`)
+            this.setState({loading:false,Loading:false})
 		}
-    }   
-    handleDetail=({record},type)=>{
-        const menuId=record.menuId
-        const code=record.code	
-        this.props.history.push(`/${menuId}/${type}/${code}`)	
-        console.log(record)
-        this.setState({loading:false,Loading:false})
-	} 
+    }
     //搜索和页码
 	searchList=(params)=>{
-		const menuId=storage.getItem("menuId");
+		const {menuId}=this.state
         let data="";
         this.setState({Loading:true})
 		if(isNaN(params)){
@@ -206,7 +192,7 @@ export default class actTable extends React.Component{
             })
 			this.setState({
                 Loading:false,
-				list:this.renderLists(list,storage.getItem("menuId"),code),
+				list:this.renderLists(list,menuId,code),
 				code,
                 pageCount:res.pageInfo.count,
                 currentPage:res.pageInfo.pageNo,               
@@ -224,26 +210,26 @@ export default class actTable extends React.Component{
         this.props.history.push(`/${menuId}/import`)
     }
     handleActions=(actionId)=>{
-        const menuId=storage.getItem("menuId");
+        const {menuId,selectCodes}=this.state;
         this.setState({Loading:true})
         Super.super({
             url:`/api/entity/curd/do_action/${menuId}/${actionId}`, 
             data:{
-                codes:this.state.selectCodes
+                codes:selectCodes
             }                 
         }).then((res)=>{
             this.setState({Loading:false,selectedRowKeys: [],})
             if(res && res.status==="suc"){
-               this.fresh(res.msg)
+                this.fresh(res.msg)
             }else{
                 message.error(res.status)
             }
         })
     }
     fresh=(msg)=>{
-        const menuId=storage.getItem("menuId");
+        const {menuId}=this.state
         this.setState({Loading:true})
-        this.child.reset()
+        this.child.reset()//搜索栏重置
         Super.super({
             url:`/api/entity/curd/list/${menuId}`,                
         }).then((res)=>{
@@ -253,7 +239,6 @@ export default class actTable extends React.Component{
                     Loading:false,
                     selectedRowKeys: [],
                 })
-                storage[menuId]=JSON.stringify(res); //存储一个列表数据
                 this.editList(res)
                 message.success(msg)
             }
@@ -339,7 +324,7 @@ export default class actTable extends React.Component{
                     total={pageCount} 
                     onChange={this.searchList} 
                     hideOnSinglePage={true}
-                    showTotal={()=>this.showTotal(pageCount)}
+                    showTotal={()=>`共 ${pageCount} 条`}
                     />
             </div>
            

@@ -2,9 +2,10 @@
     height:50px;
     line-height: 50px;
     text-align:right;
-    background: #002140;
-    color:#fff;
-    font-size: 16px
+    color:#333;
+    background: #fff;
+    font-size: 16px;
+    border-bottom: 1px solid #40a9ff;
 }
 .ant-dropdown-menu-item, .ant-dropdown-menu-submenu-title{
     font-size: 16px
@@ -20,6 +21,7 @@
 }
 .userLogin:hover{
     background: #4a5f74;
+    color:#fff;
 }
 .ant-dropdown-menu-item, .ant-dropdown-menu-submenu-title{
     color:#fff;

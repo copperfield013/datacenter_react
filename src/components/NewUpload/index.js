@@ -13,7 +13,7 @@ export default class NewUpload extends React.Component{
             this.setState({
                 fileList:[{
                     uid:"-1",
-                    name:`${fieldName}.png`,
+                    name:`${fieldName}`,
                     status: 'done',
                     url: `/file-server/${fieldValue}`,
                 }]

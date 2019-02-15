@@ -1,5 +1,5 @@
 import React from 'react'
-import {Input,Form,Select,DatePicker,Avatar,Icon,InputNumber} from 'antd'
+import {Input,Form,Select,DatePicker,Avatar,Icon,InputNumber,Button} from 'antd'
 import Units from "../../units";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
@@ -20,6 +20,11 @@ export default class BaseInfoForm extends React.Component{
             visiCascader:"inline-block"
         })
     }
+    changeFile=(e)=>{
+        this.setState({
+            close:"none"
+        })
+    }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
         const { formList,width,type }=this.props
@@ -29,7 +34,7 @@ export default class BaseInfoForm extends React.Component{
                 const fieldName=item.fieldName;
                 const title=item.title;
                 const field=item.fieldId
-                const fieldValue=type==="new"?null:item.value;
+                const fieldValue=type==="new"?"":item.value;
                 if(item.type==="date"){
                     const DATE= <FormItem label={title} key={field} className='labelcss'>
                                     {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
@@ -102,12 +107,11 @@ export default class BaseInfoForm extends React.Component{
                                             </Select>)}
                                     </FormItem> 
                     formItemList.push(SELECT)    
-                }else if(item.type==="label"){
-                    const result=fieldValue?fieldValue.split(','):[];                    
-                    const LABEL= <FormItem label={fieldName} key={field} className='labelcss'>
+                }else if(item.type==="label"){            
+                    const LABEL= <FormItem label={title} key={field} className='labelcss'>
                                         {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
-                                            getFieldDecorator(fieldName,{
-                                                initialValue:result,
+                                            getFieldDecorator(title,{
+                                                initialValue:fieldValue?fieldValue.split(','):[],
                                                 rules:item.validators==="required"?[{
                                                         required: true, message: `请选择${title}`,
                                                       }]:"",
@@ -161,12 +165,28 @@ export default class BaseInfoForm extends React.Component{
                                         {type==="detail"?
                                             fieldValue?<span className="downAvatar">
                                                 <Avatar shape="square" src={`/file-server/${fieldValue}`}/>
-                                                <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a>
+                                                <Button href={`/file-server/${fieldValue}`} download="logo.png" size="small"><Icon type="download"/></Button>
                                                 </span>:<span className="downAvatar">无文件</span>
+                                        :
+                                        fieldValue?
+                                        <div>
+                                            <span className="downAvatar" style={{display:this.state.close}}>
+                                                <Avatar shape="square" src={`/file-server/${fieldValue}`}/>
+                                                <Button onClick={this.changeFile} size="small"><Icon type="close" /></Button>
+                                            </span>
+                                            {this.state.close==="none"?getFieldDecorator(title,{
+                                                    rules:item.validators==="required"?[{
+                                                            required: true, message: `请输入${title}`,
+                                                            }]:"",
+                                                })(
+                                                    <NewUpload
+                                                        width={width}
+                                                    />
+                                                ):""}
+                                        </div>
                                         :
                                         getFieldDecorator(title)(
                                             <NewUpload
-                                                fieldValue={fieldValue}
                                                 width={width}
                                             />
                                         )}

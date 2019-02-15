@@ -11,8 +11,6 @@ import ModelForm from './../../components/ModelForm/modelForm'
 const confirm = Modal.confirm;
 
 const storage=window.sessionStorage;
-let records=[]
-let optArr=[]
 export default class Detail extends React.Component{
     state={
         visibleModal: false,
@@ -25,6 +23,7 @@ export default class Detail extends React.Component{
         options:[],
         visibleForm:false,
         isNew:false,
+        records:[]
     }
     componentWillMount(){
         const menuId=this.props.match.params.menuId;
@@ -36,10 +35,6 @@ export default class Detail extends React.Component{
             code,
         })
         this.loadRequest(menuId,type,code)
-    }
-    componentWillUnmount(){      
-        records=[] //切换清空原有数据
-        optArr=[]
     }
     loadRequest=(menuId,type,code)=>{
         this.setState({loading:true})
@@ -207,6 +202,7 @@ export default class Detail extends React.Component{
         const { type }=this.state; 
         const tokenName=storage.getItem('tokenName')
         const selectId=[]
+        const optArr=[]
         if(type==="edit" || type==="new"){
             formList.map((item)=>{
                 item.fields.map((it)=>{
@@ -226,25 +222,32 @@ export default class Detail extends React.Component{
                 })
                 return false
             })
-        const formData = new FormData();
-        selectId.map((item)=>{
-            formData.append('fieldIds',item);
-            return false
-        })
-        superagent
-            .post(`/api/field/options`)
-            .set({"datamobile-token":tokenName})
-            .send(formData)
-            .end((req,res)=>{
-                optArr.push(res.body.optionsMap)
-                //console.log(optArr)
+        if(selectId.length>0){  //有下拉框时，发送请求
+            const formData = new FormData();
+            selectId.map((item)=>{
+                formData.append('fieldIds',item);
+                return false
             })
+            superagent
+                .post(`/api/field/options`)
+                .set({"datamobile-token":tokenName})
+                .send(formData)
+                .end((req,res)=>{
+                    optArr.push(res.body.optionsMap)
+                    this.setState({
+                        optArr
+                    })
+                    
+                    //console.log(optArr)
+                })
+            }
         }
     }
     removeList=(record)=>{
         const deleKey=record.key
         const dataSource =[...this.state.dataSource];      
         const newDataSource=[]
+        const records=[]
         dataSource.map((item)=>{
             const newData=[]
             item.map((it)=>{
@@ -266,10 +269,6 @@ export default class Detail extends React.Component{
             newDataSource.push(newData)           
             return false
         })
-        this.setState({
-            dataSource:newDataSource
-        })
-        records=[]
         newDataSource.map((item)=>{
             item.map((it)=>{
                 let list={}
@@ -282,6 +281,10 @@ export default class Detail extends React.Component{
                 return false
             })
             return false
+        })
+        this.setState({
+            dataSource:newDataSource,
+            records,
         })
     }
     requestTableList=(data)=>{
@@ -346,12 +349,11 @@ export default class Detail extends React.Component{
         this.setState({loading:true})
         const tokenName=storage.getItem('tokenName')
         const formData = new FormData();
-        const { menuId,code,type }=this.state       
-        const { baseValue,fuseMode,descsFlag }=this.state
+        const { menuId,code,type,records,baseValue,fuseMode,descsFlag }=this.state
         formData.append('唯一编码', type==="new"?"":code);
         formData.append('%fuseMode%',fuseMode);
         for(let k in baseValue){
-            formData.append(k, baseValue[k]);
+            formData.append(k, baseValue[k]?baseValue[k]:"");
         }
         descsFlag.map((item)=>{ //添加$$flag$$
             item.map((it)=>{
@@ -402,7 +404,6 @@ export default class Detail extends React.Component{
         });
       }
     baseInfo=(baseValue)=>{
-        //console.log(baseValue)
         if(baseValue){           
             this.setState({
                 visibleModal: true,
@@ -441,6 +442,7 @@ export default class Detail extends React.Component{
     }
     getRecords=()=>{
         const dataSource =[...this.state.dataSource];
+        const {records}=this.state
         dataSource.map((item)=>{
             item.map((it)=>{
                 let list={}
@@ -464,6 +466,7 @@ export default class Detail extends React.Component{
             })
             return false
         })
+        this.setState({records})
     }
     showModal = () => {
         this.baseinfo.handleBaseInfoSubmit() //获取BaseInfo数据
@@ -487,9 +490,6 @@ export default class Detail extends React.Component{
             fuseMode:checked
         })
     }
-    handleMenuClick=(e)=>{
-        console.log('click', e);
-      }
     handleNav=()=>{
         const obj=document.getElementsByClassName("main")[0]		
 		const scrollTop  = obj.scrollTop;  //页面滚动高度
@@ -522,6 +522,7 @@ export default class Detail extends React.Component{
         }
     } 
     getOptions=(id)=>{  
+        const {optArr}=this.state
         optArr.map((item)=>{
             for(let k in item){
                 if(k===`field_${id}`){      
@@ -543,7 +544,7 @@ export default class Detail extends React.Component{
         const key=fieldsValue.key;
         const totalName=fieldsValue.totalName;
         let { dataSource,isNew,columns }=this.state;
-        console.log(dataSource)
+        //console.log(dataSource)
         if(isNew){ //新增记录
             let i="";
             columns.map((item,index)=>{ //得知第几个数组新增
