@@ -1,9 +1,10 @@
 import React from 'react'
 import { Pagination ,Card,Table,Button,Icon,Popover,Modal,message} from 'antd';
 import BaseForm from "./../../components/BaseForm"
+import ExportFrame from './../../components/exportFrame/exportFrame'
 import Super from "./../../super"
 import './index.css'
-import ExportFrame from './../../components/exportFrame/exportFrame'
+import moment from 'moment';
 
 export default class actTable extends React.Component{
     state={
@@ -171,11 +172,20 @@ export default class actTable extends React.Component{
         let data="";
         this.setState({Loading:true})
 		if(isNaN(params)){
+            for(let k in params){
+                if(typeof params[k]==="object"){ //日期格式转换
+                    const arr=[]
+                    params[k].map(item=>{
+                        arr.push(moment(item).format("YYYY-MM-DD"))
+                    }) 
+                    params[k]=arr.join("~")
+                }
+            }
             data={...params}
             this.setState({filterOptions:data})
 		}else{
 			data={pageNo:params}
-		}
+        }
 		Super.super({
 			url:`/api/entity/curd/list/${menuId}`,  
 			data:{
