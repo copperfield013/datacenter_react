@@ -8,6 +8,7 @@ import 'moment/locale/zh-cn';
 import EditTable from './../../components/EditTable/editTable'
 import FormCard from './../../components/FormCard'
 import ModelForm from './../../components/ModelForm/modelForm'
+import RightBar from './../../components/RightBar'
 const confirm = Modal.confirm;
 
 const storage=window.sessionStorage;
@@ -23,12 +24,11 @@ export default class Detail extends React.Component{
         options:[],
         visibleForm:false,
         isNew:false,
-        records:[]
+        records:[],
+        optArr:[],
     }
     componentWillMount(){
-        const menuId=this.props.match.params.menuId;
-        const code=this.props.match.params.code;
-        const type=this.props.match.params.type;
+        const {menuId,code,type}=this.props.match.params
         this.setState({
             menuId,
             type,
@@ -135,7 +135,7 @@ export default class Detail extends React.Component{
             return false
         })
         this.requestSelect(formList,itemDescs)
-        //this.props.scrollIds(scrollIds)
+        storage.setItem("scrollIds",scrollIds)
         this.setState({
             detailsList,
             formList,           
@@ -143,9 +143,9 @@ export default class Detail extends React.Component{
             columns,
             dataSource,
             cardTitle,
-            scrollIds,
             descsFlag //为了加$$flag$$
         })
+        this.handleNav(scrollIds)
     }
     renderColumns=(item)=>{
         const {type}=this.state        
@@ -237,7 +237,6 @@ export default class Detail extends React.Component{
                     this.setState({
                         optArr
                     })
-                    
                     //console.log(optArr)
                 })
             }
@@ -290,7 +289,7 @@ export default class Detail extends React.Component{
     requestTableList=(data)=>{
         const {type}=this.state
         const res=[]    
-        if(data.array&& type!=="new"){
+        if(data.array && type!=="new"){
             data.array.map((item,index)=>{
                 const list={};   
                 const code=item.code;
@@ -314,7 +313,7 @@ export default class Detail extends React.Component{
                         list[fieldName]=fieldValue?
                         <span className="downEditPic">
                             <img style={{width:55}} src={`/file-server/${fieldValue}`} alt="图片加载失败"/>
-                            <a href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></a>
+                            <Button size="small" href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></Button>
                         </span>
                         :"无文件"
                     }else{
@@ -479,60 +478,35 @@ export default class Detail extends React.Component{
     onRef2=(ref)=>{
 		this.modelform=ref
     }
-    scrollToAnchor = (anchorName) => {
-        if (anchorName) {
-            let anchorElement = document.getElementById(anchorName);
-            if(anchorElement) { anchorElement.scrollIntoView({behavior: 'smooth'})}
-        }
-      }
     fuseMode=(checked)=>{
         this.setState({
             fuseMode:checked
         })
     }
-    handleNav=()=>{
-        const obj=document.getElementsByClassName("main")[0]		
-		const scrollTop  = obj.scrollTop;  //页面滚动高度
-        const clientHeight   = obj.clientHeight;// 视口高度
-        const scrollIds=this.state.scrollIds;
-		const mainTopArr = []; 
-		let k=0;
-		if(scrollIds){	//滑动锁定导航
-			for(let i=0;i<scrollIds.length;i++){
-                let node=document.getElementById(scrollIds[i])
-				if(node){
-					let top = Math.floor(node.offsetTop); 	
-					mainTopArr.push(top);
-				}		
-			}
-			mainTopArr.sort((a,b)=> a-b)//排序
-			for(let i=0;i<mainTopArr.length;i++){ 
-				if((scrollTop+clientHeight/2)>=mainTopArr[i]){ 
-				    k=i; 
-				} 
-			} 
-			const list=document.getElementsByClassName("rightBar")[0]
-			if(list){
-				const lis=list.getElementsByTagName("li")
-				for(let i=0;i<lis.length;i++){
-					lis[i].style.backgroundColor="#fff"
-				}
-				lis[k].style.backgroundColor="#cfe3f5"
-			}
+    handleNav=(scrollIds)=>{
+        const list=document.getElementsByClassName("rightBar")[0]
+        if(list){
+            const lis=list.getElementsByTagName("li")
+            for(let i=0;i<lis.length;i++){
+                lis[i].style.backgroundColor="#fff"
+            }
+            lis[0].style.backgroundColor="#cfe3f5"
         }
     } 
     getOptions=(id)=>{  
         const {optArr}=this.state
-        optArr.map((item)=>{
-            for(let k in item){
-                if(k===`field_${id}`){      
-                    this.setState({
-                        options:item[k]
-                    })
+        if(optArr){
+            optArr.map((item)=>{
+                for(let k in item){
+                    if(k===`field_${id}`){      
+                        this.setState({
+                            options:item[k]
+                        })
+                    }
                 }
-            }
-            return false
-        })
+                return false
+            })
+        }        
     }
     visibleForm=(data,record)=>{
         this.getForm(data,record)
@@ -670,6 +644,16 @@ export default class Detail extends React.Component{
               <Button>Actions</Button>
             </div>
           );
+        const list=[]
+        if(formList){
+            formList.map((item)=>{
+                list.push(item.title)
+                return false
+            })          
+        }
+        if(cardTitle){
+            list.push(...cardTitle)
+        }
         return(
             <div className="detailPage">
                 <h3>
@@ -678,13 +662,13 @@ export default class Detail extends React.Component{
                     }   
                     {
                         type==="detail"?
-                        <div className="fr">
+                        <div className="fr pad">
                             <Button className="hoverbig" title="导出" onClick={this.exportDetail}><Icon type="upload" /></Button>
                             <Button className="hoverbig" title="查看历史" onClick={this.showHistory}><Icon type="schedule" /></Button>                                                      
                             <Button className="hoverbig" title="刷新" onClick={()=>this.loadRequest(menuId,type,code)}><Icon type="sync" /></Button>
                         </div>
                         :
-                        <div className="fr">
+                        <div className="fr pad">
                             <div className="buttonGroup">
                             <Button>Actions</Button>
                             <Popover placement="leftTop" content={content} trigger="click">
@@ -760,20 +744,9 @@ export default class Detail extends React.Component{
                 </Drawer>
                 {
                     !cardTitle||cardTitle.length<1?"":
-                    <div className="rightBar">
-                    <ul>
-                        {
-                            formList.map((item)=>{
-                                return <li onClick={()=>this.scrollToAnchor(item.title)} key={item.title}>{item.title}</li>
-                            })
-                        }
-                        {
-                            cardTitle?cardTitle.map((item)=>{
-                                return <li onClick={()=>this.scrollToAnchor(item)} key={item}>{item}</li>
-                            }):""
-                        }
-                    </ul>
-                </div>
+                    <RightBar 
+                        list={list}
+                    />
                 }
                 
             </div>

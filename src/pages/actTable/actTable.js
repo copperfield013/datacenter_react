@@ -15,7 +15,7 @@ export default class actTable extends React.Component{
         actions:[]
     }
     componentDidMount(){
-        const menuId=this.props.match.params.menuId;
+        const {menuId}=this.props.match.params;
         this.setState({menuId})
         this.requestList(menuId)
     }

@@ -10,23 +10,21 @@ class FormCard extends React.Component{
     }
     handleBaseInfoSubmit=()=>{
         this.props.form.validateFields({ force: true }, (err, values) => { //提交再次验证
-            if(!err){               
-                const fieldsValue=this.props.form.getFieldsValue()
+            if(!err){
                 const result={}
-                for(let k in fieldsValue){
-                    if(k.indexOf("日期")>-1 && fieldsValue[k]){ //日期格式转换
-                        result[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
+                for(let k in values){
+                    if(k.indexOf("日期")>-1 && values[k]){ //日期格式转换
+                        result[k]=moment(values[k]).format("YYYY-MM-DD")
                     }else if(k==="头像"){
-                        if(fieldsValue[k]){
-                            result[k]=fieldsValue[k].originFileObj
+                        if(values[k]){
+                            result[k]=values[k].originFileObj
                         }else{
                             result[k]=""
                         }
                     }else{
-                        result[k]=fieldsValue[k]
+                        result[k]=values[k]
                     }
                 }
-                console.log(result)
                 this.props.baseInfo(result)
             }
         })

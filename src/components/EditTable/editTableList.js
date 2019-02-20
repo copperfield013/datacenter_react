@@ -16,15 +16,27 @@ export default class EditTableList extends React.Component {
     console.log(`selected ${value}`);
   }
   searchValue=(e)=>{
-    const columns=this.props.columns
-    const dataSource=this.props.dataSource
+    const {columns,dataSource}=this.props
     const txt=e.target.value
     const data=[]
     columns.map((item)=>{
       const fieldName=item.fieldName;
       if(fieldName && fieldName.indexOf("封面")===-1){
         if(e.target.value){
-          data.push(...dataSource.filter(item=>item[fieldName].indexOf(txt)>-1))
+          const arr=[]
+          arr.push(...dataSource.filter(item=>typeof item[fieldName]==="string" && item[fieldName].indexOf(txt)>-1))
+          //匹配到一行两个条件，去重
+          for(let i=0;i<arr.length;i++){ 
+            　　let flag = true;
+            　　for(let j=0;j<data.length;j++){
+            　　　　if(arr[i].key === data[j].key){
+            　　　　　　flag = false;
+            　　　　};
+            　　}; 
+            　　if(flag){
+                  data.push(arr[i]);
+            　　};
+            };
         }else{
           if(data.indexOf(...dataSource)===-1){
             data.push(...dataSource)

@@ -28,7 +28,7 @@ export default class BaseInfoForm extends React.Component{
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
         const { formList,width,type }=this.props
-        const formItemList=[];
+        const formItemList=[];      
         if(formList && formList.length>0){
             formList.forEach((item)=>{
                 const fieldName=item.fieldName;
@@ -40,7 +40,7 @@ export default class BaseInfoForm extends React.Component{
                                     {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         getFieldDecorator(title,{
                                             initialValue:!fieldValue||fieldValue===""?null:moment(fieldValue,'YYYY-MM-DD'),
-                                            rules:item.validators==="required"?[{
+                                            rules:item.validators?[{
                                                     required: true, message: `请选择${title}`,
                                                   }]:"",
                                         })(
@@ -57,16 +57,16 @@ export default class BaseInfoForm extends React.Component{
                     const TEXT= <FormItem label={title} key={field} className='labelcss'>
                                     {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         getFieldDecorator(title,{
-                                        initialValue:fieldValue,
-                                        rules:item.validators==="required"?[{
-                                                required: true, message: `请输入${title}`,
-                                              }]:"",
-                                    })(
-                                        <Input 
-                                            type="text" 
-                                            style={{width:width}}
-                                            placeholder={`请输入${title}`}
-                                            />
+                                            initialValue:fieldValue,
+                                            rules:item.validators?[{
+                                                    required: true, message: `请输入${title}`,
+                                                }]:"",
+                                        })(
+                                            <Input 
+                                                type="text" 
+                                                style={{width:width}}
+                                                placeholder={`请输入${title}`}
+                                                />
                                     )}
                                 </FormItem>   
                     formItemList.push(TEXT)                
@@ -75,7 +75,7 @@ export default class BaseInfoForm extends React.Component{
                                         {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                             getFieldDecorator(title,{
                                                 initialValue:fieldValue,
-                                                rules:item.validators==="required"?[{
+                                                rules:item.validators?[{
                                                         required: true, message: `请选择${title}`,
                                                       }]:"",
                                         })(
@@ -93,10 +93,10 @@ export default class BaseInfoForm extends React.Component{
                 }else if(item.type==="relation"){ //modelForm里面的关系下拉框
                     const SELECT= <FormItem label={title} key={[field]} className='labelcss'>
                                         {getFieldDecorator(title,{
-                                                initialValue:fieldValue,
-                                                rules:item.validators==="required"?[{
-                                                        required: true, message: `请选择${title}`,
-                                                      }]:"",
+                                            initialValue:fieldValue,
+                                            rules:item.validators?[{
+                                                    required: true, message: `请选择${title}`,
+                                                    }]:"",
                                         })(
                                             <Select 
                                                 style={{width:width}}
@@ -112,7 +112,7 @@ export default class BaseInfoForm extends React.Component{
                                         {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                             getFieldDecorator(title,{
                                                 initialValue:fieldValue?fieldValue.split(','):[],
-                                                rules:item.validators==="required"?[{
+                                                rules:item.validators?[{
                                                         required: true, message: `请选择${title}`,
                                                       }]:"",
                                             })(
@@ -138,7 +138,7 @@ export default class BaseInfoForm extends React.Component{
                                         fieldValue?<div>
                                             <Input style={{width:width}} value={fieldValue} onClick={this.changeCascader} readOnly/>
                                             {this.state.visiCascader==="inline-block"?getFieldDecorator(fieldName,{
-                                                rules:item.validators==="required"?[{
+                                                rules:item.validators?[{
                                                         required: true, message: `请输入${title}`,
                                                         }]:"",
                                             })(
@@ -149,7 +149,7 @@ export default class BaseInfoForm extends React.Component{
                                             ):""}
                                             </div>:
                                             getFieldDecorator(fieldName,{
-                                                rules:item.validators==="required"?[{
+                                                rules:item.validators?[{
                                                         required: true, message: `请输入${title}`,
                                                       }]:"",
                                             })(
@@ -175,7 +175,7 @@ export default class BaseInfoForm extends React.Component{
                                                 <Button onClick={this.changeFile} size="small"><Icon type="close" /></Button>
                                             </span>
                                             {this.state.close==="none"?getFieldDecorator(title,{
-                                                    rules:item.validators==="required"?[{
+                                                    rules:item.validators?[{
                                                             required: true, message: `请输入${title}`,
                                                             }]:"",
                                                 })(
@@ -201,10 +201,24 @@ export default class BaseInfoForm extends React.Component{
                                             <InputNumber 
                                                 placeholder={`请输入${title}`}  
                                                 style={{width:width}} 
+                                                step={0.1}
                                                 min={0}/>
                                         )}
                                     </FormItem>
                     formItemList.push(decimal)   
+                }else if(item.type==="int"){
+                    const int= <FormItem label={title} key={field} className='labelcss'>
+                                        {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
+                                        getFieldDecorator(title,{
+                                            initialValue:fieldValue,
+                                        })(
+                                            <InputNumber 
+                                                placeholder={`请输入${title}`}  
+                                                style={{width:width}} 
+                                                min={0}/>
+                                        )}
+                                    </FormItem>
+                    formItemList.push(int)   
                 }
                 return false
             })

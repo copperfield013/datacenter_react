@@ -1,13 +1,32 @@
 import React from 'react'
 import { Menu} from 'antd';
 import Super from "./../../super"
-import { NavLink } from 'react-router-dom'
+import { NavLink,withRouter } from 'react-router-dom'
 import './index.css'
 const SubMenu = Menu.SubMenu;
 
-export default class NavLeft extends React.Component{
+class NavLeft extends React.Component{
 	state={
 		menuTreeNode:[],
+		selectedKeys:[],
+		openKeys:[]
+	}
+	componentWillReceiveProps(){
+		const menuId=this.props.history.location.pathname.split("/")[1]
+		const {open}=this.state
+		const key=[]
+		for(let k in open){
+			open[k].map((it)=>{
+				if(it.toString()===menuId){
+					key.push(k)
+				}
+				return false
+			})
+		}
+		this.setState({
+			selectedKeys:[menuId],
+			openKeys:key
+		})
 	}
 	componentWillMount(){
 		this.request()
@@ -17,8 +36,21 @@ export default class NavLeft extends React.Component{
 			url:'/api/menu/getMenu',                 
 		}).then((res)=>{
 			const menuTreeNode = this.renderMenu(res.menus)
+			const open={}
+			res.menus.map((item)=>{
+				if(item.level2s){
+					const ids=[]
+					item.level2s.map((it)=>{
+						ids.push(it.id)
+						return false
+					})
+					open[item.id]=ids
+				}
+				return false
+			})
 			this.setState({
 				menuTreeNode,
+				open
 			})
 		})	
 	}
@@ -37,10 +69,13 @@ export default class NavLeft extends React.Component{
 	handleOpen=(openKeys)=>{
 		if(openKeys.length>1){
 			openKeys.splice(0,1);
-		}		
+		}	
+		this.setState({
+			openKeys
+		})
 	}
 	render(){
-		const { menuTreeNode }=this.state
+		const { menuTreeNode,selectedKeys,openKeys }=this.state
 		return (
 			<div>
 				<div className="logo">
@@ -50,6 +85,8 @@ export default class NavLeft extends React.Component{
 					mode="inline"
 					theme="dark"
 					onOpenChange={this.handleOpen} //手风琴
+					selectedKeys={selectedKeys}
+					openKeys={openKeys}
 					>
 					{menuTreeNode}
 				</Menu>
@@ -57,3 +94,4 @@ export default class NavLeft extends React.Component{
 		)
 	}
 }
+export default withRouter(NavLeft)
