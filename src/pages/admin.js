@@ -1,22 +1,21 @@
 import React from 'react'
 import {Row,Col} from 'antd'
+import Units from './../units'
 import Header from './../components/Header'
 import Footer from './../components/Footer'
 import NavLeft from './../components/NavLeft'
 
-const storage=window.sessionStorage;
 export default class Admin extends React.Component{
 	handleNav=(e)=>{	
 		e.preventDefault()
 		e.stopPropagation()	
-		let scrollIds=storage.getItem("scrollIds")
+		let scrollIds=Units.getLocalStorge("scrollIds")
 		const obj=document.getElementsByClassName("main")[0]		
 		const scrollTop  = obj.scrollTop;  //页面滚动高度
 		const clientHeight=obj.clientHeight;
 		const mainTopArr = []; 
 		let k=0;
 		if(scrollIds){	//滑动锁定导航
-			scrollIds=scrollIds.split(",")
 			for(let i=0;i<scrollIds.length;i++){
                 let node=document.getElementById(scrollIds[i])
 				if(node){

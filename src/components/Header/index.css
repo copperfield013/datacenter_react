@@ -8,7 +8,8 @@
     border-bottom: 1px solid #40a9ff;
 }
 .ant-dropdown-menu-item, .ant-dropdown-menu-submenu-title{
-    font-size: 16px
+    font-size: 16px;
+    text-align: center;
 }
 .userLogin{
     float:right;

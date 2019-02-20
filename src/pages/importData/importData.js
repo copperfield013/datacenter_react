@@ -7,7 +7,6 @@ import ModelImport from "./../../components/ModelImport"
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import './index.css'
 
-const storage=window.sessionStorage;
 const CheckboxGroup = Checkbox.Group;
 let MSG=[];
 const checkedList = ['INFO', 'SUC', 'ERROR', 'WARN'];
@@ -32,7 +31,7 @@ export default class Import extends React.Component{
     handleUpload = () => {
         const { fileList,menuId } = this.state;
         const formData = new FormData();
-        const tokenName=storage.getItem('tokenName')
+        const tokenName=Units.getLocalStorge("tokenName")
         formData.append('file', ...fileList);
         this.setState({
             uploading: true,

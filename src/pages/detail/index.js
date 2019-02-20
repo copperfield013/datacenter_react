@@ -11,7 +11,6 @@ import ModelForm from './../../components/ModelForm/modelForm'
 import RightBar from './../../components/RightBar'
 const confirm = Modal.confirm;
 
-const storage=window.sessionStorage;
 export default class Detail extends React.Component{
     state={
         visibleModal: false,
@@ -38,23 +37,38 @@ export default class Detail extends React.Component{
     }
     loadRequest=(menuId,type,code)=>{
         this.setState({loading:true})
-        Super.super({
-            url:`/api/entity/curd/detail/${menuId}/${code}`,       
-            data:{
-                isShowLoading:true
-            }          
-        }).then((res)=>{
-            const detailsList=res.entity.fieldGroups; 
-            this.detailTitle(res,type)
-            this.renderList(detailsList)
-            if(res.history){                   
-                const detailHistory=this.renderHistoryList(res.history);
-                this.setState({
-                    detailHistory
-                }) 
-            }
-            this.setState({loading:false})          
-        }) 
+        if(code){
+            Super.super({
+                url:`/api/entity/curd/detail/${menuId}/${code}`,       
+                data:{
+                    isShowLoading:true
+                }          
+            }).then((res)=>{
+                const detailsList=res.entity.fieldGroups; 
+                this.detailTitle(res,type)
+                this.renderList(detailsList)
+                if(res.history){                   
+                    const detailHistory=this.renderHistoryList(res.history);
+                    this.setState({
+                        detailHistory
+                    }) 
+                }
+                this.setState({loading:false})          
+            }) 
+        }else{
+            Super.super({
+                url:`/api/entity/curd/dtmpl/${menuId}`,       
+                data:{
+                    isShowLoading:true
+                }          
+            }).then((res)=>{
+                const detailsList=res.entity.fieldGroups; 
+                this.detailTitle(res,type)
+                this.renderList(detailsList)
+                this.setState({loading:false})
+            })
+        }
+        
     }
     renderHistoryList=(data)=>{
 		return data.map((item,index)=>{
@@ -135,7 +149,7 @@ export default class Detail extends React.Component{
             return false
         })
         this.requestSelect(formList,itemDescs)
-        storage.setItem("scrollIds",scrollIds)
+        Units.setLocalStorge("scrollIds",scrollIds)
         this.setState({
             detailsList,
             formList,           
@@ -200,7 +214,7 @@ export default class Detail extends React.Component{
     }
     requestSelect=(formList,detailsList)=>{
         const { type }=this.state; 
-        const tokenName=storage.getItem('tokenName')
+        const tokenName=Units.getLocalStorge("tokenName")
         const selectId=[]
         const optArr=[]
         if(type==="edit" || type==="new"){
@@ -346,7 +360,7 @@ export default class Detail extends React.Component{
     handleOk = (e) => {
         e.preventDefault();
         this.setState({loading:true})
-        const tokenName=storage.getItem('tokenName')
+        const tokenName=Units.getLocalStorge("tokenName")
         const formData = new FormData();
         const { menuId,code,type,records,baseValue,fuseMode,descsFlag }=this.state
         formData.append('唯一编码', type==="new"?"":code);
@@ -738,12 +752,12 @@ export default class Detail extends React.Component{
                     visible={visibleDrawer}
                     width={400}
                     >
-                    <Timeline mode="alternate" pending="没有更多了...">
+                    <Timeline mode="alternate">
                         {detailHistory}
                     </Timeline>
                 </Drawer>
                 {
-                    !cardTitle||cardTitle.length<1?"":
+                    !cardTitle||cardTitle.length<=3?"":
                     <RightBar 
                         list={list}
                     />

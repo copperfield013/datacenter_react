@@ -1,17 +1,20 @@
 import React from 'react'
 import {Row,Col,Dropdown,Menu,Icon} from 'antd'
+import Units from './../../units'
 import "./index.css"
 
-const storage=window.sessionStorage;
 export default class Header extends React.Component{
 	componentWillMount(){
 		this.setState({
-			userName:storage.getItem("name")
+			userName:Units.getLocalStorge("name")
 		})
+	}
+	loginout=()=>{
+		window.location.href="/#/login";
 	}
 	render(){
 		const style={
-			marginRight:"6px"
+			marginRight:"8px"
 		}
 		const menu = (
 			<Menu>
@@ -22,7 +25,7 @@ export default class Header extends React.Component{
 					<span><Icon type="form" style={style}/>用户修改</span>
 				</Menu.Item>
 				<Menu.Item>
-					<span><Icon type="logout" style={style}/>退出登录</span>
+					<span onClick={this.loginout}><Icon type="logout" style={style}/>退出登录</span>
 				</Menu.Item>
 			</Menu>
 		  );

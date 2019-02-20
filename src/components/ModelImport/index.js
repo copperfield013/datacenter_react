@@ -5,7 +5,6 @@ import {Button,Icon,Popover,Input,Table,Modal, message} from 'antd'
 import './index.css'
 const confirm = Modal.confirm;
 
-const storage=window.sessionStorage;
 export default class ModelImport extends React.Component{
 
     state={
@@ -80,7 +79,7 @@ export default class ModelImport extends React.Component{
         const { menuId }=this.props
         const { tmplId,modelName,fields,listLength }=this.state
         if(tmplId){
-            const tokenName=storage.getItem('tokenName')
+            const tokenName=Units.getLocalStorge("tokenName")
             confirm({
                 title: `确认下载`,
                 content: `当前模板[${modelName}]，模板内共有${listLength}个字段`,

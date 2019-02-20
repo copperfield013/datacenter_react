@@ -34,10 +34,9 @@ export default class actTable extends React.Component{
         }).then((res)=>{
             loading.style.display="none"
             if(res){
-                this.editList(res)          
+                this.editList(res)         
                 if(res.entities.length>0){
                     this.setState({
-                        newRecordCode:res.entities[0].code,
                         pageNo:res.pageInfo.pageNo,
                         pageSize:res.pageInfo.pageSize,
                     })
@@ -201,12 +200,10 @@ export default class actTable extends React.Component{
 			})
 		})			
     }
-    handleNew=()=>{
-        const {menuId,newRecordCode}=this.state
-        this.props.history.push(`/${menuId}/new/${newRecordCode}`)
+    handleNew=(menuId)=>{
+        this.props.history.push(`/${menuId}/new`)
     }
-    handleImport=()=>{
-        const {menuId}=this.state
+    handleImport=(menuId)=>{
         this.props.history.push(`/${menuId}/import`)
     }
     handleActions=(actionId)=>{
@@ -276,13 +273,13 @@ export default class actTable extends React.Component{
                         <Button 
                             className="hoverbig" 
                             title="创建" 
-                            onClick={()=>this.handleNew()}>
+                            onClick={()=>this.handleNew(menuId)}>
                             <Icon type="plus"/>
                         </Button>
                         <Button 
                             className="hoverbig" 
                             title="导入" 
-                            onClick={()=>this.handleImport()}>
+                            onClick={()=>this.handleImport(menuId)}>
                             <Icon type="download" />
                         </Button>
                         <Popover content={content} title="导出" placement="bottomRight" trigger="click">
@@ -296,7 +293,7 @@ export default class actTable extends React.Component{
                         </Button>
                     </p>
                 </h3>
-                <Card className="hoverable" headStyle={{background:"#f2f4f5"}} loading={loading}>
+                <Card className="hoverable" style={{display:formList?"block":"none"}} headStyle={{background:"#f2f4f5"}} loading={loading}>
                     <BaseForm 
                         formList={formList} 
                         filterSubmit={this.searchList} 
@@ -309,7 +306,7 @@ export default class actTable extends React.Component{
                 </Card>
                 <Table
                     rowSelection={rowSelection}
-                    columns={columns}
+                    columns={columns?columns:[]}
                     dataSource={list}
                     bordered
                     pagination={false}
@@ -321,7 +318,7 @@ export default class actTable extends React.Component{
                     showQuickJumper 
                     defaultCurrent={1} 
                     current={currentPage}
-                    total={pageCount} 
+                    total={pageCount?pageCount:0} 
                     onChange={this.searchList} 
                     hideOnSinglePage={true}
                     showTotal={()=>`共 ${pageCount} 条`}

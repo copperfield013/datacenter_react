@@ -4,9 +4,7 @@ import Super from "../super"
 import Units from '../units'
 const FormItem = Form.Item;
 
-const storage=window.sessionStorage;
 class Loginit extends React.Component{
-
     state={
         username:"",
         password:"",
@@ -71,8 +69,8 @@ class Loginit extends React.Component{
                                     })
                                 }
                                 window.location.href="/#/home";
-                                storage.setItem("tokenName",res.token)
-                                storage.setItem("name",values.username)
+                                Units.setLocalStorge("tokenName",res.token)
+                                Units.setLocalStorge("name",values.username)
                             }else if(res.errorMsg){
                                 message.info(res.errorMsg);
                             }

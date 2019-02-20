@@ -1,10 +1,10 @@
 import superagent from 'superagent'
 import { message } from 'antd';
+import Units from './../units'
 
-const storage=window.sessionStorage;
 export default class Superagent{
     static super(options,type){
-        const tokenName=storage.getItem('tokenName')
+        const tokenName=Units.getLocalStorge("tokenName")
         let loading;
         if(options.data && options.data.isShowLoading!==false){
             loading=document.getElementById('ajaxLoading')

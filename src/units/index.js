@@ -83,5 +83,33 @@ export default {
         for(let i=0;i<n;i++)
             rnd+=Math.floor(Math.random()*10);
         return rnd;
-    }
+    },
+    setLocalStorge(key, value, min) {
+        // 设置过期原则
+        if (!value) {
+          localStorage.removeItem(key)
+        } else {
+          const Min = min || 30; // 默认保留30分钟
+          const exp = new Date();
+          localStorage[key] = JSON.stringify({
+            value,
+            expires: exp.getTime() + Min * 60 * 1000
+          })
+        }
+      },
+    getLocalStorge(name) {
+        try {
+          let o = JSON.parse(localStorage[name])
+          if (!o || o.expires < Date.now()) {
+            return null
+          } else {
+            return o.value
+          }
+        } catch (e) {
+            // 兼容其他localstorage 
+          console.log(e)
+          return localStorage[name]
+        } finally {
+        }
+      },
 }
