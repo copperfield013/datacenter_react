@@ -33,7 +33,7 @@ export default class Superagent{
                         message.info("请求权限不足,可能是token已经超时")
                         window.location.href="/#/login";
                     }else if(res.status===404||res.status===504){
-                        message.info("页面不存在。")
+                        message.info("服务器未开···")
                     }else if(res.status===500){
                         message.info("后台处理错误。")
                     }else{

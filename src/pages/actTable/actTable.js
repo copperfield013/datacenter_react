@@ -177,6 +177,7 @@ export default class actTable extends React.Component{
                     const arr=[]
                     params[k].map(item=>{
                         arr.push(moment(item).format("YYYY-MM-DD"))
+                        return false
                     }) 
                     params[k]=arr.join("~")
                 }

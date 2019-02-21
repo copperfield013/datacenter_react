@@ -33,11 +33,11 @@ class FormCard extends React.Component{
         const { formList,type,form,loading }=this.props
         const formItemList=[];
         if(formList && formList.length>0){
-            formList.map((item)=>{
+            formList.map((item,index)=>{
                 const List=item.fields
                 const BASE=<Card 
                                 title={item.title} 
-                                key={item.title} 
+                                key={item.title+index} 
                                 id={item.title} 
                                 className="hoverable" 
                                 headStyle={{background:"#f2f4f5"}}

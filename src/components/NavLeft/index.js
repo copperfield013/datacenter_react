@@ -36,6 +36,7 @@ class NavLeft extends React.Component{
 			url:'/api/menu/getMenu',                 
 		}).then((res)=>{
 			const menuTreeNode = this.renderMenu(res.menus)
+			const menuId=this.props.history.location.pathname.split("/")[1]
 			const open={}
 			res.menus.map((item)=>{
 				if(item.level2s){
@@ -48,7 +49,18 @@ class NavLeft extends React.Component{
 				}
 				return false
 			})
+			const key=[]
+			for(let k in open){
+				open[k].map((it)=>{
+					if(it.toString()===menuId){
+						key.push(k)
+					}
+					return false
+				})
+			}
 			this.setState({
+				selectedKeys:[menuId],//刷新或打开新页面，展示导航位置
+				openKeys:key,//刷新或打开新页面，展示导航位置
 				menuTreeNode,
 				open
 			})

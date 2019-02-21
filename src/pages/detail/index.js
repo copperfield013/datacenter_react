@@ -403,12 +403,12 @@ export default class Detail extends React.Component{
             .send(formData)
             .end((req,res)=>{
                 loading.style.display="none"
+                console.log(res)
                 if(res.body.status==="suc"){
                     message.info("保存成功！")
                     window.history.back(-1);
                 }else{
                     message.error(res.body.status)
-                    this.loadRequest(menuId,type,code)
                 }
             })
         this.setState({
