@@ -163,12 +163,12 @@ export default class BaseInfoForm extends React.Component{
                 }else if(item.type==="file"){
                     const FILE= <FormItem label={title} key={field} className='labelcss'>
                                         {type==="detail"?
-                                            fieldValue?<span className="downAvatar">
+                                            fieldValue && fieldValue!=="无文件"?<span className="downAvatar">
                                                 <Avatar shape="square" src={`/file-server/${fieldValue}`}/>
                                                 <Button href={`/file-server/${fieldValue}`} download="logo.png" size="small"><Icon type="download"/></Button>
                                                 </span>:<span className="downAvatar">无文件</span>
                                         :
-                                        fieldValue?
+                                        fieldValue && fieldValue!=="无文件"?
                                         <div>
                                             <span className="downAvatar" style={{display:this.state.close}}>
                                                 <Avatar shape="square" src={`/file-server/${fieldValue}`}/>
@@ -176,8 +176,8 @@ export default class BaseInfoForm extends React.Component{
                                             </span>
                                             {this.state.close==="none"?getFieldDecorator(title,{
                                                     rules:item.validators?[{
-                                                            required: true, message: `请输入${title}`,
-                                                            }]:"",
+                                                        required: true, message: `请输入${title}`,
+                                                        }]:"",
                                                 })(
                                                     <NewUpload
                                                         width={width}

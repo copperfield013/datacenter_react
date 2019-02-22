@@ -384,9 +384,7 @@ export default class Detail extends React.Component{
         let res={}
         records.map((item)=>{
             for(let k in item){
-                if(item[k]){
-                    res[k]=item[k] //去重
-                }
+                res[k]=item[k] //去重
             }          
             return false
         })  
@@ -403,7 +401,6 @@ export default class Detail extends React.Component{
             .send(formData)
             .end((req,res)=>{
                 loading.style.display="none"
-                console.log(res)
                 if(res.body.status==="suc"){
                     message.info("保存成功！")
                     window.history.back(-1);
@@ -575,7 +572,7 @@ export default class Detail extends React.Component{
                 return false
             })
         }
-        console.log(dataSource)
+        //console.log(dataSource)
         this.setState({
             dataSource,
             visibleForm:false
@@ -599,7 +596,6 @@ export default class Detail extends React.Component{
                         if(k.indexOf(item.fieldName)>-1){
                             let value=""
                             if(typeof record[k]==="object"){ 
-                                console.log(record[k]) 
                                 if(record[k].props.children){                                               
                                     record[k].props.children.map((item)=>{ 
                                         if(item.props.src){
@@ -640,8 +636,8 @@ export default class Detail extends React.Component{
             }
             return false
         })
-        console.log(editFormList)
-        console.log(columns)
+        // console.log(editFormList)
+        // console.log(columns)
         this.setState({
             editFormList,
             visibleForm:true,
