@@ -441,8 +441,7 @@ export default class Detail extends React.Component{
                     }
                 })
             },
-          });  
-        
+          });          
     }
     handleCancel = () => {
         this.setState({
