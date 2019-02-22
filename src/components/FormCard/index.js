@@ -44,6 +44,7 @@ class FormCard extends React.Component{
                                 loading={loading}
                                 >
                                 <BaseInfoForm 
+                                    key={item.title+index}
                                     formList={List} 
                                     type={type}
                                     form={form}

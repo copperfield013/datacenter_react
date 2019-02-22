@@ -13,9 +13,9 @@ class ModelForm extends React.Component{
         this.props.form.resetFields();
     } 
     handleOk=()=>{
-        let fieldsValue=this.props.form.getFieldsValue();
         const key=this.props.formList[1]["key"]
         const totalName=this.props.formList[1]["fieldName"].split(".")[0]
+        let fieldsValue=this.props.form.getFieldsValue()[totalName];
         const trueKey=key?key:Units.RndNum(9);//随机生成key，进行第二次更改
         for(let k in fieldsValue){
             if(k.indexOf("期")>-1 && fieldsValue[k]){ //日期格式转换
@@ -48,6 +48,7 @@ class ModelForm extends React.Component{
                 >
                 <Form layout="inline" autoComplete="off" > 
                     <BaseInfoForm
+                        key={this.props.title}
                         formList={formList} 
                         type={type} 
                         form={form}

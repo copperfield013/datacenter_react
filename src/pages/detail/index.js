@@ -528,7 +528,7 @@ export default class Detail extends React.Component{
         const key=fieldsValue.key;
         const totalName=fieldsValue.totalName;
         let { dataSource,isNew,columns }=this.state;
-        //console.log(dataSource)
+        //console.log(fieldsValue)
         if(isNew){ //新增记录
             let i="";
             columns.map((item,index)=>{ //得知第几个数组新增
@@ -635,8 +635,8 @@ export default class Detail extends React.Component{
             }
             return false
         })
-        // console.log(editFormList)
-        // console.log(columns)
+        //  console.log(editFormList)
+        //  console.log(columns)
         this.setState({
             editFormList,
             visibleForm:true,
@@ -667,7 +667,7 @@ export default class Detail extends React.Component{
             <div className="detailPage">
                 <h3>
                     {
-                        type==="new"?moduleTitle+"--创建":detailsTitle
+                        type==="new"&& moduleTitle ? moduleTitle+"--创建":detailsTitle
                     }   
                     {
                         type==="detail"?

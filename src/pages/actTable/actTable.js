@@ -5,7 +5,9 @@ import ExportFrame from './../../components/exportFrame/exportFrame'
 import Super from "./../../super"
 import './index.css'
 import moment from 'moment';
+import { WSAEINVALIDPROVIDER } from 'constants';
 
+const sessionStorage=window.sessionStorage
 export default class actTable extends React.Component{
     state={
         loading: false,
@@ -30,20 +32,32 @@ export default class actTable extends React.Component{
     }
     requestList=(menuId)=>{ 
         const loading=document.getElementById('ajaxLoading')
-        Super.super({
-            url:`/api/entity/curd/list/${menuId}`,                
-        }).then((res)=>{
-            loading.style.display="none"
-            if(res){
-                this.editList(res)         
-                if(res.entities.length>0){
-                    this.setState({
-                        pageNo:res.pageInfo.pageNo,
-                        pageSize:res.pageInfo.pageSize,
-                    })
-                }
+        if(sessionStorage.getItem(menuId)){
+            let res= JSON.parse(sessionStorage.getItem(menuId))
+            this.editList(res)         
+            if(res.entities.length>0){
+                this.setState({
+                    pageNo:res.pageInfo.pageNo,
+                    pageSize:res.pageInfo.pageSize,
+                })
             }
-        })				
+        }else{
+            Super.super({
+                url:`/api/entity/curd/list/${menuId}`,                
+            }).then((res)=>{
+                loading.style.display="none"
+                if(res){
+                    sessionStorage.setItem(menuId,JSON.stringify(res))
+                    this.editList(res)         
+                    if(res.entities.length>0){
+                        this.setState({
+                            pageNo:res.pageInfo.pageNo,
+                            pageSize:res.pageInfo.pageSize,
+                        })
+                    }
+                }
+            })
+        }				
 	}
     editList=(data)=>{
 		const list=[]
@@ -183,7 +197,12 @@ export default class actTable extends React.Component{
                 }
             }
             data={...params}
+            console.log(data)
             this.setState({filterOptions:data})
+            this.props.history.push({
+                pathname:`/${menuId}`,
+                query:{day:"jjj"}
+            })
 		}else{
 			data={pageNo:params}
         }
