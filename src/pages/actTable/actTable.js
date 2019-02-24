@@ -2,10 +2,10 @@ import React from 'react'
 import { Pagination ,Card,Table,Button,Icon,Popover,Modal,message} from 'antd';
 import BaseForm from "./../../components/BaseForm"
 import ExportFrame from './../../components/exportFrame/exportFrame'
+import Units from './../../units'
 import Super from "./../../super"
 import './index.css'
 import moment from 'moment';
-import { WSAEINVALIDPROVIDER } from 'constants';
 
 const sessionStorage=window.sessionStorage
 export default class actTable extends React.Component{
@@ -21,11 +21,19 @@ export default class actTable extends React.Component{
         const {menuId}=this.props.match.params;
         this.setState({menuId})
         this.requestList(menuId)
+        const url=decodeURI(this.props.history.location.search)//获取url参数，并解码
+        if(url){
+            this.searchList(Units.urlToObj(url),menuId)//更新筛选列表
+        }
     }
     componentWillReceiveProps(){
         const menuId=this.props.history.location.pathname.replace(/[^0-9]/ig,"");
         this.setState({menuId})
         this.requestList(menuId)
+        const url=decodeURI(this.props.history.location.search)//前进后退获取url参数
+        if(url){
+            this.searchList(Units.urlToObj(url),menuId)
+        }
     }
     handleFilter=(params)=>{
         this.props.searchParams(params)
@@ -63,7 +71,22 @@ export default class actTable extends React.Component{
 		const list=[]
         const codes=[]
         const {menuId}=this.state
-        const moduleTitle=data.ltmpl.title
+        const moduleTitle=data.ltmpl.title;
+        const url=decodeURI(this.props.history.location.search)
+        if(url&&data.criterias){//有筛选条件和数据时
+            const obj=Units.urlToObj(url)
+            data.criterias.map((item)=>{
+                for(let k in obj){
+                    console.log()
+                    if(k.split("_")[1]===item.id.toString()){
+                        item.value=obj[k] //更新表单筛选
+                    }
+                }
+                return false
+            })
+        }else{
+            this.child.reset()//搜索栏重置
+        }
 		if(data.entities && data.entities.length!==0){
             data.entities.map((item)=>{			
                 codes.push(item.code)
@@ -179,10 +202,9 @@ export default class actTable extends React.Component{
             this.props.history.push(`/${menuId}/${type}/${code}`)
             this.setState({loading:false,Loading:false})
 		}
-    }
+    } 
     //搜索和页码
-	searchList=(params)=>{
-		const {menuId}=this.state
+	searchList=(params,menuId)=>{
         let data="";
         this.setState({Loading:true})
 		if(isNaN(params)){
@@ -196,13 +218,13 @@ export default class actTable extends React.Component{
                     params[k]=arr.join("~")
                 }
             }
-            data={...params}
-            console.log(data)
-            this.setState({filterOptions:data})
-            this.props.history.push({
-                pathname:`/${menuId}`,
-                query:{day:"jjj"}
-            })
+            data=params
+            const url=decodeURI(this.props.history.location.search)
+            if(!url){ //没有筛选条件就添加路由
+                const str=Units.queryParams(data)
+                this.setState({filterOptions:data})
+                this.props.history.push(`/${menuId}/search?${str}`)
+            }
 		}else{
 			data={pageNo:params}
         }
@@ -331,6 +353,7 @@ export default class actTable extends React.Component{
                         actions={actions}
                         handleActions={this.handleActions}
                         disabled={selectedRowKeys.length>0?false:true}
+                        menuId={menuId}
                         onRef={this.onRef}
                         />          
                 </Card>
@@ -349,7 +372,7 @@ export default class actTable extends React.Component{
                     defaultCurrent={1} 
                     current={currentPage}
                     total={pageCount?pageCount:0} 
-                    onChange={this.searchList} 
+                    onChange={(params)=>this.searchList(params,menuId)} 
                     hideOnSinglePage={true}
                     showTotal={()=>`共 ${pageCount} 条`}
                     />

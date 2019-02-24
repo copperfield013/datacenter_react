@@ -3,6 +3,7 @@ import {Input,Button,Form,Select,DatePicker,InputNumber} from 'antd'
 import Units from "../../units";
 import Super from "./../../super"
 import 'moment/locale/zh-cn';
+import moment from 'moment';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
 import './index.css'
 const FormItem=Form.Item
@@ -18,7 +19,7 @@ class BaseForm extends React.Component{
     }
     handleFilterSubmit=()=>{
         const fieldsValue=this.props.form.getFieldsValue();
-        this.props.filterSubmit(fieldsValue);
+        this.props.filterSubmit(fieldsValue,this.props.menuId);
     }
     reset=()=>{
         this.props.form.resetFields()
@@ -46,17 +47,20 @@ class BaseForm extends React.Component{
             formList.forEach((item)=>{
                 const label=item.title;
                 const field=`criteria_${item.id}`;
-                const initialValue=item.defaultValue;
+                const value=item.value
+                const dateFormat = 'YYYY-MM-DD';
                 if(item.inputType==="daterange"){
+                    const v1=value.split("~")[0]
+                    const v2=value.split("~")[1]
                     const TIMEPICKER= <FormItem label={label} key={field}>
-                        {getFieldDecorator(field)(
+                        {getFieldDecorator(field,{initialValue:v1?[moment(v1,dateFormat),moment(v2,dateFormat)]:""})(
                             <RangePicker locale={locale} style={{width:225}}/>
                         )}
                     </FormItem>   
                     formItemList.push(TIMEPICKER)                
                 }else if(item.inputType==="date"){
                     const TIMEPICKER= <FormItem label={label} key={field}>
-                        {getFieldDecorator(field)(
+                        {getFieldDecorator(field,{initialValue:value?moment(value,dateFormat):""})(
                             <DatePicker 
                                 locale={locale} 
                                 placeholder={`请输入${label}`}
@@ -68,23 +72,21 @@ class BaseForm extends React.Component{
                     formItemList.push(TIMEPICKER)                
                 }else if(item.inputType==="decimal"){
                     const TIMEPICKER= <FormItem label={label} key={field}>
-                        {getFieldDecorator(field)(
+                        {getFieldDecorator(field,{initialValue:value?value:""})(
                             <InputNumber placeholder={`请输入${label}`} style={{width:160}} min={0}/>
                         )}
                     </FormItem>   
                     formItemList.push(TIMEPICKER)                
                 }else if(item.inputType==="text"){
                     const INPUT= <FormItem label={label} key={field}>
-                        {getFieldDecorator(field,{
-                            initialValue:initialValue
-                        })(
+                        {getFieldDecorator(field,{initialValue:value?value:""})(
                             <Input type="text" placeholder={`请输入${label}`} style={{width:160}} onKeyPress={this.handleEnterKey}/>
                         )}
                     </FormItem>   
                     formItemList.push(INPUT)                
                 }else if(item.inputType==="select"){
                     const SELECT= <FormItem label={label} key={field}>
-                        {getFieldDecorator(field)(
+                        {getFieldDecorator(field,{initialValue:value?value:""})(
                             <Select style={{width:120}} 
                                     onMouseEnter={()=>this.requestSelectOptions(item.fieldId)}
                                     placeholder={`请输入${label}`} 

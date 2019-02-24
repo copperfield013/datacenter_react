@@ -112,4 +112,34 @@ export default {
         } finally {
         }
       },
+      queryParams(data, isPrefix = false){
+        let prefix = isPrefix ? '?' : ''
+        let _result = []
+        for (let key in data) {
+          let value = data[key]
+          // 去掉为空的参数
+          if (['', undefined, null].includes(value)) {
+            continue
+          }
+          if (value.constructor === Array) {
+            value.forEach(_value =>{
+                _result.push(encodeURI(key) + '[]=' + encodeURI(_value))
+                })
+            } else {
+                _result.push(encodeURI(key) + '=' + encodeURI(value))
+            }
+        }
+    
+        return _result.length ? prefix + _result.join('&') : ''
+      } ,
+        urlToObj(str){
+            let obj = {};
+            const arr1 = str.split("?");
+            const arr2 = arr1[1].split("&");
+            for(let i=0 ; i < arr2.length; i++){
+            const res = arr2[i].split("=");
+                obj[res[0]] = res[1];
+            }
+            return obj;
+        },
 }
