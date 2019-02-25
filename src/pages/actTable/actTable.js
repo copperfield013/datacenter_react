@@ -20,10 +20,11 @@ export default class actTable extends React.Component{
     componentDidMount(){
         const {menuId}=this.props.match.params;
         this.setState({menuId})
-        this.requestList(menuId)
         const url=decodeURI(this.props.history.location.search)//获取url参数，并解码
         if(url){
             this.searchList(Units.urlToObj(url),menuId)//更新筛选列表
+        }else{
+            this.requestList(menuId)
         }
     }
     componentWillReceiveProps(){
@@ -219,10 +220,10 @@ export default class actTable extends React.Component{
                 }
             }
             data=params
+            this.setState({filterOptions:data})
             const url=decodeURI(this.props.history.location.search)
             if(!url){ //没有筛选条件就添加路由
                 const str=Units.queryParams(data)
-                this.setState({filterOptions:data})
                 this.props.history.push(`/${menuId}/search?${str}`)
             }
 		}else{
@@ -241,10 +242,9 @@ export default class actTable extends React.Component{
 				list.push(item.fields)
 				return false
             })
+            this.editList(res)
 			this.setState({
                 Loading:false,
-				list:this.renderLists(list,menuId,code),
-				code,
                 pageCount:res.pageInfo.count,
                 currentPage:res.pageInfo.pageNo,               
                 pageNo:res.pageInfo.pageNo,
