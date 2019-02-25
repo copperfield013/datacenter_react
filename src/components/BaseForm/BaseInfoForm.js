@@ -8,17 +8,20 @@ import NewUpload from './../NewUpload'
 import NewCascader from './../NewCascader'
 moment.locale('zh-cn');
 const FormItem=Form.Item
+const { TextArea } = Input;
 
 export default class BaseInfoForm extends React.Component{
     state={
         fileList:[],
         visiCascader:"none"
     }
-    changeCascader=(e)=>{
-        e.target.style.display="none"
-        this.setState({
-            visiCascader:"inline-block"
-        })
+    changeCascader=(e,available)=>{
+        if(available){
+            e.target.style.display="none"
+            this.setState({
+                visiCascader:"inline-block"
+            })
+        }
     }
     changeFile=(e)=>{
         this.setState({
@@ -26,15 +29,16 @@ export default class BaseInfoForm extends React.Component{
         })
     }
     initFormList=()=>{
-        const { getFieldDecorator } = this.props.form;
+        const { getFieldDecorator } = this.props.form?this.props.form:"";
         const { formList,width,type }=this.props
-        const formItemList=[];      
+        const formItemList=[]; 
         if(formList && formList.length>0){
             formList.forEach((item)=>{
                 const fieldName=item.fieldName;
                 const title=item.title;
                 const field=item.fieldId
-                const fieldValue=type==="new"?"":item.value;
+                const fieldValue=item.value;
+                const available=item.available
                 if(item.type==="date"){
                     const DATE= <FormItem label={title} key={field} className='labelcss'>
                                     {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
@@ -49,13 +53,14 @@ export default class BaseInfoForm extends React.Component{
                                                 locale={locale} 
                                                 placeholder={`请选择${title}`}
                                                 getCalendarContainer={trigger => trigger.parentNode}
+                                                disabled={!available}
                                                 />
                                     )}
                                 </FormItem>
                     formItemList.push(DATE)                
                 }else if(item.type==="text"){
                     const TEXT= <FormItem label={title} key={field} className='labelcss'>
-                                    {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
+                                    {type==="detail" || available===false?<span className="infoStyle">{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
                                             initialValue:fieldValue,
                                             rules:item.validators?[{
@@ -66,6 +71,7 @@ export default class BaseInfoForm extends React.Component{
                                                 type="text" 
                                                 style={{width:width}}
                                                 placeholder={`请输入${title}`}
+                                                disabled={!available}
                                                 />
                                     )}
                                 </FormItem>   
@@ -74,7 +80,7 @@ export default class BaseInfoForm extends React.Component{
                     const SELECT= <FormItem label={title} key={[field]} className='labelcss'>
                                         {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                             getFieldDecorator(fieldName,{
-                                                initialValue:fieldValue,
+                                                initialValue:fieldValue?fieldValue:undefined,
                                                 rules:item.validators?[{
                                                         required: true, message: `请选择${title}`,
                                                       }]:"",
@@ -84,6 +90,7 @@ export default class BaseInfoForm extends React.Component{
                                                 onMouseEnter={()=>this.props.getOptions(field)}
                                                 placeholder={`请选择${title}`}
                                                 getPopupContainer={trigger => trigger.parentNode}
+                                                disabled={!available}
                                                 >
                                                     {Units.getSelectList(this.props.options)}
                                             </Select>
@@ -122,6 +129,7 @@ export default class BaseInfoForm extends React.Component{
                                                 onMouseEnter={()=>this.props.getOptions(field)}
                                                 placeholder={`请选择${title}`}
                                                 getPopupContainer={trigger => trigger.parentNode}
+                                                disabled={!available}
                                                 >
                                                     {Units.getSelectList(this.props.options)}
                                             </Select>
@@ -136,7 +144,7 @@ export default class BaseInfoForm extends React.Component{
                     const CASELECT= <FormItem label={title} key={field} className='labelcss'>
                                         {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         fieldValue?<div>
-                                            <Input style={{width:width}} value={fieldValue} onClick={this.changeCascader} readOnly/>
+                                            <Input style={{width:width}} value={fieldValue} onClick={(e)=>this.changeCascader(e,available)} readOnly/>
                                             {this.state.visiCascader==="inline-block"?getFieldDecorator(fieldName,{
                                                 rules:item.validators?[{
                                                         required: true, message: `请输入${title}`,
@@ -145,6 +153,7 @@ export default class BaseInfoForm extends React.Component{
                                                 <NewCascader
                                                     optionKey={item.optionKey}
                                                     fieldName={fieldName}
+                                                    disabled={!available}
                                                 />
                                             ):""}
                                             </div>:
@@ -156,6 +165,7 @@ export default class BaseInfoForm extends React.Component{
                                                 <NewCascader
                                                     optionKey={item.optionKey}
                                                     fieldName={fieldName}
+                                                    disabled={!available}
                                                 />
                                         )}
                                 </FormItem>
@@ -202,6 +212,7 @@ export default class BaseInfoForm extends React.Component{
                                                 placeholder={`请输入${title}`}  
                                                 style={{width:width}} 
                                                 step={0.1}
+                                                disabled={!available}
                                                 min={0}/>
                                         )}
                                     </FormItem>
@@ -215,10 +226,25 @@ export default class BaseInfoForm extends React.Component{
                                             <InputNumber 
                                                 placeholder={`请输入${title}`}  
                                                 style={{width:width}} 
+                                                disabled={!available}
                                                 min={0}/>
                                         )}
                                     </FormItem>
                     formItemList.push(int)   
+                }else if(item.type==="textarea"){
+                    const textarea= <FormItem label={title} key={field} className='labelcss'>
+                                        {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
+                                        getFieldDecorator(fieldName,{
+                                            initialValue:fieldValue,
+                                        })(
+                                            <TextArea 
+                                                placeholder={`请输入${title}`}  
+                                                style={{width:width}} 
+                                                disabled={!available}
+                                                />
+                                        )}
+                                    </FormItem>
+                    formItemList.push(textarea)   
                 }
                 return false
             })

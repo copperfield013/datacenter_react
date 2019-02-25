@@ -31,7 +31,11 @@ class ModelForm extends React.Component{
             }
         }
         fieldsValue["key"]=trueKey
-        fieldsValue["totalName"]=totalName
+        fieldsValue["totalName"]=totalName    
+        const relation=this.props.form.getFieldsValue()["关系"]
+        if(relation){
+            fieldsValue["关系"]=relation
+        }
         this.props.handleOk(fieldsValue);
     } 
     render(){

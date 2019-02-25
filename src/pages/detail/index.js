@@ -1,6 +1,6 @@
 import React from 'react'
 import superagent from 'superagent'
-import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Popover} from 'antd'
+import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Popover,Card,Form} from 'antd'
 import Super from "./../../super"
 import Units from '../../units'
 import './index.css'
@@ -9,6 +9,7 @@ import EditTable from './../../components/EditTable/editTable'
 import FormCard from './../../components/FormCard'
 import ModelForm from './../../components/ModelForm/modelForm'
 import RightBar from './../../components/RightBar'
+import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 const confirm = Modal.confirm;
 
 export default class Detail extends React.Component{
@@ -53,7 +54,28 @@ export default class Detail extends React.Component{
                         detailHistory
                     }) 
                 }
-                this.setState({loading:false})          
+                if(res.premises){
+                    const result=[]
+                    res.premises.map((item)=>{
+                        let list={}
+                        for(let k in item){
+                            list[k]=item[k]
+                        }
+                        list["title"]=item["fieldTitle"]
+                        list["type"]="text"                    
+                        list["value"]=item["fieldValue"]         
+                        list["available"]=false
+                        result.push(list)
+                        return false
+                    })
+                    this.setState({
+                        premises:result
+                    })  
+                }
+                this.setState({
+                    loading:false,
+                    actions:res.actions,
+                })          
             }) 
         }else{
             Super.super({
@@ -62,10 +84,26 @@ export default class Detail extends React.Component{
                     isShowLoading:true
                 }          
             }).then((res)=>{
+                const result=[]
+                res.premises.map((item)=>{
+                    let list={}
+                    for(let k in item){
+                        list[k]=item[k]
+                    }
+                    list["title"]=item["fieldTitle"]
+                    list["type"]="text"       
+                    list["value"]=item["fieldValue"]              
+                    list["available"]=false
+                    result.push(list)
+                    return false
+                })
                 const detailsList=res.entity.fieldGroups; 
                 this.detailTitle(res,type)
                 this.renderList(detailsList)
-                this.setState({loading:false})
+                this.setState({
+                    loading:false,                   
+                    premises:result
+                })
             })
         }
         
@@ -184,6 +222,7 @@ export default class Detail extends React.Component{
                 rela["fieldName"]="关系"
                 rela["title"]="关系"
                 rela["type"]="relation"
+                rela["available"]=true
                 rela["options"]=item.composite.relationSubdomain
                 item.descs.unshift(rela) 
             }      
@@ -403,6 +442,7 @@ export default class Detail extends React.Component{
                 loading.style.display="none"
                 if(res.body.status==="suc"){
                     message.info("保存成功！")
+                    sessionStorage.setItem(menuId,"")
                     window.history.back(-1);
                 }else{
                     message.error(res.body.status)
@@ -456,7 +496,7 @@ export default class Detail extends React.Component{
             item.map((it)=>{
                 let list={}
                 for(let k in it){
-                    if(k.indexOf("[")>-1 && k.indexOf("关系")===-1){
+                    if(k.indexOf("[")>-1&& k.split(".")[1]!=="关系"){
                         if(typeof it[k]==="object"){ //图片，取自定义的owlner属性
                             if(it[k].props.owlner){
                                 list[k]=it[k].props.owlner
@@ -528,7 +568,6 @@ export default class Detail extends React.Component{
         const key=fieldsValue.key;
         const totalName=fieldsValue.totalName;
         let { dataSource,isNew,columns }=this.state;
-        //console.log(fieldsValue)
         if(isNew){ //新增记录
             let i="";
             columns.map((item,index)=>{ //得知第几个数组新增
@@ -552,7 +591,7 @@ export default class Detail extends React.Component{
                 if(k==="关系"){
                     list[`${totalName}[${dataSource[i].length}].$$label$$`]=fieldsValue[k];
                 }
-            }   
+            }
             dataSource[i].push(list)
         }else{     //修改记录  
             dataSource.map((item)=>{
@@ -584,7 +623,8 @@ export default class Detail extends React.Component{
             if(item.type){
                 const list={}
                 list["title"]=item.title;
-                list["fieldName"]=item.fieldName;
+                list["fieldName"]=item.fieldName;                
+                list["available"]=item.available;
                 if(record){
                     this.setState({
                         isNew:false,
@@ -619,7 +659,8 @@ export default class Detail extends React.Component{
                     list["value"]="";
                 }
                 list["type"]=item.type;
-                list["fieldId"]=item.fieldId;
+                list["fieldId"]=item.fieldId;              
+                list["available"]=item.available;
                 if(item.type==="relation"){
                     const options=[]
                     item.options.map((it)=>{
@@ -635,24 +676,65 @@ export default class Detail extends React.Component{
             }
             return false
         })
-        //  console.log(editFormList)
-        //  console.log(columns)
+        //console.log(editFormList)
+        //console.log(columns)
         this.setState({
             editFormList,
             visibleForm:true,
         })
     }
+    handleActions=(actionId)=>{
+        const {menuId,code}=this.state;
+        this.setState({Loading:true})
+        Super.super({
+            url:`/api/entity/curd/do_action/${menuId}/${actionId}`, 
+            data:{
+                codes:code
+            }                 
+        }).then((res)=>{
+            this.setState({Loading:false})
+            if(res && res.status==="suc"){
+                message.info(res.msg)
+                sessionStorage.setItem(menuId,"")
+                window.history.back(-1);
+            }else{
+                message.error(res.status)
+            }
+        })
+    }
     render(){
-        const { moduleTitle,detailsTitle,fuseMode,formList,loading,detailsList,visibleForm,editFormList,
-            columns,dataSource,cardTitle,itemDescs,visibleModal,visibleDrawer,detailHistory,type,menuId,code }=this.state
-        const content = (
-            <div className="btns">
-              <Button>Actions</Button>
-              <Button>Actions</Button>
-              <Button>Actions</Button>
-              <Button>Actions</Button>
-            </div>
-          );
+        const { moduleTitle,detailsTitle,fuseMode,formList,loading,detailsList,visibleForm,editFormList,actions,premises,
+            columns,dataSource,cardTitle,itemDescs,visibleModal,visibleDrawer,detailHistory,type,menuId,code }=this.state;
+        let premisestitle=""
+        if(premises){
+            premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
+            formList.map((item)=>{
+                item.fields.map((it)=>{
+                    premises.map((i)=>{
+                        if(i.fieldName===it.fieldName){
+                            it.available=false
+                            it["value"]= i["value"]
+                        }
+                        return false
+                    })
+                    return false
+                })
+                return false
+            })
+        }
+        let content=""
+        if(actions){
+           // console.log(actions)
+            content = (
+                <div className="btns">
+                  {
+                      actions.map((item)=>{
+                          return <Button key={item.id} type="primary" onClick={()=>this.handleActions(item.id)}>{item.title}</Button>
+                      })
+                  }
+                </div>
+            );
+        } 
         const list=[]
         if(formList){
             formList.map((item)=>{
@@ -679,12 +761,14 @@ export default class Detail extends React.Component{
                         :
                         <div className="fr pad">
                             <div className="buttonGroup">
-                            <Button>Actions</Button>
-                            <Popover placement="leftTop" content={content} trigger="click">
-                                <Button>
-                                    <Icon type="swap" />Actions
-                                </Button>
-                            </Popover>
+                            {
+                                actions?
+                                <Popover placement="leftTop" content={content} trigger="click">
+                                    <Button>
+                                        <Icon type="swap" />
+                                    </Button>
+                                </Popover>:""
+                            }
                             <Button 
                                 type='primary' 
                                 icon="cloud-upload" 
@@ -701,6 +785,27 @@ export default class Detail extends React.Component{
                     }               
                     
                 </h3>
+                {
+                    premises?<Form layout="inline" autoComplete="off">  
+                                <Card 
+                                    title={premisestitle} 
+                                    key={premisestitle} 
+                                    id={premisestitle}
+                                    className="hoverable" 
+                                    headStyle={{background:"#f2f4f5"}}
+                                    loading={loading}
+                                    >
+                                    <BaseInfoForm 
+                                        key={111}
+                                        formList={premises} 
+                                        type="detail"
+                                        //form={form}
+                                        width={220}
+                                        />
+                                </Card>
+                            </Form>
+                                :""
+                }
                 <FormCard
                     formList={formList}
                     type={type}

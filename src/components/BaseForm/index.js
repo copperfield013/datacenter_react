@@ -60,7 +60,7 @@ class BaseForm extends React.Component{
                     formItemList.push(TIMEPICKER)                
                 }else if(item.inputType==="date"){
                     const TIMEPICKER= <FormItem label={label} key={field}>
-                        {getFieldDecorator(field,{initialValue:value?moment(value,dateFormat):""})(
+                        {getFieldDecorator(field,{initialValue:value?moment(value,dateFormat):null})(
                             <DatePicker 
                                 locale={locale} 
                                 placeholder={`请输入${label}`}
@@ -86,7 +86,7 @@ class BaseForm extends React.Component{
                     formItemList.push(INPUT)                
                 }else if(item.inputType==="select"){
                     const SELECT= <FormItem label={label} key={field}>
-                        {getFieldDecorator(field,{initialValue:value?value:""})(
+                        {getFieldDecorator(field,{initialValue:value?value:undefined})(
                             <Select style={{width:120}} 
                                     onMouseEnter={()=>this.requestSelectOptions(item.fieldId)}
                                     placeholder={`请输入${label}`} 
