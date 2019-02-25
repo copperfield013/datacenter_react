@@ -20,11 +20,10 @@ export default class actTable extends React.Component{
     componentDidMount(){
         const {menuId}=this.props.match.params;
         this.setState({menuId})
+        this.requestList(menuId)
         const url=decodeURI(this.props.history.location.search)//获取url参数，并解码
         if(url){
             this.searchList(Units.urlToObj(url),menuId)//更新筛选列表
-        }else{
-            this.requestList(menuId)
         }
     }
     componentWillReceiveProps(){
@@ -207,6 +206,7 @@ export default class actTable extends React.Component{
 	searchList=(params,menuId)=>{
         let data="";
         this.setState({Loading:true})
+        let flag=false
 		if(isNaN(params)){
             for(let k in params){
                 if(typeof params[k]==="object"){ //日期格式转换
@@ -221,7 +221,15 @@ export default class actTable extends React.Component{
             data=params
             this.setState({filterOptions:data})
             const url=decodeURI(this.props.history.location.search)
-            if(!url){ //没有筛选条件就添加路由
+            const oldfliter=this.props.history.location.search.slice(1)
+            const newfliter=Units.queryParams(data)
+            if(oldfliter!==newfliter){ //查询条件更新时
+                flag=true
+            }
+            if(!url){ //没有查询条件时
+                flag=true
+            }
+            if(flag){
                 const str=Units.queryParams(data)
                 this.props.history.push(`/${menuId}/search?${str}`)
             }

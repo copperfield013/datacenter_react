@@ -126,7 +126,8 @@ export default {
                 _result.push(encodeURI(key) + '[]=' + encodeURI(_value))
                 })
             } else {
-                _result.push(encodeURI(key) + '=' + encodeURI(value))
+                const str=encodeURI(key).replace("criteria","c")
+                _result.push(str + '=' + encodeURI(value))
             }
         }
     
@@ -138,7 +139,8 @@ export default {
             const arr2 = arr1[1].split("&");
             for(let i=0 ; i < arr2.length; i++){
             const res = arr2[i].split("=");
-                obj[res[0]] = res[1];
+            const str=res[0].replace("c","criteria")
+                obj[str] = res[1];
             }
             return obj;
         },
