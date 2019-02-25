@@ -78,7 +78,6 @@ export default class actTable extends React.Component{
             const obj=Units.urlToObj(url)
             data.criterias.map((item)=>{
                 for(let k in obj){
-                    console.log()
                     if(k.split("_")[1]===item.id.toString()){
                         item.value=obj[k] //更新表单筛选
                     }
@@ -235,13 +234,6 @@ export default class actTable extends React.Component{
 				...data,
 			}                 
 		}).then((res)=>{
-			const list=[]
-			const code=[];	
-			res.entities.map((item)=>{			
-				code.push(item.code)
-				list.push(item.fields)
-				return false
-            })
             this.editList(res)
 			this.setState({
                 Loading:false,
