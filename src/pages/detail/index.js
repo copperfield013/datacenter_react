@@ -54,7 +54,7 @@ export default class Detail extends React.Component{
                         detailHistory
                     }) 
                 }
-                if(res.premises){
+                if(res.premises && res.premises.length>0){
                     const result=[]
                     res.premises.map((item)=>{
                         let list={}
@@ -85,24 +85,28 @@ export default class Detail extends React.Component{
                 }          
             }).then((res)=>{
                 const result=[]
-                res.premises.map((item)=>{
-                    let list={}
-                    for(let k in item){
-                        list[k]=item[k]
-                    }
-                    list["title"]=item["fieldTitle"]
-                    list["type"]="text"       
-                    list["value"]=item["fieldValue"]              
-                    list["available"]=false
-                    result.push(list)
-                    return false
-                })
+                if(res.premises && res.premises.length>0){
+                    res.premises.map((item)=>{
+                        let list={}
+                        for(let k in item){
+                            list[k]=item[k]
+                        }
+                        list["title"]=item["fieldTitle"]
+                        list["type"]="text"       
+                        list["value"]=item["fieldValue"]              
+                        list["available"]=false
+                        result.push(list)
+                        return false
+                    })
+                    this.setState({                   
+                        premises:result
+                    })
+                }
                 const detailsList=res.entity.fieldGroups; 
                 this.detailTitle(res,type)
                 this.renderList(detailsList)
                 this.setState({
-                    loading:false,                   
-                    premises:result
+                    loading:false,
                 })
             })
         }
@@ -706,7 +710,7 @@ export default class Detail extends React.Component{
         const { moduleTitle,detailsTitle,fuseMode,formList,loading,detailsList,visibleForm,editFormList,actions,premises,
             columns,dataSource,cardTitle,itemDescs,visibleModal,visibleDrawer,detailHistory,type,menuId,code }=this.state;
         let premisestitle=""
-        if(premises){
+        if(premises && premises.length>0){
             premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
             formList.map((item)=>{
                 item.fields.map((it)=>{
@@ -723,8 +727,7 @@ export default class Detail extends React.Component{
             })
         }
         let content=""
-        if(actions){
-           // console.log(actions)
+        if(actions && actions.length>0){
             content = (
                 <div className="btns">
                   {
@@ -786,7 +789,7 @@ export default class Detail extends React.Component{
                     
                 </h3>
                 {
-                    premises?<Form layout="inline" autoComplete="off">  
+                    premises && premises.length>0?<Form layout="inline" autoComplete="off">  
                                 <Card 
                                     title={premisestitle} 
                                     key={premisestitle} 
