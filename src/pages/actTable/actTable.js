@@ -207,15 +207,20 @@ export default class actTable extends React.Component{
         let data="";
         this.setState({Loading:true})
         let flag=false
+        console.log(params)
 		if(isNaN(params)){
             for(let k in params){
-                if(typeof params[k]==="object"){ //日期格式转换
-                    const arr=[]
-                    params[k].map(item=>{
-                        arr.push(moment(item).format("YYYY-MM-DD"))
-                        return false
-                    }) 
-                    params[k]=arr.join("~")
+                if(typeof params[k] ==="object"){ //日期格式转换
+                    if(params[k] instanceof Array){
+                        const arr=[]
+                        params[k].map(item=>{
+                            arr.push(moment(item).format("YYYY-MM-DD"))
+                            return false
+                        }) 
+                        params[k]=arr.join("~")
+                    }else{
+                        params[k]=moment(params[k]).format("YYYY-MM-DD")
+                    }
                 }
             }
             data=params
