@@ -10,6 +10,7 @@ import FormCard from './../../components/FormCard'
 import ModelForm from './../../components/ModelForm/modelForm'
 import RightBar from './../../components/RightBar'
 import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
+import TemplateList from '../../components/templateList';
 const confirm = Modal.confirm;
 
 export default class Detail extends React.Component{
@@ -23,6 +24,7 @@ export default class Detail extends React.Component{
         scrollIds:[],
         options:[],
         visibleForm:false,
+        visibleTemplateList:false,
         isNew:false,
         records:[],
         optArr:[],
@@ -38,79 +40,45 @@ export default class Detail extends React.Component{
     }
     loadRequest=(menuId,type,code)=>{
         this.setState({loading:true})
-        if(code){
-            Super.super({
-                url:`/api/entity/curd/detail/${menuId}/${code}`,       
-                data:{
-                    isShowLoading:true
-                }          
-            }).then((res)=>{
-                const detailsList=res.entity.fieldGroups; 
-                this.detailTitle(res,type)
-                this.renderList(detailsList)
-                if(res.history){                   
-                    const detailHistory=this.renderHistoryList(res.history);
-                    this.setState({
-                        detailHistory
-                    }) 
-                }
-                if(res.premises && res.premises.length>0){
-                    const result=[]
-                    res.premises.map((item)=>{
-                        let list={}
-                        for(let k in item){
-                            list[k]=item[k]
-                        }
-                        list["title"]=item["fieldTitle"]
-                        list["type"]="text"                    
-                        list["value"]=item["fieldValue"]         
-                        list["available"]=false
-                        result.push(list)
-                        return false
-                    })
-                    this.setState({
-                        premises:result
-                    })  
-                }
+        const URL=code?`/api/entity/curd/detail/${menuId}/${code}`:`/api/entity/curd/dtmpl/${menuId}`
+        Super.super({
+            url:URL,       
+            data:{
+                isShowLoading:true
+            }          
+        }).then((res)=>{                  
+            const detailsList=res.entity.fieldGroups; 
+            this.detailTitle(res,type)
+            this.renderList(detailsList)
+            if(res.history){                   
+                const detailHistory=this.renderHistoryList(res.history);
                 this.setState({
-                    loading:false,
-                    actions:res.actions,
-                })          
-            }) 
-        }else{
-            Super.super({
-                url:`/api/entity/curd/dtmpl/${menuId}`,       
-                data:{
-                    isShowLoading:true
-                }          
-            }).then((res)=>{
+                    detailHistory
+                }) 
+            }
+            if(res.premises && res.premises.length>0){
                 const result=[]
-                if(res.premises && res.premises.length>0){
-                    res.premises.map((item)=>{
-                        let list={}
-                        for(let k in item){
-                            list[k]=item[k]
-                        }
-                        list["title"]=item["fieldTitle"]
-                        list["type"]="text"       
-                        list["value"]=item["fieldValue"]              
-                        list["available"]=false
-                        result.push(list)
-                        return false
-                    })
-                    this.setState({                   
-                        premises:result
-                    })
-                }
-                const detailsList=res.entity.fieldGroups; 
-                this.detailTitle(res,type)
-                this.renderList(detailsList)
-                this.setState({
-                    loading:false,
+                res.premises.map((item)=>{
+                    let list={}
+                    for(let k in item){
+                        list[k]=item[k]
+                    }
+                    list["title"]=item["fieldTitle"]
+                    list["type"]="text"                    
+                    list["value"]=item["fieldValue"]         
+                    list["available"]=false
+                    result.push(list)
+                    return false
                 })
-            })
-        }
-        
+                this.setState({
+                    premises:result
+                })  
+            }
+            this.setState({
+                loading:false,
+                actions:res.actions,
+            })          
+        })
     }
     renderHistoryList=(data)=>{
 		return data.map((item,index)=>{
@@ -161,15 +129,13 @@ export default class Detail extends React.Component{
 			detailsTitle=entityTitle?moduleTitle+"-"+entityTitle+"-详情":moduleTitle+"-详情";
 		}else if(type==="edit"){
 			detailsTitle=entityTitle?moduleTitle+"-修改-"+entityTitle:moduleTitle+"-修改";
-		}			
-        		
+		}			        		
 		this.setState({ 
             detailsTitle,
             moduleTitle,
 		});
 	}
     renderList=(detailsList)=>{
-        //console.log("渲染")
         const itemDescs=[]
         const columns=[]
         const dataSource=[]
@@ -290,10 +256,19 @@ export default class Detail extends React.Component{
                 .set({"datamobile-token":tokenName})
                 .send(formData)
                 .end((req,res)=>{
-                    optArr.push(res.body.optionsMap)
-                    this.setState({
-                        optArr
-                    })
+                    if(res.status===200){                                          
+                        optArr.push(res.body.optionsMap)
+                        this.setState({
+                            optArr
+                        })
+                    }else if(res.status===403){
+                        message.info("请求权限不足,可能是token已经超时")
+                        window.location.href="/#/login";
+                    }else if(res.status===404||res.status===504){
+                        message.info("服务器未开···")
+                    }else if(res.status===500){
+                        message.info("后台处理错误。")
+                    }
                     //console.log(optArr)
                 })
             }
@@ -329,7 +304,7 @@ export default class Detail extends React.Component{
             item.map((it)=>{
                 let list={}
                 for(let k in it){
-                    if(k.indexOf("[")>-1){ //去除key，total，object，fieldName
+                    if(k.indexOf("[")>-1 && it[k].indexOf("download-files")===-1){ //去除key，total，object，fieldName
                         list[k]=it[k]
                     }
                 }
@@ -338,6 +313,7 @@ export default class Detail extends React.Component{
             })
             return false
         })
+        //console.log(newDataSource)
         this.setState({
             dataSource:newDataSource,
             records,
@@ -433,7 +409,7 @@ export default class Detail extends React.Component{
         })  
         if(res){
             for(let k in res){
-                formData.append(k, res[k]);              
+                formData.append(k, res[k]);
             }
         }
         const loading=document.getElementById('ajaxLoading')
@@ -444,12 +420,21 @@ export default class Detail extends React.Component{
             .send(formData)
             .end((req,res)=>{
                 loading.style.display="none"
-                if(res.body.status==="suc"){
-                    message.info("保存成功！")
-                    sessionStorage.setItem(menuId,"")
-                    window.history.back(-1);
-                }else{
-                    message.error(res.body.status)
+                if(res.status===200){                   
+                    if(res.body.status==="suc"){
+                        message.info("保存成功！")
+                        sessionStorage.setItem(menuId,"")
+                        window.history.back(-1);
+                    }else{
+                        message.error(res.body.status)
+                    }
+                }else if(res.status===403){
+                    message.info("请求权限不足,可能是token已经超时")
+                    window.location.href="/#/login";
+                }else if(res.status===404||res.status===504){
+                    message.info("服务器未开···")
+                }else if(res.status===500){
+                    message.info("后台处理错误。")
                 }
             })
         this.setState({
@@ -491,6 +476,7 @@ export default class Detail extends React.Component{
         this.setState({
             visibleModal: false,
             visibleForm: false,
+            visibleTemplateList:false,
         });
     }
     getRecords=()=>{
@@ -606,6 +592,9 @@ export default class Detail extends React.Component{
                                 if(ki.indexOf(k)>-1){
                                     it[ki]=fieldsValue[k]
                                 }
+                                if(ki.indexOf("label")>-1){
+                                    it[ki]=fieldsValue["关系"]
+                                }
                             }
                         }
                     }
@@ -614,7 +603,6 @@ export default class Detail extends React.Component{
                 return false
             })
         }
-        //console.log(dataSource)
         this.setState({
             dataSource,
             visibleForm:false
@@ -647,7 +635,7 @@ export default class Detail extends React.Component{
                                         return false
                                     })
                                 }else{
-                                     value=record[k].props.src
+                                    value=record[k].props.src.split("/.")[1]
                                 }
                                 list["value"]=value
                             }else{
@@ -706,9 +694,99 @@ export default class Detail extends React.Component{
             }
         })
     }
+    getTemplate=(stmplId,columns,pageNo,oexcepts)=>{
+        let {menuId,fields,excepts,dataSource}=this.state;
+        if(!excepts){
+            excepts=oexcepts
+        }
+        Super.super({
+            url:`/api/entity/curd/selections/${menuId}/${stmplId}`,  
+            data:{
+                pageNo,
+                excepts,
+            }                
+        }).then((res)=>{
+            let newfields=""
+            if(columns){
+                columns.map((item)=>{
+                    if(item.fieldId){
+                        newfields+=item.fieldName+","
+                    }
+                    return false
+                })
+                if(!fields){
+                    fields=newfields
+                }
+                if(fields && fields!==newfields){
+                    fields=newfields
+                }
+            }
+            if(res){
+                this.setState({
+                    visibleTemplateList:true,
+                    templateData:res,
+                    stmplId,
+                    fields,
+                    excepts,
+                })
+            }else{
+                message.error("无数据")
+            }
+        })
+    }
+    TemplatehandleOk=(value)=>{
+        let {fields,dataSource,columns}=this.state
+        const totalName=fields.split(".")[0];
+        const key=[]
+        for(let k in value){
+            key.push(k)
+        }
+        let i="";
+        columns.map((item,index)=>{ //得知第几个数组新增
+            item.map((it)=>{
+                for(let k in it){
+                    if(typeof it[k]==="string" && it[k].indexOf(totalName)>-1){
+                        i=index
+                    }
+                }
+                return false
+            })
+            return false
+        })
+        key.map((item)=>{
+            const list={}
+            list["key"]=item;
+            list[`${totalName}.关系`]="";
+            list[`${totalName}[${dataSource[i].length}].$$label$$`]=""
+            for(let k in value[item]){
+                if(k!=="key" && k!=="唯一编码"){
+                    const ssr1=k.split(".")[0]
+                    const ssr2=k.split(".")[1]
+                    list[k]=value[item][k];
+                    list[`${ssr1}[${dataSource[i].length}].${ssr2}`]=value[item][k];
+                }else if(k==="唯一编码"){
+                    list[`${totalName}[${dataSource[i].length}].唯一编码`]=value[item][k];
+                }
+                if(value[item][k].indexOf("download-files")>-1){
+                    list[k]=<img 
+                                style={{width:55}} 
+                                src={`/file-server/${value[item][k]}`} 
+                                alt="" />
+                }
+            }
+            dataSource[i].push(list)
+            return false
+        })
+        // console.log(dataSource)  
+        // console.log(value)        
+        this.setState({
+            dataSource,
+        })
+        
+    }
     render(){
-        const { moduleTitle,detailsTitle,fuseMode,formList,loading,detailsList,visibleForm,editFormList,actions,premises,
-            columns,dataSource,cardTitle,itemDescs,visibleModal,visibleDrawer,detailHistory,type,menuId,code }=this.state;
+        const { moduleTitle,detailsTitle,fuseMode,formList,loading,detailsList,visibleForm,editFormList,actions,premises,templateData,stmplId,
+            columns,dataSource,cardTitle,itemDescs,visibleModal,visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fields}=this.state;
         let premisestitle=""
         if(premises && premises.length>0){
             premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
@@ -739,6 +817,9 @@ export default class Detail extends React.Component{
             );
         } 
         const list=[]
+        if(premises){
+            list.push("默认字段")
+        }
         if(formList){
             formList.map((item)=>{
                 list.push(item.title)
@@ -827,6 +908,7 @@ export default class Detail extends React.Component{
                     itemDescs={itemDescs}
                     handleAdd={this.getForm}
                     onRef3={this.onRef3}
+                    getTemplate={this.getTemplate}
                 />
                 <Modal
                     visible={visibleModal}
@@ -859,6 +941,17 @@ export default class Detail extends React.Component{
                         {detailHistory}
                     </Timeline>
                 </Drawer>
+                <TemplateList 
+                    visibleTemplateList={visibleTemplateList}
+                    handleCancel={this.handleCancel}
+                    templateData={templateData}
+                    width={680}
+                    stmplId={stmplId}
+                    menuId={menuId}
+                    getTemplate={this.getTemplate}
+                    fields={fields}
+                    TemplatehandleOk={this.TemplatehandleOk}
+                />
                 {
                     !cardTitle||cardTitle.length<=3?"":
                     <RightBar 

@@ -38,11 +38,11 @@ export default class actTable extends React.Component{
     handleFilter=(params)=>{
         this.props.searchParams(params)
     }
-    requestList=(menuId)=>{ 
+    requestList=(menuId,reset)=>{ 
         const loading=document.getElementById('ajaxLoading')
         if(sessionStorage.getItem(menuId)){
             let res= JSON.parse(sessionStorage.getItem(menuId))
-            this.editList(res)         
+            this.editList(res,reset)         
             if(res.entities.length>0){
                 this.setState({
                     pageNo:res.pageInfo.pageNo,
@@ -56,23 +56,24 @@ export default class actTable extends React.Component{
                 loading.style.display="none"
                 if(res){
                     sessionStorage.setItem(menuId,JSON.stringify(res))
-                    this.editList(res)         
+                    this.editList(res,reset)         
                     if(res.entities.length>0){
                         this.setState({
                             pageNo:res.pageInfo.pageNo,
                             pageSize:res.pageInfo.pageSize,
+                            buttons:res.buttons,
                         })
                     }
                 }
             })
         }				
 	}
-    editList=(data)=>{
+    editList=(data,reset)=>{
 		const list=[]
         const codes=[]
         const {menuId}=this.state
         const moduleTitle=data.ltmpl.title;
-        const url=decodeURI(this.props.history.location.search)
+        const url=reset?"":decodeURI(this.props.history.location.search)
         if(url&&data.criterias){//有筛选条件和数据时
             const obj=Units.urlToObj(url)
             data.criterias.map((item)=>{
@@ -117,8 +118,8 @@ export default class actTable extends React.Component{
             list['code']=codes[index];//添加code
             list['menuId']=menuId;
             item.map((item)=>{
-                let key=item.title
-                let value=item.value
+                const key=item.title
+                const value=item.value
                 list[key]=value
                 return false
             })
@@ -203,11 +204,12 @@ export default class actTable extends React.Component{
 		}
     } 
     //搜索和页码
-	searchList=(params,menuId)=>{
+	searchList=(params,menuId)=>{       
+        const url=decodeURI(this.props.history.location.search)
         let data="";
+        let pageNo=1
         this.setState({Loading:true})
         let flag=false
-        console.log(params)
 		if(isNaN(params)){
             for(let k in params){
                 if(typeof params[k] ==="object"){ //日期格式转换
@@ -225,7 +227,6 @@ export default class actTable extends React.Component{
             }
             data=params
             this.setState({filterOptions:data})
-            const url=decodeURI(this.props.history.location.search)
             const oldfliter=this.props.history.location.search.slice(1)
             const newfliter=Units.queryParams(data)
             if(oldfliter!==newfliter){ //查询条件更新时
@@ -239,12 +240,14 @@ export default class actTable extends React.Component{
                 this.props.history.push(`/${menuId}/search?${str}`)
             }
 		}else{
-			data={pageNo:params}
+            pageNo=params
+            data=url?Units.urlToObj(url):""
         }
 		Super.super({
 			url:`/api/entity/curd/list/${menuId}`,  
 			data:{
-				...data,
+                ...data,
+                pageNo
 			}                 
 		}).then((res)=>{
             this.editList(res)
@@ -298,11 +301,15 @@ export default class actTable extends React.Component{
             }
         })
     }
+    reset=()=>{
+        const {menuId}=this.state
+        this.requestList(menuId,true)
+    }
     onRef=(ref)=>{
 		this.child=ref
     }
     render(){
-        const {selectedRowKeys,pageNo,pageSize,filterOptions,moduleTitle,list,loading,
+        const {selectedRowKeys,pageNo,pageSize,filterOptions,moduleTitle,list,loading,buttons,
             formList,actions,columns,Loading,currentPage,pageCount,menuId } = this.state;
         const content = <ExportFrame //导出组件
                             menuId={menuId}
@@ -322,26 +329,46 @@ export default class actTable extends React.Component{
                 this.setState({selectCodes,selectedRowKeys})
             },
           };
+        let hideCreate=false
+        let hideDelete=false
+        let hideExport=false
+        let hideImport=false
+        let hideQuery=false
+        if(buttons){
+            for(let k in buttons){
+                if(k==="hideCreateButton" && buttons[k]===1){
+                    hideCreate=true
+                }else if(k==="hideDeleteButton" && buttons[k]===1){
+                    hideDelete=true
+                }else if(k==="hideExportButton" && buttons[k]===1){
+                    hideExport=true
+                }else if(k==="hideImportButton" && buttons[k]===1){
+                    hideImport=true
+                }else if(k==="hideQueryButton" && buttons[k]===1){
+                    hideQuery=true
+                }
+            }
+        }
         return(
             <div className="actTable">
                 <h3>
                     {moduleTitle}
                     <p className="fr">
-                        <Button 
+                        {hideCreate?"":<Button 
                             className="hoverbig" 
                             title="创建" 
                             onClick={()=>this.handleNew(menuId)}>
                             <Icon type="plus"/>
-                        </Button>
-                        <Button 
+                        </Button>}
+                        {hideImport?"":<Button 
                             className="hoverbig" 
                             title="导入" 
                             onClick={()=>this.handleImport(menuId)}>
                             <Icon type="download" />
-                        </Button>
-                        <Popover content={content} title="导出" placement="bottomRight" trigger="click">
+                        </Button>}
+                        {hideExport?"":<Popover content={content} title="导出" placement="bottomRight" trigger="click">
                             <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
-                        </Popover>                       
+                        </Popover> }                      
                         <Button 
                             className="hoverbig" 
                             title="刷新" 
@@ -359,11 +386,14 @@ export default class actTable extends React.Component{
                         handleActions={this.handleActions}
                         disabled={selectedRowKeys.length>0?false:true}
                         menuId={menuId}
+                        hideDelete={hideDelete}
+                        hideQuery={hideQuery}
                         onRef={this.onRef}
+                        reset={this.reset}
                         />          
                 </Card>
                 <Table
-                    rowSelection={rowSelection}
+                    rowSelection={hideDelete?null:rowSelection}
                     columns={columns?columns:[]}
                     dataSource={list}
                     bordered

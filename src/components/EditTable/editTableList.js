@@ -57,7 +57,6 @@ export default class EditTableList extends React.Component {
     })
   }
   tableChange=(pagination)=>{
-    console.log(pagination)
     this.props.columns.map((item)=>{
       if(item.key==="order"){
         item["render"]=(text, record,index) => (
@@ -68,8 +67,12 @@ export default class EditTableList extends React.Component {
     })
   }
   render() {
-    const { cardTitle,columns,type,dataSource }=this.props
+    const { cardTitle,columns,type,dataSource,stmplId }=this.props
     const page={pageSize:5,hideOnSinglePage:true}
+    let excepts=""
+    dataSource.map((item)=>{
+      excepts+=item.key+","
+    })
     return (
       <Card 
           title={cardTitle} 
@@ -89,6 +92,13 @@ export default class EditTableList extends React.Component {
                               onClick={this.props.handleAdd} 
                               style={{marginBottom:10,marginRight:10}}
                               >新增</Button>}
+              {stmplId?<Button 
+                              type='primary' 
+                              icon="snippets" 
+                              size="small"
+                              onClick={()=>this.props.getTemplate(stmplId,columns,1,excepts)}
+                              style={{marginBottom:10,marginRight:10}}
+                              >选择</Button>:""}
               <Table
                 bordered
                 dataSource={type==="edit"?dataSource:this.state.dataSource}

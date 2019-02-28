@@ -15,6 +15,8 @@ class FormCard extends React.Component{
                 for(let k in values){
                     if(k.indexOf("日期")>-1 && values[k]){ //日期格式转换
                         result[k]=moment(values[k]).format("YYYY-MM-DD")
+                    }else if(k.indexOf("时间")>-1 && values[k]){ //日期格式转换
+                        result[k]=moment(values[k]).format("YYYY-MM-DD")
                     }else if(k==="头像"){
                         if(values[k]){
                             result[k]=values[k].originFileObj

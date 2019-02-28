@@ -90,7 +90,9 @@ export default class BaseInfoForm extends React.Component{
                                                 onMouseEnter={()=>this.props.getOptions(field)}
                                                 placeholder={`请选择${title}`}
                                                 getPopupContainer={trigger => trigger.parentNode}
-                                                disabled={!available}
+                                                disabled={!available}                                              
+                                                notFoundContent="暂无选项"
+                                                allowClear={true}
                                                 >
                                                     {Units.getSelectList(this.props.options)}
                                             </Select>
@@ -108,7 +110,9 @@ export default class BaseInfoForm extends React.Component{
                                             <Select 
                                                 style={{width:width}}
                                                 placeholder={`请选择${title}`}
-                                                getPopupContainer={trigger => trigger.parentNode}
+                                                getPopupContainer={trigger => trigger.parentNode}  
+                                                notFoundContent="暂无选项"
+                                                allowClear={true}
                                                 >
                                                     {Units.getSelectList(item.options)}
                                             </Select>)}
@@ -129,7 +133,9 @@ export default class BaseInfoForm extends React.Component{
                                                 onMouseEnter={()=>this.props.getOptions(field)}
                                                 placeholder={`请选择${title}`}
                                                 getPopupContainer={trigger => trigger.parentNode}
-                                                disabled={!available}
+                                                disabled={!available}                                               
+                                                notFoundContent="暂无选项"
+                                                allowClear={true}
                                                 >
                                                     {Units.getSelectList(this.props.options)}
                                             </Select>
