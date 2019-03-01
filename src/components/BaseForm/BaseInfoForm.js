@@ -263,4 +263,3 @@ export default class BaseInfoForm extends React.Component{
                 )
              }
     }
-//export default Form.create()(BaseInfoForm);

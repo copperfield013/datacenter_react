@@ -1,5 +1,5 @@
 import React from 'react'
-import { Modal,Table,Pagination } from 'antd';
+import { Modal,Table,Pagination, message } from 'antd';
 import Super from './../../super'
 
 export default class TemplateList extends React.Component{
@@ -19,8 +19,15 @@ export default class TemplateList extends React.Component{
             this.props.handleCancel()
             if(res.status==="suc"){
                 this.props.TemplatehandleOk(res.entities)
+                this.setState({selectedRowKeys:[]})
+            }else{
+                message.error(res.status)
             }
         })
+    }
+    changePagination=(stmplId,params)=>{
+        this.props.getTemplate(stmplId,"",params)
+        this.setState({selectedRowKeys:[]})
     }
     render(){
         const {templateData,visibleTemplateList,handleCancel,width,stmplId}=this.props
@@ -78,7 +85,7 @@ export default class TemplateList extends React.Component{
                     cancelText="取消"
                     width={width}
                     centered
-                    onOk={()=>this.handleOk(columns)}
+                    onOk={this.handleOk}
                     onCancel={handleCancel}
                     destroyOnClose
                     >
@@ -94,7 +101,7 @@ export default class TemplateList extends React.Component{
                         showQuickJumper 
                         defaultCurrent={1} 
                         total={pageCount} 
-                        onChange={(params)=>this.props.getTemplate(stmplId,"",params)} 
+                        onChange={(params)=>this.changePagination(stmplId,params)} 
                         hideOnSinglePage={true}
                         showTotal={()=>`共 ${pageCount} 条`}
                         />

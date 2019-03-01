@@ -14,7 +14,7 @@ export default class EditTable extends React.Component{
                                 type={type}
                                 columns={columns[index]}
                                 dataSource={dataSource[index]} 
-                                item={item}
+                                itemDescs={item}
                                 stmplId={stmplId}
                                 count={type==="new"?null:dataSource[index].length}
                                 cardTitle={cardTitle[index]}

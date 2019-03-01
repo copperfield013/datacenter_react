@@ -371,11 +371,6 @@ export default class Detail extends React.Component{
             visibleDrawer: true,
         });
     }
-    onClose = () => {
-        this.setState({
-            visibleDrawer: false,
-        });
-    }
     handleOk = (e) => {
         e.preventDefault();
         this.setState({loading:true})
@@ -442,14 +437,6 @@ export default class Detail extends React.Component{
             loading:false
         });
       }
-    baseInfo=(baseValue)=>{
-        if(baseValue){           
-            this.setState({
-                visibleModal: true,
-                baseValue
-            });
-        }
-    }
     exportDetail=()=>{
         const {menuId,code}=this.state
         confirm({
@@ -477,6 +464,7 @@ export default class Detail extends React.Component{
             visibleModal: false,
             visibleForm: false,
             visibleTemplateList:false,
+            visibleDrawer: false,
         });
     }
     getRecords=()=>{
@@ -505,11 +493,36 @@ export default class Detail extends React.Component{
             })
             return false
         })
-        this.setState({records})
+        let isOK=true   
+        let res={}  
+        records.map((item)=>{
+            for(let k in item){
+                res[k]=item[k] //去重
+            }
+            return false
+        })
+        for(let k in res){//判断新增记录，关系有没有选
+            if(k.indexOf("$$label$$")>-1 && res[k]===""){
+                isOK=false
+            }
+        }
+        if(isOK){
+            this.setState({
+                records,
+                visibleModal: true,
+            })
+        }else{           
+            message.error("关系列表未选！")
+        }
     }
     showModal = () => {
         this.baseinfo.handleBaseInfoSubmit() //获取BaseInfo数据
         this.getRecords()
+    }   
+    baseInfo=(baseValue)=>{         
+        this.setState({
+            baseValue
+        });
     }
     //调用子组件方法
 	onRef=(ref)=>{
@@ -592,8 +605,12 @@ export default class Detail extends React.Component{
                                 if(ki.indexOf(k)>-1){
                                     it[ki]=fieldsValue[k]
                                 }
+                                const va=fieldsValue["关系"]
                                 if(ki.indexOf("label")>-1){
-                                    it[ki]=fieldsValue["关系"]
+                                    it[ki]=va?va:""
+                                }
+                                if(ki.split(".")[1]==="关系"){
+                                    it[ki]=va?va:""
                                 }
                             }
                         }
@@ -694,10 +711,16 @@ export default class Detail extends React.Component{
             }
         })
     }
-    getTemplate=(stmplId,columns,pageNo,oexcepts)=>{
-        let {menuId,fields,excepts,dataSource}=this.state;
+    getTemplate=(stmplId,columns,pageNo,oexcepts,oopti)=>{
+        let {menuId,fields,excepts,opti}=this.state;
         if(!excepts){
             excepts=oexcepts
+        }        
+        if(excepts && excepts!==oexcepts){
+            excepts=oexcepts
+        }
+        if(!opti){
+            opti=oopti
         }
         Super.super({
             url:`/api/entity/curd/selections/${menuId}/${stmplId}`,  
@@ -728,6 +751,7 @@ export default class Detail extends React.Component{
                     stmplId,
                     fields,
                     excepts,
+                    opti,
                 })
             }else{
                 message.error("无数据")
@@ -735,7 +759,7 @@ export default class Detail extends React.Component{
         })
     }
     TemplatehandleOk=(value)=>{
-        let {fields,dataSource,columns}=this.state
+        let {fields,dataSource,columns,opti}=this.state
         const totalName=fields.split(".")[0];
         const key=[]
         for(let k in value){
@@ -756,8 +780,8 @@ export default class Detail extends React.Component{
         key.map((item)=>{
             const list={}
             list["key"]=item;
-            list[`${totalName}.关系`]="";
-            list[`${totalName}[${dataSource[i].length}].$$label$$`]=""
+            list[`${totalName}.关系`]=opti;
+            list[`${totalName}[${dataSource[i].length}].$$label$$`]=opti
             for(let k in value[item]){
                 if(k!=="key" && k!=="唯一编码"){
                     const ssr1=k.split(".")[0]
@@ -933,7 +957,7 @@ export default class Detail extends React.Component{
                 <Drawer
                     title="查看历史"
                     closable={false}
-                    onClose={this.onClose}
+                    onClose={this.handleCancel}
                     visible={visibleDrawer}
                     width={400}
                     >

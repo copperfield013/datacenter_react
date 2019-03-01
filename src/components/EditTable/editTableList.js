@@ -67,12 +67,20 @@ export default class EditTableList extends React.Component {
     })
   }
   render() {
-    const { cardTitle,columns,type,dataSource,stmplId }=this.props
+    const { cardTitle,columns,type,dataSource,stmplId,itemDescs }=this.props
     const page={pageSize:5,hideOnSinglePage:true}
     let excepts=""
     dataSource.map((item)=>{
       excepts+=item.key+","
+      return false
     })
+    let opti=""
+    if(itemDescs.composite.relationSubdomain){
+      const opArr=itemDescs.composite.relationSubdomain
+      if(opArr.length===1){
+        opti=opArr[0]
+      }
+    }
     return (
       <Card 
           title={cardTitle} 
@@ -96,7 +104,7 @@ export default class EditTableList extends React.Component {
                               type='primary' 
                               icon="snippets" 
                               size="small"
-                              onClick={()=>this.props.getTemplate(stmplId,columns,1,excepts)}
+                              onClick={()=>this.props.getTemplate(stmplId,columns,1,excepts,opti)}
                               style={{marginBottom:10,marginRight:10}}
                               >选择</Button>:""}
               <Table
