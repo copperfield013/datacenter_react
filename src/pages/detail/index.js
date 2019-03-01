@@ -780,8 +780,8 @@ export default class Detail extends React.Component{
         key.map((item)=>{
             const list={}
             list["key"]=item;
-            list[`${totalName}.关系`]=opti;
-            list[`${totalName}[${dataSource[i].length}].$$label$$`]=opti
+            list[`${totalName}.关系`]=opti?opti:"";
+            list[`${totalName}[${dataSource[i].length}].$$label$$`]=opti?opti:"";
             for(let k in value[item]){
                 if(k!=="key" && k!=="唯一编码"){
                     const ssr1=k.split(".")[0]
