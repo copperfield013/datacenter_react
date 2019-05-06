@@ -24,7 +24,7 @@ export default class ExportFrame extends React.Component{
         });
     }
     handleStart=()=>{
-        const { menuId,pageNo,pageSize,filterOptions }=this.props
+        const { menuId,pageNo,pageSize,filterOptions,queryKey }=this.props
         const { radioValue,withDetail,v1,v2 }=this.state
         this.setState({
             started:"block",
@@ -44,7 +44,7 @@ export default class ExportFrame extends React.Component{
             });
         }
         Super.super({
-            url:`/api/entity/export/start/${menuId}`,    
+            url:`/api2/entity/export/start/${menuId}/${queryKey}`,    
             data:{
                 scope,
                 withDetail:withDetail,
@@ -56,7 +56,7 @@ export default class ExportFrame extends React.Component{
                 rangeStart:v1,
                 rangeEnd:v2,
             }            
-		},"json").then((res)=>{
+		}).then((res)=>{
 			if(res.uuid){
                 this.statusOut(res.uuid)
                 this.timerID=setInterval(
@@ -68,7 +68,10 @@ export default class ExportFrame extends React.Component{
     }
     statusOut=(uuid)=>{
         Super.super({
-            url:`/api/entity/export/status/${uuid}`,            
+            url:`/api2/entity/export/status`,   
+            data:{
+                uuid
+            }         
 		}).then((res)=>{
             this.setState({
                 statusMsg:res.statusMsg,
@@ -85,7 +88,7 @@ export default class ExportFrame extends React.Component{
     }
     download=()=>{
         let uuid=this.state.uuid;
-        Units.downloadFile(`/api/entity/export/download/${uuid}`)
+        Units.downloadFile(`/api2/entity/export/download/${uuid}`)
     }
     handleCancel=()=>{
         this.setState({

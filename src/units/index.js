@@ -45,10 +45,11 @@ export default {
         })
         return options
     },
-    downloadFile(url) {   
+    downloadFile(url) {  
+        const api="http://47.100.187.235:7080/datacenter_api2" 
         try{ 
             let elemIF = document.createElement("iframe");   
-            elemIF.src = url;   
+            elemIF.src = api+url;   
             elemIF.style.display = "none";   
             document.body.appendChild(elemIF);   
         }catch(e){ 

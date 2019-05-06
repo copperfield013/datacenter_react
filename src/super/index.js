@@ -2,23 +2,20 @@ import superagent from 'superagent'
 import { message } from 'antd';
 import Units from './../units'
 
+const api="http://47.100.187.235:7080/datacenter_api2"
 export default class Superagent{
-    static super(options,type){
+    static super(options){
         const tokenName=Units.getLocalStorge("tokenName")
         let loading;
         if(options.data && options.data.isShowLoading!==false){
             loading=document.getElementById('ajaxLoading')
             loading.style.display="block"
         }
-        let tet="form"
-        if(type==="json"){
-            tet="application/json"
-        }
         return new Promise((resolve,reject)=>{
             superagent
-                .post(options.url)
-                .type(tet)
-                .set("datamobile-token",tokenName)
+                .post(api+options.url)
+                .type('form')
+                .set("datacenter-token",tokenName)
                 .query(options.query||'')
                 .send(options.data||'')
                 .end((req,res)=>{

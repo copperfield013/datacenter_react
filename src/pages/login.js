@@ -48,7 +48,7 @@ class Loginit extends React.Component{
         this.props.form.validateFields((err,values)=>{            
             if(!err){
                 Super.super({
-                    url:'/api/auth/token',  
+                    url:'/api2/auth/token',  
                     query:{
                         username:values.username,
                         password:values.password

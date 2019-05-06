@@ -33,7 +33,7 @@ class NavLeft extends React.Component{
 	}
 	request=()=>{
 		Super.super({
-			url:'/api/menu/getMenu',                 
+			url:'/api2/meta/menu/get_menu',                 
 		}).then((res)=>{
 			const menuTreeNode = this.renderMenu(res.menus)
 			const menuId=this.props.history.location.pathname.split("/")[1]

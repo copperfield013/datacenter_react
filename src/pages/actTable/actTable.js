@@ -6,6 +6,7 @@ import Units from './../../units'
 import Super from "./../../super"
 import './index.css'
 import moment from 'moment';
+//import {HelloWorld} from 'datacenter_api2_resolver';
 
 const sessionStorage=window.sessionStorage
 export default class actTable extends React.Component{
@@ -15,250 +16,313 @@ export default class actTable extends React.Component{
         radioValue:1,
         currentPage:1,
         selectedRowKeys: [], 
-        actions:[]
+        actions:[],
+        fieldIds:[]
     }
     componentDidMount(){
         const {menuId}=this.props.match.params;
         this.setState({menuId})
-        this.requestList(menuId)
-        const url=decodeURI(this.props.history.location.search)//获取url参数，并解码
-        if(url){
-            this.searchList(Units.urlToObj(url),menuId)//更新筛选列表
-        }
+        this.requestLtmpl(menuId)
+        // const url=decodeURI(this.props.history.location.search)//获取url参数，并解码
+        // if(url){
+        //    this.search(Units.urlToObj(url))//更新筛选列表
+        // }
     }
     componentWillReceiveProps(){
         const menuId=this.props.history.location.pathname.replace(/[^0-9]/ig,"");
-        this.setState({menuId})
-        this.requestList(menuId)
+        this.setState({menuId,isSeeTotal:false})
         const url=decodeURI(this.props.history.location.search)//前进后退获取url参数
-        if(url){
-            this.searchList(Units.urlToObj(url),menuId)
+        if(!url){
+            this.requestLtmpl(menuId)
+            //this.child.reset()
+        }else{
+            this.searchList(Units.urlToObj(url))//更新筛选列表
         }
     }
     handleFilter=(params)=>{
         this.props.searchParams(params)
     }
-    requestList=(menuId,reset)=>{ 
-        const loading=document.getElementById('ajaxLoading')
-        if(sessionStorage.getItem(menuId)){
-            let res= JSON.parse(sessionStorage.getItem(menuId))
-            this.editList(res,reset)         
-            if(res.entities.length>0){
-                this.setState({
-                    pageNo:res.pageInfo.pageNo,
-                    pageSize:res.pageInfo.pageSize,
+    requestLtmpl=(menuId,data)=>{ 
+        const {optionsMap}=this.state
+        Super.super({
+            url:`/api2/entity/curd/start_query/${menuId}`,     
+            data           
+        }).then((res)=>{
+            this.queryList(res.queryKey)
+            res.ltmpl.columns.map((item)=>{
+                if(item.title==="序号"){
+                    item['render']= (text, record,index) => (
+                                        <label>{index+1}</label>
+                                    )
+                }
+                if(item.title==="操作"){
+                    item['render']= (text, record) => (
+                                    <span>
+                                        <Button 
+                                            type="primary" 
+                                            icon="align-left" 
+                                            size="small" 
+                                            onClick={()=>this.handleOperate("detail",record)}>
+                                            详情
+                                        </Button>
+                                        <Button 
+                                            type="dashed" 
+                                            icon="edit" 
+                                            size="small" 
+                                            onClick={()=>this.handleOperate("edit",record)}>
+                                            修改
+                                        </Button>
+                                    </span>
+                                    )
+                }
+                item.dataIndex=item.id
+                return false
+            })
+            res.ltmpl.columns.map((item)=>{
+                item.dataIndex=item.id
+                item.key=item.id
+                return false
+            })
+            const fieldIds=[]
+            if(!optionsMap){
+                res.ltmpl.criterias.map((item)=>{
+                    if(item.inputType==="select"){
+                        fieldIds.push(item.fieldId)
+                    }
+                    return false
+                })
+                this.requestSelect(fieldIds)
+            }
+            const url=decodeURI(this.props.history.location.search)
+            if(url){//将url参数填入搜索栏
+                const obj=Units.urlToObj(url)
+                res.ltmpl.criterias.map((item)=>{
+                    for(let k in obj){
+                        if(k.split("_")[1]===item.id.toString()){
+                            item.value=obj[k] //更新表单筛选
+                        }
+                    }
+                    return false
                 })
             }
-        }else{
-            Super.super({
-                url:`/api/entity/curd/list/${menuId}`,                
-            }).then((res)=>{
-                loading.style.display="none"
-                if(res){
-                    sessionStorage.setItem(menuId,JSON.stringify(res))
-                    this.editList(res,reset)         
-                    if(res.entities.length>0){
-                        this.setState({
-                            pageNo:res.pageInfo.pageNo,
-                            pageSize:res.pageInfo.pageSize,
-                            buttons:res.buttons,
-                        })
-                    }
-                }
+            this.setState({
+                moduleTitle:res.ltmpl.title,
+                columns:res.ltmpl.columns,
+                queryKey:res.queryKey,
+                formList:res.ltmpl.criterias,
             })
-        }				
-	}
-    editList=(data,reset)=>{
-		const list=[]
-        const codes=[]
-        const {menuId}=this.state
-        const moduleTitle=data.ltmpl.title;
-        const url=reset?"":decodeURI(this.props.history.location.search)
-        if(url&&data.criterias){//有筛选条件和数据时
-            const obj=Units.urlToObj(url)
-            data.criterias.map((item)=>{
-                for(let k in obj){
-                    if(k.split("_")[1]===item.id.toString()){
-                        item.value=obj[k] //更新表单筛选
-                    }
-                }
-                return false
+        })
+    }
+    requestSelect=(fieldIds)=>{
+        Super.super({
+            url:`/api2/meta/dict/field_options`,  
+            data:{fieldIds}        
+		}).then((res)=>{
+            this.setState({
+                optionsMap:res.optionsMap
             })
-        }else{
-            this.child.reset()//搜索栏重置
-        }
-		if(data.entities && data.entities.length!==0){
-            data.entities.map((item)=>{			
-                codes.push(item.code)
-                list.push(item.fields)
-                return false
-            })
-			this.setState({
-				columns:this.renderColumns(data.entities[0].fields),//之所以不用ltmpl.columns,因为后面渲染按钮
-                formList:data.criterias,
-                list:this.renderLists(list,menuId,codes),
-				pageCount:data.pageInfo.count,
-            })
-		}else if(data.entities && data.entities.length===0){
-			this.setState({
-				columns:"",
-				pageCount:'',
-			})
-        }
-		this.setState({
-            moduleTitle,
-            actions:data.actions
 		})
     }
-	renderLists=(data,menuId,codes)=>{
-        const result=[];
-        data.map((item,index)=>{
-            let list={};
-            list['key']=index;//每一项添加key值
-            list['code']=codes[index];//添加code
-            list['menuId']=menuId;
-            item.map((item)=>{
-                const key=item.title
-                const value=item.value
-                list[key]=value
+    queryList=(queryKey,data)=>{
+        const dataSource=[]
+        Super.super({
+            url:`/api2/entity/curd/ask_for/${queryKey}`,     
+            data           
+        }).then((res)=>{
+            res.entities.map((item,index)=>{
+                item.cellMap.key=index
+                dataSource.push(item.cellMap)
                 return false
             })
-            result.push(list)
-            return false
-        })
-        return result
-    }
-    renderColumns=(data)=>{
-        if(data){
-            data.map((item)=>{
-                const value=item.title;
-                item["dataIndex"]=value;	
-                return false						
-            })
-            const order={
-                title: '序号',
-                key: 'order',
-                render: (text, record,index) => (
-                    <label>{index+1}</label>
-                    ),
-            } 
-            data.unshift(order) 
-            const act={
-                title: '操作',
-                key: 'action',
-                render: (text, record) => (
-                <span>
-                    <Button 
-                        type="primary" 
-                        icon="align-left" 
-                        size="small" 
-                        onClick={()=>this.handleOperate("detail",record)}>
-                        详情
-                    </Button>
-                    <Button 
-                        type="dashed" 
-                        icon="edit" 
-                        size="small" 
-                        onClick={()=>this.handleOperate("edit",record)}>
-                        修改
-                    </Button>
-                </span>
-                ),
-            }
-            data.push(act)
-            return data
-        }		
-    } 
-    handleOperate=(type,record)=>{
-        const { menuId,selectCodes }=this.state
-        const code=record.code
-        this.setState({loading:true,Loading:true})
-        if(type==="delete"){
-            Modal.confirm({
-				title:"删除提示",
-				content:`您确定删除这些数据吗？`,
-				okText:"确认",
-				cancelText:"取消",
-				onOk:()=>{
-					Super.super({
-                        url:`/api/entity/curd/remove/${menuId}`,
-                        data:{
-                            codes:selectCodes
-                        }            
-					}).then((res)=>{
-                        this.setState({loading:false,Loading:false})
-						if(res.status==="suc"){ 
-							this.fresh("删除成功！")     //刷新列表       
-						}else{
-							message.info('删除失败！')  
-						}
-					})
-                },
-                onCancel:()=>{
-                    this.setState({loading:false,Loading:false})
-                }
-			})
-		}else{
-            this.props.history.push(`/${menuId}/${type}/${code}`)
-            this.setState({loading:false,Loading:false})
-		}
-    } 
-    //搜索和页码
-	searchList=(params,menuId)=>{       
-        const url=decodeURI(this.props.history.location.search)
-        let data="";
-        let pageNo=1
-        this.setState({Loading:true})
-        let flag=false
-		if(isNaN(params)){
-            for(let k in params){
-                if(typeof params[k] ==="object"){ //日期格式转换
-                    if(params[k] instanceof Array){
-                        const arr=[]
-                        params[k].map(item=>{
-                            arr.push(moment(item).format("YYYY-MM-DD"))
-                            return false
-                        }) 
-                        params[k]=arr.join("~")
-                    }else{
-                        params[k]=moment(params[k]).format("YYYY-MM-DD")
-                    }
-                }
-            }
-            data=params
-            this.setState({filterOptions:data})
-            const oldfliter=this.props.history.location.search.slice(1)
-            const newfliter=Units.queryParams(data)
-            if(oldfliter!==newfliter){ //查询条件更新时
-                flag=true
-            }
-            if(!url){ //没有查询条件时
-                flag=true
-            }
-            if(flag){
-                const str=Units.queryParams(data)
-                this.props.history.push(`/${menuId}/search?${str}`)
-            }
-		}else{
-            pageNo=params
-            data=url?Units.urlToObj(url):""
-        }
-		Super.super({
-			url:`/api/entity/curd/list/${menuId}`,  
-			data:{
-                ...data,
-                pageNo
-			}                 
-		}).then((res)=>{
-            this.editList(res)
-			this.setState({
-                Loading:false,
-                pageCount:res.pageInfo.count,
-                currentPage:res.pageInfo.pageNo,               
+            this.setState({
+                list:dataSource,
                 pageNo:res.pageInfo.pageNo,
                 pageSize:res.pageInfo.pageSize,
-			})
-		})			
+                currentPage:res.pageInfo.pageNo,      
+                pageCount:res.pageInfo.pageSize*res.pageInfo.virtualEndPageNo,
+                Loading:false,
+            })
+        })
+    }
+    // requestList=(menuId,reset)=>{ 
+    //     const loading=document.getElementById('ajaxLoading')
+    //     if(sessionStorage.getItem(menuId)){
+    //         let res= JSON.parse(sessionStorage.getItem(menuId))
+    //         this.editList(res,reset)         
+    //         if(res.entities.length>0){
+    //             this.setState({
+    //                 pageNo:res.pageInfo.pageNo,
+    //                 pageSize:res.pageInfo.pageSize,
+    //             })
+    //         }
+    //     }else{
+    //         Super.super({
+    //             url:`/api2/entity/curd/list/${menuId}`,                
+    //         }).then((res)=>{
+    //             loading.style.display="none"
+    //             if(res){
+    //                 sessionStorage.setItem(menuId,JSON.stringify(res))
+    //                 this.editList(res,reset)         
+    //                 if(res.entities.length>0){
+    //                     this.setState({
+    //                         pageNo:res.pageInfo.pageNo,
+    //                         pageSize:res.pageInfo.pageSize,
+    //                         buttons:res.buttons,
+    //                     })
+    //                 }
+    //             }
+    //         })
+    //     }				
+	// }
+    // editList=(data,reset)=>{
+	// 	const list=[]
+    //     const codes=[]
+    //     const {menuId}=this.state
+    //     const moduleTitle=data.ltmpl.title;
+    //     const url=reset?"":decodeURI(this.props.history.location.search)
+    //     if(url&&data.criterias){//有筛选条件和数据时
+    //         const obj=Units.urlToObj(url)
+    //         data.criterias.map((item)=>{
+    //             for(let k in obj){
+    //                 if(k.split("_")[1]===item.id.toString()){
+    //                     item.value=obj[k] //更新表单筛选
+    //                 }
+    //             }
+    //             return false
+    //         })
+    //     }else{
+    //         this.child.reset()//搜索栏重置
+    //     }
+	// 	if(data.entities && data.entities.length!==0){
+    //         data.entities.map((item)=>{			
+    //             codes.push(item.code)
+    //             list.push(item.fields)
+    //             return false
+    //         })
+	// 		this.setState({
+	// 			columns:this.renderColumns(data.entities[0].fields),//之所以不用ltmpl.columns,因为后面渲染按钮
+    //             formList:data.criterias,
+    //             list:this.renderLists(list,menuId,codes),
+	// 			pageCount:data.pageInfo.count,
+    //         })
+	// 	}else if(data.entities && data.entities.length===0){
+	// 		this.setState({
+	// 			columns:"",
+	// 			pageCount:'',
+	// 		})
+    //     }
+	// 	this.setState({
+    //         moduleTitle,
+    //         actions:data.actions
+	// 	})
+    // }
+	// renderLists=(data,menuId,codes)=>{
+    //     const result=[];
+    //     data.map((item,index)=>{
+    //         let list={};
+    //         list['key']=index;//每一项添加key值
+    //         list['code']=codes[index];//添加code
+    //         list['menuId']=menuId;
+    //         item.map((item)=>{
+    //             const key=item.title
+    //             const value=item.value
+    //             list[key]=value
+    //             return false
+    //         })
+    //         result.push(list)
+    //         return false
+    //     })
+    //     return result
+    // }
+    // renderColumns=(data)=>{
+    //     if(data){
+    //         data.map((item)=>{
+    //             const value=item.title;
+    //             item["dataIndex"]=value;	
+    //             return false						
+    //         })
+    //         const order={
+    //             title: '序号',
+    //             key: 'order',
+    //             render: (text, record,index) => (
+    //                 <label>{index+1}</label>
+    //                 ),
+    //         } 
+    //         data.unshift(order) 
+    //         const act={
+    //             title: '操作',
+    //             key: 'action',
+    //             render: (text, record) => (
+    //             <span>
+    //                 <Button 
+    //                     type="primary" 
+    //                     icon="align-left" 
+    //                     size="small" 
+    //                     onClick={()=>this.handleOperate("detail",record)}>
+    //                     详情
+    //                 </Button>
+    //                 <Button 
+    //                     type="dashed" 
+    //                     icon="edit" 
+    //                     size="small" 
+    //                     onClick={()=>this.handleOperate("edit",record)}>
+    //                     修改
+    //                 </Button>
+    //             </span>
+    //             ),
+    //         }
+    //         data.push(act)
+    //         return data
+    //     }		
+    // } 
+    handleOperate=(type,record)=>{
+        const {menuId}=this.state
+        const code=record.code
+        this.setState({loading:true,Loading:true})
+        this.props.history.push(`/${menuId}/${type}/${code}`)
+        this.setState({loading:false,Loading:false})
+    } 
+    searchList=(params)=>{
+        const {menuId}=this.state
+        for(let k in params){
+            if(typeof params[k] ==="object"){ //日期格式转换
+                if(params[k] instanceof Array){
+                    const arr=[]
+                    params[k].map(item=>{
+                        arr.push(moment(item).format("YYYY-MM-DD"))
+                        return false
+                    }) 
+                    params[k]=arr.join("~")
+                }else{
+                    params[k]=moment(params[k]).format("YYYY-MM-DD")
+                }
+            }
+        }
+        this.setState({filterOptions:params})
+        const oldfliter=this.props.history.location.search.slice(1)
+        const newfliter=Units.queryParams(params)
+        const url=decodeURI(this.props.history.location.search)
+        let flag=false
+        if(oldfliter!==newfliter){ //查询条件更新时
+            flag=true
+        }
+        if(!url){ //没有查询条件时
+            flag=true
+        }
+        if(flag){
+            const str=Units.queryParams(params)
+            this.props.history.push(`/${menuId}/search?${str}`)
+        }
+        this.requestLtmpl(menuId,{...params})			
+    }
+    //页码
+	pageTo=(pageNo)=>{       
+        const {queryKey}=this.state
+        const url=decodeURI(this.props.history.location.search)
+        let data="";
+        this.setState({Loading:true})
+        data=url?Units.urlToObj(url):""
+        this.queryList(queryKey,{...data,pageNo})			
     }
     handleNew=(menuId)=>{
         this.props.history.push(`/${menuId}/new`)
@@ -266,56 +330,57 @@ export default class actTable extends React.Component{
     handleImport=(menuId)=>{
         this.props.history.push(`/${menuId}/import`)
     }
-    handleActions=(actionId)=>{
-        const {menuId,selectCodes}=this.state;
-        this.setState({Loading:true})
-        Super.super({
-            url:`/api/entity/curd/do_action/${menuId}/${actionId}`, 
-            data:{
-                codes:selectCodes
-            }                 
-        }).then((res)=>{
-            this.setState({Loading:false,selectedRowKeys: [],})
-            if(res && res.status==="suc"){
-                this.fresh(res.msg)
-            }else{
-                message.error(res.status)
-            }
-        })
-    }
+    // handleActions=(actionId)=>{
+    //     const {menuId,selectCodes}=this.state;     
+    //     this.setState({Loading:true})
+    //     Super.super({
+    //         url:`/api2/entity/curd/do_action/${menuId}/${actionId}`, 
+    //         data:{
+    //             codes:selectCodes
+    //         }                 
+    //     }).then((res)=>{
+    //         this.setState({Loading:false,selectedRowKeys: [],})
+    //         if(res && res.status==="suc"){
+    //             this.fresh(res.msg)
+    //         }else{
+    //             message.error(res.status)
+    //         }
+    //     })
+    // }
     fresh=(msg)=>{
-        const {menuId}=this.state
-        this.setState({Loading:true})
-        this.child.reset()//搜索栏重置
-        Super.super({
-            url:`/api/entity/curd/list/${menuId}`,                
-        }).then((res)=>{
-            if(res){
-                this.setState({
-                    currentPage:1,
-                    Loading:false,
-                    selectedRowKeys: [],
-                })
-                this.editList(res)
-                message.success(msg)
-            }
-        })
+        this.reset()
+        message.info(msg)
     }
-    reset=()=>{
-        const {menuId}=this.state
-        this.requestList(menuId,true)
+    seeTotal=()=>{
+        const {queryKey,isSeeTotal}=this.state
+        if(!isSeeTotal){
+            Super.super({
+                url:`/api2/entity/curd/get_entities_count/${queryKey}`,                
+            }).then((res)=>{
+                this.setState({
+                    pageCount:res.count,
+                    isSeeTotal:true
+                })
+            })
+        }       
     }
     onRef=(ref)=>{
 		this.child=ref
     }
+    reset=()=>{
+        const {menuId}=this.state
+        this.child.reset()//搜索栏重置
+        this.props.history.push(`/${menuId}`)
+    }
     render(){
         const {selectedRowKeys,pageNo,pageSize,filterOptions,moduleTitle,list,loading,buttons,
-            formList,actions,columns,Loading,currentPage,pageCount,menuId } = this.state;
+            formList,actions,columns,Loading,currentPage,menuId,pageCount,isSeeTotal,optionsMap,queryKey } = this.state;
         const content = <ExportFrame //导出组件
                             menuId={menuId}
                             pageNo={pageNo}
                             pageSize={pageSize}
                             filterOptions={filterOptions}
+                            queryKey={queryKey}
                             /> 
         const rowSelection = {
             selectedRowKeys,
@@ -389,6 +454,7 @@ export default class actTable extends React.Component{
                         hideDelete={hideDelete}
                         hideQuery={hideQuery}
                         onRef={this.onRef}
+                        optionsMap={optionsMap}
                         reset={this.reset}
                         />          
                 </Card>
@@ -402,15 +468,19 @@ export default class actTable extends React.Component{
                     loading={Loading}
                 >
                 </Table>
-                <Pagination 
-                    showQuickJumper 
-                    defaultCurrent={1} 
-                    current={currentPage}
-                    total={pageCount?pageCount:0} 
-                    onChange={(params)=>this.searchList(params,menuId)} 
-                    hideOnSinglePage={true}
-                    showTotal={()=>`共 ${pageCount} 条`}
-                    />
+                <div className='Pagination'>
+                    <span className={isSeeTotal?'sewTotal':'seeTotal'} onClick={this.seeTotal}>{isSeeTotal?`共${pageCount}条`:'点击查看总数'}</span>
+                    <Pagination 
+                        style={{display:'inline-block'}}
+                        showQuickJumper 
+                        showSizeChanger 
+                        defaultCurrent={1} 
+                        current={currentPage}
+                        onChange={(params)=>this.pageTo(params)} 
+                        hideOnSinglePage={true}
+                        total={pageCount}
+                        />
+                </div>
             </div>
            
         )

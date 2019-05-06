@@ -4,3 +4,17 @@
 .actTable h3{
     font-size: 18px
 }
+.actTable .seeTotal{
+    margin-right:20px;
+    text-decoration:underline;
+    cursor:pointer
+}
+.sewTotal{
+    margin-right:20px;
+    text-decoration:none;
+    cursor:auto;
+}
+.Pagination{
+    display:flex;
+    align-items: center
+}
