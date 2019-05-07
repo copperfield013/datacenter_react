@@ -24,7 +24,7 @@ export default class ExportFrame extends React.Component{
         });
     }
     handleStart=()=>{
-        const { menuId,pageNo,pageSize,filterOptions,queryKey }=this.props
+        const { menuId,filterOptions,queryKey,pageInfo }=this.props
         const { radioValue,withDetail,v1,v2 }=this.state
         this.setState({
             started:"block",
@@ -49,8 +49,8 @@ export default class ExportFrame extends React.Component{
                 scope,
                 withDetail:withDetail,
                 parameters:{
-                    pageNo:pageNo.toString(),
-                    pageSize:pageSize.toString(),
+                    pageNo:pageInfo.pageNo.toString(),
+                    pageSize:pageInfo.pageSize.toString(),
                     ...filterOptions,
                 },               
                 rangeStart:v1,

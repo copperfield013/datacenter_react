@@ -74,13 +74,13 @@ export default class EditTableList extends React.Component {
       excepts+=item.key+","
       return false
     })
-    let opti=""
-    if(itemDescs.composite.relationSubdomain){
-      const opArr=itemDescs.composite.relationSubdomain
-      if(opArr.length===1){
-        opti=opArr[0]
-      }
-    }
+    // let opti=""
+    // if(itemDescs.composite.relationSubdomain){
+    //   const opArr=itemDescs.composite.relationSubdomain
+    //   if(opArr.length===1){
+    //     opti=opArr[0]
+    //   }
+    // }
     return (
       <Card 
           title={cardTitle} 
@@ -104,12 +104,13 @@ export default class EditTableList extends React.Component {
                               type='primary' 
                               icon="snippets" 
                               size="small"
-                              onClick={()=>this.props.getTemplate(stmplId,columns,1,excepts,opti)}
+                              //onClick={()=>this.props.getTemplate(stmplId,columns,1,excepts,opti)}
                               style={{marginBottom:10,marginRight:10}}
                               >选择</Button>:""}
               <Table
                 bordered
-                dataSource={type==="edit"?dataSource:this.state.dataSource}
+                dataSource={dataSource}
+                //dataSource={type==="edit"?dataSource:this.state.dataSource}
                 columns={columns}    
                 pagination={type==="edit"?false:page}
                 onChange={this.tableChange}

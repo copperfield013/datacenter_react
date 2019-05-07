@@ -6,7 +6,7 @@ import Units from './../../units'
 import Super from "./../../super"
 import './index.css'
 import moment from 'moment';
-//import {HelloWorld} from 'datacenter_api2_resolver';
+import {HelloWorld} from 'datacenter_api2_resolver';
 
 const sessionStorage=window.sessionStorage
 export default class actTable extends React.Component{
@@ -20,13 +20,16 @@ export default class actTable extends React.Component{
         fieldIds:[]
     }
     componentDidMount(){
+        HelloWorld.say()
         const {menuId}=this.props.match.params;
         this.setState({menuId})
         this.requestLtmpl(menuId)
-        // const url=decodeURI(this.props.history.location.search)//获取url参数，并解码
-        // if(url){
-        //    this.search(Units.urlToObj(url))//更新筛选列表
-        // }
+        const url=decodeURI(this.props.history.location.search)//获取url参数，并解码
+        if(!url){
+            this.requestLtmpl(menuId)
+        }else{
+            this.searchList(Units.urlToObj(url),menuId)//更新筛选列表
+        }
     }
     componentWillReceiveProps(){
         const menuId=this.props.history.location.pathname.replace(/[^0-9]/ig,"");
@@ -34,9 +37,8 @@ export default class actTable extends React.Component{
         const url=decodeURI(this.props.history.location.search)//前进后退获取url参数
         if(!url){
             this.requestLtmpl(menuId)
-            //this.child.reset()
         }else{
-            this.searchList(Units.urlToObj(url))//更新筛选列表
+            this.searchList(Units.urlToObj(url),menuId)//更新筛选列表
         }
     }
     handleFilter=(params)=>{
@@ -48,41 +50,8 @@ export default class actTable extends React.Component{
             url:`/api2/entity/curd/start_query/${menuId}`,     
             data           
         }).then((res)=>{
+            //console.log(res)
             this.queryList(res.queryKey)
-            res.ltmpl.columns.map((item)=>{
-                if(item.title==="序号"){
-                    item['render']= (text, record,index) => (
-                                        <label>{index+1}</label>
-                                    )
-                }
-                if(item.title==="操作"){
-                    item['render']= (text, record) => (
-                                    <span>
-                                        <Button 
-                                            type="primary" 
-                                            icon="align-left" 
-                                            size="small" 
-                                            onClick={()=>this.handleOperate("detail",record)}>
-                                            详情
-                                        </Button>
-                                        <Button 
-                                            type="dashed" 
-                                            icon="edit" 
-                                            size="small" 
-                                            onClick={()=>this.handleOperate("edit",record)}>
-                                            修改
-                                        </Button>
-                                    </span>
-                                    )
-                }
-                item.dataIndex=item.id
-                return false
-            })
-            res.ltmpl.columns.map((item)=>{
-                item.dataIndex=item.id
-                item.key=item.id
-                return false
-            })
             const fieldIds=[]
             if(!optionsMap){
                 res.ltmpl.criterias.map((item)=>{
@@ -104,14 +73,50 @@ export default class actTable extends React.Component{
                     }
                     return false
                 })
+            }else{
+                this.child.reset()
             }
             this.setState({
                 moduleTitle:res.ltmpl.title,
-                columns:res.ltmpl.columns,
+                columns:this.renderColumns(res.ltmpl.columns),
                 queryKey:res.queryKey,
                 formList:res.ltmpl.criterias,
+                tmplGroup:res.tmplGroup,
             })
         })
+    }
+    renderColumns=(columns)=>{
+        columns.map((item)=>{
+            if(item.title==="序号"){
+                item['render']= (text, record,index) => (
+                                    <label>{index+1}</label>
+                                )
+            }
+            if(item.title==="操作"){
+                item['render']= (text, record) => (
+                                <span>
+                                    <Button 
+                                        type="primary" 
+                                        icon="align-left" 
+                                        size="small" 
+                                        onClick={()=>this.handleOperate("detail",record)}>
+                                        详情
+                                    </Button>
+                                    <Button 
+                                        type="dashed" 
+                                        icon="edit" 
+                                        size="small" 
+                                        onClick={()=>this.handleOperate("edit",record)}>
+                                        修改
+                                    </Button>
+                                </span>
+                                )
+            }
+            item.dataIndex=item.id
+            item.key=item.id
+            return false
+        })
+        return columns
     }
     requestSelect=(fieldIds)=>{
         Super.super({
@@ -124,166 +129,64 @@ export default class actTable extends React.Component{
 		})
     }
     queryList=(queryKey,data)=>{
+        const {isSeeTotal}=this.state
         const dataSource=[]
         Super.super({
             url:`/api2/entity/curd/ask_for/${queryKey}`,     
             data           
-        }).then((res)=>{
+        }).then((res)=>{   
+            sessionStorage.setItem(queryKey,JSON.stringify(res))
             res.entities.map((item,index)=>{
                 item.cellMap.key=index
+                item.cellMap.code=item.code //增加code,为了删除操作
                 dataSource.push(item.cellMap)
                 return false
             })
+            const noSeeTotal=res.pageInfo.pageSize*res.pageInfo.virtualEndPageNo
             this.setState({
                 list:dataSource,
-                pageNo:res.pageInfo.pageNo,
-                pageSize:res.pageInfo.pageSize,
+                pageInfo:res.pageInfo,
                 currentPage:res.pageInfo.pageNo,      
-                pageCount:res.pageInfo.pageSize*res.pageInfo.virtualEndPageNo,
+                pageCount:isSeeTotal?isSeeTotal:noSeeTotal,
                 Loading:false,
             })
         })
     }
-    // requestList=(menuId,reset)=>{ 
-    //     const loading=document.getElementById('ajaxLoading')
-    //     if(sessionStorage.getItem(menuId)){
-    //         let res= JSON.parse(sessionStorage.getItem(menuId))
-    //         this.editList(res,reset)         
-    //         if(res.entities.length>0){
-    //             this.setState({
-    //                 pageNo:res.pageInfo.pageNo,
-    //                 pageSize:res.pageInfo.pageSize,
-    //             })
-    //         }
-    //     }else{
-    //         Super.super({
-    //             url:`/api2/entity/curd/list/${menuId}`,                
-    //         }).then((res)=>{
-    //             loading.style.display="none"
-    //             if(res){
-    //                 sessionStorage.setItem(menuId,JSON.stringify(res))
-    //                 this.editList(res,reset)         
-    //                 if(res.entities.length>0){
-    //                     this.setState({
-    //                         pageNo:res.pageInfo.pageNo,
-    //                         pageSize:res.pageInfo.pageSize,
-    //                         buttons:res.buttons,
-    //                     })
-    //                 }
-    //             }
-    //         })
-    //     }				
-	// }
-    // editList=(data,reset)=>{
-	// 	const list=[]
-    //     const codes=[]
-    //     const {menuId}=this.state
-    //     const moduleTitle=data.ltmpl.title;
-    //     const url=reset?"":decodeURI(this.props.history.location.search)
-    //     if(url&&data.criterias){//有筛选条件和数据时
-    //         const obj=Units.urlToObj(url)
-    //         data.criterias.map((item)=>{
-    //             for(let k in obj){
-    //                 if(k.split("_")[1]===item.id.toString()){
-    //                     item.value=obj[k] //更新表单筛选
-    //                 }
-    //             }
-    //             return false
-    //         })
-    //     }else{
-    //         this.child.reset()//搜索栏重置
-    //     }
-	// 	if(data.entities && data.entities.length!==0){
-    //         data.entities.map((item)=>{			
-    //             codes.push(item.code)
-    //             list.push(item.fields)
-    //             return false
-    //         })
-	// 		this.setState({
-	// 			columns:this.renderColumns(data.entities[0].fields),//之所以不用ltmpl.columns,因为后面渲染按钮
-    //             formList:data.criterias,
-    //             list:this.renderLists(list,menuId,codes),
-	// 			pageCount:data.pageInfo.count,
-    //         })
-	// 	}else if(data.entities && data.entities.length===0){
-	// 		this.setState({
-	// 			columns:"",
-	// 			pageCount:'',
-	// 		})
-    //     }
-	// 	this.setState({
-    //         moduleTitle,
-    //         actions:data.actions
-	// 	})
-    // }
-	// renderLists=(data,menuId,codes)=>{
-    //     const result=[];
-    //     data.map((item,index)=>{
-    //         let list={};
-    //         list['key']=index;//每一项添加key值
-    //         list['code']=codes[index];//添加code
-    //         list['menuId']=menuId;
-    //         item.map((item)=>{
-    //             const key=item.title
-    //             const value=item.value
-    //             list[key]=value
-    //             return false
-    //         })
-    //         result.push(list)
-    //         return false
-    //     })
-    //     return result
-    // }
-    // renderColumns=(data)=>{
-    //     if(data){
-    //         data.map((item)=>{
-    //             const value=item.title;
-    //             item["dataIndex"]=value;	
-    //             return false						
-    //         })
-    //         const order={
-    //             title: '序号',
-    //             key: 'order',
-    //             render: (text, record,index) => (
-    //                 <label>{index+1}</label>
-    //                 ),
-    //         } 
-    //         data.unshift(order) 
-    //         const act={
-    //             title: '操作',
-    //             key: 'action',
-    //             render: (text, record) => (
-    //             <span>
-    //                 <Button 
-    //                     type="primary" 
-    //                     icon="align-left" 
-    //                     size="small" 
-    //                     onClick={()=>this.handleOperate("detail",record)}>
-    //                     详情
-    //                 </Button>
-    //                 <Button 
-    //                     type="dashed" 
-    //                     icon="edit" 
-    //                     size="small" 
-    //                     onClick={()=>this.handleOperate("edit",record)}>
-    //                     修改
-    //                 </Button>
-    //             </span>
-    //             ),
-    //         }
-    //         data.push(act)
-    //         return data
-    //     }		
-    // } 
     handleOperate=(type,record)=>{
-        const {menuId}=this.state
+        const { menuId,selectCodes }=this.state
         const code=record.code
         this.setState({loading:true,Loading:true})
-        this.props.history.push(`/${menuId}/${type}/${code}`)
-        this.setState({loading:false,Loading:false})
+        if(type==="delete"){
+            Modal.confirm({
+				title:"删除提示",
+				content:`您确定删除这些数据吗？`,
+				okText:"确认",
+				cancelText:"取消",
+				onOk:()=>{
+					Super.super({
+                        url:`/api2/entity/curd/remove/${menuId}`,
+                        data:{
+                            codes:selectCodes
+                        }            
+					}).then((res)=>{
+                        this.setState({loading:false,Loading:false})
+						if(res.status==="suc"){ 
+							this.fresh("删除成功！")     //刷新列表       
+						}else{
+							message.info('删除失败！')  
+						}
+					})
+                },
+                onCancel:()=>{
+                    this.setState({loading:false,Loading:false})
+                }
+			})
+		}else{
+            this.props.history.push(`/${menuId}/${type}/${code}`)
+            this.setState({loading:false,Loading:false})
+		}
     } 
-    searchList=(params)=>{
-        const {menuId}=this.state
+    searchList=(params,menuId)=>{
         for(let k in params){
             if(typeof params[k] ==="object"){ //日期格式转换
                 if(params[k] instanceof Array){
@@ -330,26 +233,26 @@ export default class actTable extends React.Component{
     handleImport=(menuId)=>{
         this.props.history.push(`/${menuId}/import`)
     }
-    // handleActions=(actionId)=>{
-    //     const {menuId,selectCodes}=this.state;     
-    //     this.setState({Loading:true})
-    //     Super.super({
-    //         url:`/api2/entity/curd/do_action/${menuId}/${actionId}`, 
-    //         data:{
-    //             codes:selectCodes
-    //         }                 
-    //     }).then((res)=>{
-    //         this.setState({Loading:false,selectedRowKeys: [],})
-    //         if(res && res.status==="suc"){
-    //             this.fresh(res.msg)
-    //         }else{
-    //             message.error(res.status)
-    //         }
-    //     })
-    // }
+    handleActions=(actionId)=>{
+        const {menuId,selectCodes}=this.state;     
+        this.setState({Loading:true})
+        Super.super({
+            url:`/api2/entity/curd/do_action/${menuId}/${actionId}`, 
+            data:{
+                codes:selectCodes
+            }                 
+        }).then((res)=>{
+            this.setState({Loading:false,selectedRowKeys: [],})
+            if(res && res.status==="suc"){
+                this.fresh('操作成功!')
+            }else{
+                message.error(res.status)
+            }
+        })
+    }
     fresh=(msg)=>{
         this.reset()
-        message.info(msg)
+        message.success(msg)
     }
     seeTotal=()=>{
         const {queryKey,isSeeTotal}=this.state
@@ -358,8 +261,7 @@ export default class actTable extends React.Component{
                 url:`/api2/entity/curd/get_entities_count/${queryKey}`,                
             }).then((res)=>{
                 this.setState({
-                    pageCount:res.count,
-                    isSeeTotal:true
+                    isSeeTotal:res.count
                 })
             })
         }       
@@ -373,19 +275,18 @@ export default class actTable extends React.Component{
         this.props.history.push(`/${menuId}`)
     }
     render(){
-        const {selectedRowKeys,pageNo,pageSize,filterOptions,moduleTitle,list,loading,buttons,
-            formList,actions,columns,Loading,currentPage,menuId,pageCount,isSeeTotal,optionsMap,queryKey } = this.state;
+        const {selectedRowKeys,filterOptions,moduleTitle,list,loading,pageInfo,
+            formList,tmplGroup,columns,Loading,currentPage,menuId,pageCount,isSeeTotal,optionsMap,queryKey } = this.state;
         const content = <ExportFrame //导出组件
                             menuId={menuId}
-                            pageNo={pageNo}
-                            pageSize={pageSize}
+                            pageInfo={pageInfo}
                             filterOptions={filterOptions}
                             queryKey={queryKey}
                             /> 
         const rowSelection = {
             selectedRowKeys,
             onChange: (selectedRowKeys, selectedRows) => {
-                //console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+                console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
                 let selectCodes=""
                 selectedRows.map((item)=>{
                     selectCodes+=item.code+","
@@ -399,17 +300,17 @@ export default class actTable extends React.Component{
         let hideExport=false
         let hideImport=false
         let hideQuery=false
-        if(buttons){
-            for(let k in buttons){
-                if(k==="hideCreateButton" && buttons[k]===1){
+        if(tmplGroup){
+            for(let k in tmplGroup){
+                if(k==="hideCreateButton" && tmplGroup[k]===1){
                     hideCreate=true
-                }else if(k==="hideDeleteButton" && buttons[k]===1){
+                }else if(k==="hideDeleteButton" && tmplGroup[k]===1){
                     hideDelete=true
-                }else if(k==="hideExportButton" && buttons[k]===1){
+                }else if(k==="hideExportButton" && tmplGroup[k]===1){
                     hideExport=true
-                }else if(k==="hideImportButton" && buttons[k]===1){
+                }else if(k==="hideImportButton" && tmplGroup[k]===1){
                     hideImport=true
-                }else if(k==="hideQueryButton" && buttons[k]===1){
+                }else if(k==="hideQueryButton" && tmplGroup[k]===1){
                     hideQuery=true
                 }
             }
@@ -447,7 +348,7 @@ export default class actTable extends React.Component{
                         formList={formList} 
                         filterSubmit={this.searchList} 
                         handleOperate={this.handleOperate}
-                        actions={actions}
+                        actions={tmplGroup?tmplGroup.actions:""}
                         handleActions={this.handleActions}
                         disabled={selectedRowKeys.length>0?false:true}
                         menuId={menuId}
@@ -469,7 +370,7 @@ export default class actTable extends React.Component{
                 >
                 </Table>
                 <div className='Pagination'>
-                    <span className={isSeeTotal?'sewTotal':'seeTotal'} onClick={this.seeTotal}>{isSeeTotal?`共${pageCount}条`:'点击查看总数'}</span>
+                    <span className={isSeeTotal?'sewTotal':'seeTotal'} onClick={this.seeTotal}>{isSeeTotal?`共${isSeeTotal}条`:'点击查看总数'}</span>
                     <Pagination 
                         style={{display:'inline-block'}}
                         showQuickJumper 

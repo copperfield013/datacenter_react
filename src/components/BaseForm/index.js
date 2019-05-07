@@ -23,7 +23,7 @@ class BaseForm extends React.Component{
                 delete fieldsValue[k]
             }
         }
-        this.props.filterSubmit(fieldsValue);
+        this.props.filterSubmit(fieldsValue,this.props.menuId);
     }
     selectOptions=(id)=>{//下拉框
         const {optionsMap}=this.props
