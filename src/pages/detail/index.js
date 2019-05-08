@@ -44,8 +44,7 @@ export default class Detail extends React.Component{
             data:{
                 isShowLoading:true
             }          
-        }).then((res)=>{             
-            console.log(res) 
+        }).then((res)=>{     
             const formltmpl=[]
             const editformltmpl=[]
             const cardTitle=[]
@@ -57,46 +56,15 @@ export default class Detail extends React.Component{
                     editformltmpl.push(item)
                 }
             })
+            console.log(formltmpl)
+            console.log(editformltmpl)
+            this.requestSelect(formltmpl,editformltmpl)
             if(code){
                 this.loadRequest(formltmpl,editformltmpl)
             }
-            this.setState({
-                cardTitle
-            })
-        })  
-    }
-    loadRequest=(formltmpl,editformltmpl)=>{
-        const {menuId,code,type}=this.props.match.params
-        this.setState({loading:true})
-        Super.super({
-            url:`/api2/entity/curd/detail/${menuId}/${code}`,       
-            data:{
-                isShowLoading:true
-            }          
-        }).then((res)=>{              
-            console.log(res)         
-            formltmpl.map((item)=>{
-                item.fields.map((item)=>{
-                    for(let k in res.entity.fieldMap){
-                        if(item.id.toString()===k){
-                            item.value=res.entity.fieldMap[k]
-                        }
-                    }
-                })
-            })   
-            //console.log(editformltmpl)            
-            //const detailsList=res.entity.fieldGroups; 
-            // this.detailTitle(res,type)
-            // this.renderList(detailsList)
-            // if(res.history){                   
-            //     const detailHistory=this.renderHistoryList(res.history);
-            //     this.setState({
-            //         detailHistory
-            //     }) 
-            // }
-            if(res.premises && res.premises.length>0){
+            if(res.config.premises && res.config.premises.length>0){
                 const result=[]
-                res.premises.map((item)=>{
+                res.config.premises.map((item)=>{
                     let list={}
                     for(let k in item){
                         list[k]=item[k]
@@ -113,70 +81,105 @@ export default class Detail extends React.Component{
                 })  
             }
             this.setState({
+                cardTitle,
+                menuTitle:res.menu.title,
+                actions:res.config.actions,
+                formltmpl
+            })
+        })  
+    }
+    loadRequest=(formltmpl,editformltmpl)=>{
+        const {menuId,type,code}=this.props.match.params
+        this.setState({loading:true})
+        Super.super({
+            url:`/api2/entity/curd/detail/${menuId}/${code}`,       
+            data:{
+                isShowLoading:true
+            }          
+        }).then((res)=>{       
+            formltmpl.map((item)=>{
+                item.fields.map((item)=>{
+                    for(let k in res.entity.fieldMap){
+                        if(item.id.toString()===k){
+                            item.value=res.entity.fieldMap[k]
+                        }
+                    }
+                })
+            })
+            console.log(formltmpl)
+            this.detailTitle(res.entity.title,type)
+            this.setState({
                 loading:false,
                 actions:res.actions,
                 formltmpl,
                 editformltmpl,
                 columns:this.renderColumns(editformltmpl),
-                dataSource:res.entity.arrayMap
+                dataSource:res.entity.arrayMap,
             })          
         })
     }
-    renderHistoryList=(data)=>{
-		return data.map((item,index)=>{
-            const color=item.current?"red":"blue";
-			return <Timeline.Item color={color} key={index}>
-                        {Units.formateDate(item.time)}<br/>
-                        {`操作人`+item.userName}
-                        {
-                          item.current?"":<Button 
-                                                style={{marginLeft:10}} 
-                                                id={item.id} 
-                                                type="primary" 
-                                                size="small" 
-                                                onClick={this.toHistory}
-                                                >查看</Button>
-                        }                   
-				    </Timeline.Item>
-		})
+    renderHistoryList=()=>{
+        const {menuId,code,}=this.state
+        Super.super({
+            url:`/api2/entity/curd/history/${menuId}/${code}/1`,                
+        }).then((res)=>{
+            let detailHistory
+            //console.log(res)
+            if(res.history.length>0){
+                detailHistory= res.history.map((item,index)=>{
+                    const color=item.current?"red":"blue";
+                    return <Timeline.Item color={color} key={index}>
+                                {Units.formateDate(item.time)}<br/>
+                                {`操作人`+item.userName}
+                                {item.current?"":<Button 
+                                                    style={{marginLeft:10}} 
+                                                    code={item.code} 
+                                                    type="primary" 
+                                                    size="small" 
+                                                    onClick={this.toHistory}
+                                                    >查看</Button>
+                                }                   
+                            </Timeline.Item>
+                    })
+            }
+            this.setState({
+                detailHistory
+            })
+        })
     }
-    // toHistory=(e)=>{
-    //     const { menuId,code,type }=this.state
-    //     this.setState({loading:true})
-    //     const historyId=e.target.getAttribute("id");
-    //     Super.super({
-    //         url:`/api/entity/curd/detail/${menuId}/${code}`,  
-    //         data:{
-    //             historyId,
-    //         }                 
-    //     }).then((res)=>{
-    //         const detailsList=res.entity.fieldGroups; 
-    //         this.detailTitle(res,type)
-    //         this.renderList(detailsList)
-    //         if(res.history){                   
-    //             const detailHistory=this.renderHistoryList(res.history);
-    //             this.setState({
-    //                 detailHistory
-    //             }) 
-    //         }
-    //         this.setState({loading:false})
-    //     })
-
-    // }
-    // detailTitle=(data,type)=>{
-	// 	let detailsTitle="";
-	// 	const moduleTitle=data.module.title;
-	// 	const entityTitle=data.entity.title;
-	// 	if(type==="detail"){
-	// 		detailsTitle=entityTitle?moduleTitle+"-"+entityTitle+"-详情":moduleTitle+"-详情";
-	// 	}else if(type==="edit"){
-	// 		detailsTitle=entityTitle?moduleTitle+"-修改-"+entityTitle:moduleTitle+"-修改";
-	// 	}			        		
-	// 	this.setState({ 
-    //         detailsTitle,
-    //         moduleTitle,
-	// 	});
-	// }
+    toHistory=(e)=>{
+        const {menuId,type}=this.state
+        const historyCode=e.target.getAttribute("code");
+        //console.log(historyCode)
+        this.props.history.push(`/${menuId}/${type}/${historyCode}`)
+        // Super.super({
+        //     url:`/api2/entity/curd/detail/${menuId}/${historyCode}`,                
+        // }).then((res)=>{
+        //     const detailsList=res.entity.fieldGroups; 
+        //     this.detailTitle(res,type)
+        //     this.renderList(detailsList)
+        //     if(res.history){                   
+        //         const detailHistory=this.renderHistoryList(res.history);
+        //         this.setState({
+        //             detailHistory
+        //         }) 
+        //     }
+        //     this.setState({loading:false})
+        // })
+    }
+    detailTitle=(dataTitle,type)=>{
+        const {menuTitle}=this.state
+		let detailsTitle="";
+		if(type==="detail"){
+			detailsTitle=menuTitle+"-"+dataTitle+"-详情"
+		}else if(type==="edit"){
+			detailsTitle=menuTitle+"-"+dataTitle+"-修改"
+		}			        		
+		this.setState({ 
+            detailsTitle,
+            menuTitle,
+		});
+	}
     // renderList=(detailsList)=>{
     //     const itemDescs=[]
     //     const columns=[]
@@ -217,15 +220,14 @@ export default class Detail extends React.Component{
         editformltmpl.map((item)=>{
             const totalName=item.title
 			item.fields.map((item,index)=>{
-                const fieldName=item.name;
                 const id=item.id
                 item["dataIndex"]=id;	
                 item["key"]=index;                
                 if(type==="detail"){
-                    if(fieldName.indexOf("价格")>-1 || fieldName.indexOf("工号")>-1){
-                        item["sorter"]=(a, b) => parseInt(a[fieldName]) - parseInt(b[fieldName]); 
+                    if(item.type==="decimal"){
+                        item["sorter"]=(a, b) => a[id] - b[id]; 
                     }else{
-                        item["sorter"]=(a, b) => a[fieldName].length - b[fieldName].length; 
+                        item["sorter"]=(a, b) => a[id].length - b[id].length; 
                     }
                 }           
                 return false      					
@@ -245,6 +247,7 @@ export default class Detail extends React.Component{
                 title: '序号',
                 key: 'order',
                 width:65,
+                dataIndex:'key',
                 render: (text, record,index) => (
                     <label>{index+1}</label>
                     ),
@@ -267,59 +270,67 @@ export default class Detail extends React.Component{
         })   
         return columns
     }
-    // requestSelect=(formList,detailsList)=>{
-    //     const { type }=this.state; 
-    //     const tokenName=Units.getLocalStorge("tokenName")
-    //     const selectId=[]
-    //     const optArr=[]
-    //     if(type==="edit" || type==="new"){
-    //         formList.map((item)=>{
-    //             item.fields.map((it)=>{
-    //                 if(it.type==="select" || it.type==="label"){
-    //                     selectId.push(it.fieldId)
-    //                 }
-    //                 return false
-    //             })
-    //             return false
-    //         })
-    //         detailsList.map((item)=>{ 
-    //             item.descs.map((it)=>{
-    //                 if(it.type==="select"){
-    //                     selectId.push(it.fieldId)
-    //                 }
-    //                 return false
-    //             })
-    //             return false
-    //         })
-    //     if(selectId.length>0){  //有下拉框时，发送请求
-    //         const formData = new FormData();
-    //         selectId.map((item)=>{
-    //             formData.append('fieldIds',item);
-    //             return false
-    //         })
-    //         superagent
-    //             .post(`/api/field/options`)
-    //             .set({"datamobile-token":tokenName})
-    //             .send(formData)
-    //             .end((req,res)=>{
-    //                 if(res.status===200){                                          
-    //                     optArr.push(res.body.optionsMap)
-    //                     this.setState({
-    //                         optArr
-    //                     })
-    //                 }else if(res.status===403){
-    //                     message.info("请求权限不足,可能是token已经超时")
-    //                     window.location.href="/#/login";
-    //                 }else if(res.status===404||res.status===504){
-    //                     message.info("服务器未开···")
-    //                 }else if(res.status===500){
-    //                     message.info("后台处理错误。")
-    //                 }
-    //                 //console.log(optArr)
-    //             })
-    //         }
-    //     }
-    // }
+    requestSelect=(formltmpl,editformltmpl)=>{
+        const { type }=this.state; 
+        const selectId=[]
+        if(type==="edit" || type==="new"){
+            formltmpl.map((item)=>{
+                item.fields.map((it)=>{
+                    if(it.type==="select" || it.type==="label"){
+                        selectId.push(it.fieldId)
+                    }
+                    return false
+                })
+                return false
+            })
+            editformltmpl.map((item)=>{ 
+                item.fields.map((it)=>{
+                    if(it.type==="select"){
+                        selectId.push(it.fieldId)
+                    }
+                    return false
+                })
+                return false
+            })
+        if(selectId.length>0){  //有下拉框时，发送请求
+            let fieldIds = ""
+            selectId.map((item)=>{
+                fieldIds+=item+","
+                return false
+            })
+            Super.super({
+                url:`/api2/meta/dict/field_options`,       
+                data:{
+                    fieldIds
+                },
+            }).then((res)=>{
+                this.setState({
+                    optionsMap:res.optionsMap
+                })
+            })
+            // superagent
+            //     .post(`/api2/meta/dict/field_options`)
+            //     .set({"datacenter-token":tokenName})
+            //     .send(formData)
+            //     .end((req,res)=>{
+            //         if(res.status===200){                                          
+            //             optArr.push(res.body.optionsMap)
+            //             this.setState({
+            //                 optArr
+            //             })
+            //         }else if(res.status===403){
+            //             message.info("请求权限不足,可能是token已经超时")
+            //             window.location.href="/#/login";
+            //         }else if(res.status===404||res.status===504){
+            //             message.info("服务器未开···")
+            //         }else if(res.status===500){
+            //             message.info("后台处理错误。")
+            //         }
+            //         //console.log(optArr)
+            //     })
+            }
+        }
+    }
     // removeList=(record)=>{
     //     const deleKey=record.key
     //     const dataSource =[...this.state.dataSource];      
@@ -365,61 +376,62 @@ export default class Detail extends React.Component{
     //         records,
     //     })
     // }
-    requestTableList=(data)=>{
-        const {type}=this.state
-        const res=[]              
-        //console.log(data)
-        if(data && type!=="new"){
-            data.map((item,index)=>{
-                const list={};   
-                const code=item.code;
-                let fieldName=""
-                //list["key"]=code;       
-                if(item.relationLabel){
-                    list["关系"]=item.relationLabel;
-                    // list["fieldName"]="关系";
-                    // list["title"]="关系";
-                    // list["type"]="relation";
-                    // list["value"]=item.relationLabel;
-                    //list["options"]=data.composite.relationSubdomain
-                }
-                // fieldsArray.map((it)=>{
-                //     fieldName=it.fieldName
-                //     const fieldValue=it.value;     
-                //     const fieldType=it.type;                
-                //     const a=fieldName.split(".")[0]
-                //     const b=fieldName.split(".")[1];
-                //     if(fieldType==="file"){
-                //         list[fieldName]=fieldValue?
-                //         <span className="downEditPic">
-                //             <img style={{width:55}} src={`/file-server/${fieldValue}`} alt="图片加载失败"/>
-                //             <Button size="small" href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></Button>
-                //         </span>
-                //         :"无文件"
-                //     }else{
-                //         list[fieldName]=fieldValue?fieldValue:"";
-                //     } 
-                //     list[a+`[${index}].唯一编码`]=code;
-                //     list[a+`[${index}].`+b]=fieldValue?fieldValue:"";
-                //     if(data.composite.relationKey){
-                //         list[a+`[${index}].$$label$$`]=item.relation;    
-                //         list[a+".关系"]=relation
-                //     }
-                //     return false
-                // })
-                Object.assign(list, item.fieldMap);
-                //console.log(list)
-                res.push(list) 
-                return false             
-            })        
-        }
-        return res
-    }
-    // showHistory=()=>{
-    //     this.setState({
-    //         visibleDrawer: true,
-    //     });
+    // requestTableList=(data)=>{
+    //     const {type}=this.state
+    //     const res=[]              
+    //     console.log(data)
+    //     if(data && type!=="new"){
+    //         data.map((item,index)=>{
+    //             const list={};   
+    //             const code=item.code;
+    //             let fieldName=""
+    //             list["key"]=code;       
+    //             if(item.relationLabel){
+    //                 list["关系"]=item.relationLabel;
+    //                 list["fieldName"]="关系";
+    //                 list["title"]="关系";
+    //                 list["type"]="relation";
+    //                 list["value"]=item.relationLabel;
+    //                 list["options"]=data.composite.relationSubdomain
+    //             }
+    //             fieldsArray.map((it)=>{
+    //                 fieldName=it.fieldName
+    //                 const fieldValue=it.value;     
+    //                 const fieldType=it.type;                
+    //                 const a=fieldName.split(".")[0]
+    //                 const b=fieldName.split(".")[1];
+    //                 if(fieldType==="file"){
+    //                     list[fieldName]=fieldValue?
+    //                     <span className="downEditPic">
+    //                         <img style={{width:55}} src={`/file-server/${fieldValue}`} alt="图片加载失败"/>
+    //                         <Button size="small" href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></Button>
+    //                     </span>
+    //                     :"无文件"
+    //                 }else{
+    //                     list[fieldName]=fieldValue?fieldValue:"";
+    //                 } 
+    //                 list[a+`[${index}].唯一编码`]=code;
+    //                 list[a+`[${index}].`+b]=fieldValue?fieldValue:"";
+    //                 if(data.composite.relationKey){
+    //                     list[a+`[${index}].$$label$$`]=item.relation;    
+    //                     list[a+".关系"]=relation
+    //                 }
+    //                 return false
+    //             })
+    //             res.push(list) 
+    //             return false             
+    //         })        
+    //     }
+    //     return res
     // }
+    showHistory=()=>{
+        this.renderHistoryList();
+        // console.log(detailHistory)
+        this.setState({
+            visibleDrawer: true,
+            //detailHistory
+        });
+    }
     // handleOk = (e) => {
     //     e.preventDefault();
     //     this.setState({loading:true})
@@ -486,36 +498,36 @@ export default class Detail extends React.Component{
     //         loading:false
     //     });
     //   }
-    // exportDetail=()=>{
-    //     const {menuId,code}=this.state
-    //     confirm({
-    //         title: '确认导出当前详情页？',            
-    //         okText: "确认",
-    //         cancelText: "取消",
-    //         onOk() {
-    //             const loading=document.getElementById('ajaxLoading')
-    //             loading.style.display="block"
-    //             Super.super({
-    //                 url:`/api/entity/export/export_detail/${menuId}/${code}`,                 
-    //             }).then((res)=>{
-    //                 loading.style.display="none"
-    //                 if(res.status==="suc"){
-    //                     Units.downloadFile(`/api/entity/export/download/${res.uuid}`)
-    //                 }else{
-    //                     message.error(res.status)
-    //                 }
-    //             })
-    //         },
-    //       });          
-    // }
-    // handleCancel = () => {
-    //     this.setState({
-    //         visibleModal: false,
-    //         visibleForm: false,
-    //         visibleTemplateList:false,
-    //         visibleDrawer: false,
-    //     });
-    // }
+    exportDetail=()=>{
+        const {menuId,code}=this.state
+        confirm({
+            title: '确认导出当前详情页？',            
+            okText: "确认",
+            cancelText: "取消",
+            onOk() {
+                const loading=document.getElementById('ajaxLoading')
+                loading.style.display="block"
+                Super.super({
+                    url:`/api2/entity/export/detail/${menuId}/${code}`,                 
+                }).then((res)=>{
+                    loading.style.display="none"
+                    if(res.status==="suc"){
+                        Units.downloadFile(`/api2/entity/export/download/${res.uuid}`)
+                    }else{
+                        message.error(res.status)
+                    }
+                })
+            },
+          });          
+    }
+    handleCancel = () => {
+        this.setState({
+            visibleModal: false,
+            visibleForm: false,
+            visibleTemplateList:false,
+            visibleDrawer: false,
+        });
+    }
     // getRecords=()=>{
     //     const dataSource =[...this.state.dataSource];
     //     const {records}=this.state
@@ -595,21 +607,18 @@ export default class Detail extends React.Component{
     //         lis[0].style.backgroundColor="#cfe3f5"
     //     }
     // } 
-    // getOptions=(id)=>{  
-    //     const {optArr}=this.state
-    //     if(optArr){
-    //         optArr.map((item)=>{
-    //             for(let k in item){
-    //                 if(k===`field_${id}`){      
-    //                     this.setState({
-    //                         options:item[k]
-    //                     })
-    //                 }
-    //             }
-    //             return false
-    //         })
-    //     }        
-    // }
+    getOptions=(id)=>{  
+        const {optionsMap}=this.state
+        if(optionsMap){
+            for(let k in optionsMap){
+                if(k===id.toString()){      
+                    this.setState({
+                        options:optionsMap[k]
+                    })
+                }
+            }
+        }        
+    }
     // visibleForm=(data,record)=>{
     //     this.getForm(data,record)
     //     this.setState({
@@ -858,7 +867,7 @@ export default class Detail extends React.Component{
         
     // }
     render(){
-        const { moduleTitle,detailsTitle,fuseMode,formltmpl,loading,detailsList,visibleForm,editFormList,actions,premises,templateData,stmplId,
+        const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,detailsList,visibleForm,editFormList,actions,premises,templateData,stmplId,
             columns,dataSource,cardTitle,itemDescs,visibleModal,visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fields,editformltmpl
         }=this.state;
         let premisestitle=""
@@ -878,7 +887,7 @@ export default class Detail extends React.Component{
                 return false
             })
         }
-        let content=""
+        let content
         if(actions && actions.length>0){
             content = (
                 <div className="btns">
@@ -907,14 +916,14 @@ export default class Detail extends React.Component{
             <div className="detailPage">
                 <h3>
                     {
-                        type==="new"&& moduleTitle ? moduleTitle+"--创建":detailsTitle
+                        type==="new"&& menuTitle ? menuTitle+"--创建":detailsTitle
                     }   
                     {
                         type==="detail"?
                         <div className="fr pad">
                             <Button className="hoverbig" title="导出" onClick={this.exportDetail}><Icon type="upload" /></Button>
                             <Button className="hoverbig" title="查看历史" onClick={this.showHistory}><Icon type="schedule" /></Button>                                                      
-                            <Button className="hoverbig" title="刷新" onClick={()=>this.loadRequest(menuId,type,code)}><Icon type="sync" /></Button>
+                            <Button className="hoverbig" title="刷新" onClick={()=>this.loadltmpl(menuId,code)}><Icon type="sync" /></Button>
                         </div>
                         :
                         <div className="fr pad">
@@ -938,7 +947,7 @@ export default class Detail extends React.Component{
                             </Button>
                             </div>
                             <Switch checkedChildren="开" unCheckedChildren="关" style={{marginRight:10}} title="融合模式" onChange={this.fuseMode}/>
-                            <Button className="hoverbig" title="刷新" onClick={()=>this.loadRequest(menuId,type,code)}><Icon type="sync" /></Button>
+                            <Button className="hoverbig" title="刷新" onClick={()=>this.loadltmpl(menuId,type,code)}><Icon type="sync" /></Button>
                         </div>
                     }               
                     
@@ -1011,9 +1020,9 @@ export default class Detail extends React.Component{
                     visible={visibleDrawer}
                     width={400}
                     >
-                    <Timeline mode="alternate">
+                    {detailHistory?<Timeline mode="alternate">
                         {detailHistory}
-                    </Timeline>
+                    </Timeline>:"暂无历史记录"}
                 </Drawer>
                 <TemplateList 
                     visibleTemplateList={visibleTemplateList}

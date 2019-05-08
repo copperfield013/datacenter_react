@@ -17,7 +17,7 @@ export default class Superagent{
                 .type('form')
                 .set("datacenter-token",tokenName)
                 .query(options.query||'')
-                .send(options.data||'')
+                .send(options.data)
                 .end((req,res)=>{
                     if(options.data && options.data.isShowLoading!==false){
                         loading=document.getElementById('ajaxLoading')

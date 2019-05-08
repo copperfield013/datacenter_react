@@ -13,7 +13,8 @@ export default class EditTable extends React.Component{
                 for(let k in dataSource){
                     if(item.id.toString()===k){
                         const data=[]
-                        dataSource[k].map((it)=>{
+                        dataSource[k].map((it,i)=>{
+                            it.fieldMap.key=i+1
                             data.push(it.fieldMap)
                         })
                         const stmplId=item.stmplId

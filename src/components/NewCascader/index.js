@@ -23,7 +23,7 @@ export default class NewCascader extends React.Component{
         const optGroupId=optionKey.split("@")[0]
         const time=optionKey.split("@")[1]
         Super.super({
-			url:`/api/field/cas_ops/${optGroupId}`,                
+			url:`/api2/meta/dict/cas_ops/${optGroupId}`,                
 		}).then((res)=>{
 			const ops=[]
             res.options.map((item)=>{
@@ -54,7 +54,7 @@ export default class NewCascader extends React.Component{
                 return false
             })
             Super.super({
-                url:`/api/field/cas_ops/${id}`,                
+                url:`/api2/meta/dict/cas_ops/${id}`,                
             }).then((res)=>{
                 const ops=[]
                 const time=this.state.time
@@ -83,10 +83,10 @@ export default class NewCascader extends React.Component{
       }
     
     render(){
-        const { optionKey,fieldName }=this.props
+        const { optionGroupKey,fieldName }=this.props
         return (
             <Cascader
-                onClick={()=>this.requestLinkage(optionKey)}
+                onClick={()=>this.requestLinkage(optionGroupKey)}
                 placeholder={`请选择${fieldName}`}
                 style={{width:220}}
                 options={this.state.options}

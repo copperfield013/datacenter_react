@@ -20,25 +20,25 @@ export default class EditTableList extends React.Component {
     const txt=e.target.value
     const data=[]
     columns.map((item)=>{
-      const fieldName=item.fieldName;
-      if(fieldName && fieldName.indexOf("封面")===-1){
+      const id=item.id;
+      if(item && item.type!=="file"){
         if(e.target.value){
           const arr=[]
-          arr.push(...dataSource.filter(item=>typeof item[fieldName]==="string" && item[fieldName].indexOf(txt)>-1))
+          arr.push(...dataSource.filter(item=>typeof item[id]==="string" && item[id].includes(txt)===true))
           //匹配到一行两个条件，去重
           for(let i=0;i<arr.length;i++){ 
             　　let flag = true;
             　　for(let j=0;j<data.length;j++){
-            　　　　if(arr[i].key === data[j].key){
+            　　　　if(Object.is(arr[i], data[j])===true){ //判断两个对象是否相同
             　　　　　　flag = false;
-            　　　　};
+            　　　　}
             　　}; 
             　　if(flag){
                   data.push(arr[i]);
             　　};
             };
         }else{
-          if(data.indexOf(...dataSource)===-1){
+          if(data.includes(...dataSource)===false){
             data.push(...dataSource)
           }
         }  
@@ -46,7 +46,7 @@ export default class EditTableList extends React.Component {
                                       highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
                                       searchWords={[this.state.searchText]}
                                       autoEscape
-                                      textToHighlight={text.toString()}
+                                      textToHighlight= {text?text.toString():""}
                                       />)        
       }
         return false
@@ -109,8 +109,7 @@ export default class EditTableList extends React.Component {
                               >选择</Button>:""}
               <Table
                 bordered
-                dataSource={dataSource}
-                //dataSource={type==="edit"?dataSource:this.state.dataSource}
+                dataSource={type==="edit"?dataSource:this.state.dataSource}
                 columns={columns}    
                 pagination={type==="edit"?false:page}
                 onChange={this.tableChange}
