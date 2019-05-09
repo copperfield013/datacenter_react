@@ -13,11 +13,26 @@ class ModelForm extends React.Component{
         this.props.form.resetFields();
     } 
     handleOk=()=>{
-        const key=this.props.formList[1]["key"]
-        const totalName=this.props.formList[1]["fieldName"].split(".")[0]
-        let fieldsValue=this.props.form.getFieldsValue()[totalName];
+        const {formList,form}=this.props
+        let key,groupId,totalName
+        formList.map((item)=>{
+            if(item.name!=="关系"){
+                key=item.key
+                groupId=item.groupId
+                totalName=item.name.split(".")[0]
+            }
+            return false
+        })      
+        //console.log(formList)
+        let fieldsValue=form.getFieldsValue()[totalName]
         const trueKey=key?key:Units.RndNum(9);//随机生成key，进行第二次更改
         for(let k in fieldsValue){
+            formList.map((item)=>{
+                if(k===item.title){
+                    fieldsValue[item.id]=fieldsValue[k]
+                }
+                return false
+            })
             if(k.indexOf("期")>-1 && fieldsValue[k]){ //日期格式转换
                 fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
             }else if(!fieldsValue[k]){ //去除undefined
@@ -31,34 +46,37 @@ class ModelForm extends React.Component{
             }
         }
         fieldsValue["key"]=trueKey
+        fieldsValue["groupId"]=groupId
         fieldsValue["totalName"]=totalName    
-        const relation=this.props.form.getFieldsValue()["关系"]
+        const relation=form.getFieldsValue()["关系"]
         if(relation){
             fieldsValue["关系"]=relation
         }
+        // console.log(formList)
+         //console.log(fieldsValue)
         this.props.handleOk(fieldsValue);
     } 
     render(){
-        const { formList,type,form }=this.props;
+        const { formList,type,form,title,visibleForm,handleCancel,getOptions,options }=this.props;
         return(
             <Modal
-                title={this.props.title}
-                visible={this.props.visibleForm}
+                title={title}
+                visible={visibleForm}
                 onOk={this.handleOk}
-                onCancel={this.props.handleCancel}
+                onCancel={handleCancel}
                 okText="确认"
                 cancelText="取消"
                 destroyOnClose
                 >
-                <Form layout="inline" autoComplete="off" > 
+                <Form layout="inline" autoComplete="off"> 
                     <BaseInfoForm
-                        key={this.props.title}
+                        key={title}
                         formList={formList} 
                         type={type} 
                         form={form}
                         width={220}
-                        getOptions={this.props.getOptions}
-                        options={this.props.options}
+                        getOptions={getOptions}
+                        options={options}
                         flag={false}
                         />          
                 </Form>                    

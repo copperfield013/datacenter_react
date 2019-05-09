@@ -67,13 +67,14 @@ export default class EditTableList extends React.Component {
     })
   }
   render() {
-    const { cardTitle,columns,type,dataSource,stmplId,itemDescs }=this.props
+    const { cardTitle,columns,type,dataSource,selectionTemplateId }=this.props
     const page={pageSize:5,hideOnSinglePage:true}
-    let excepts=""
-    dataSource.map((item)=>{
-      excepts+=item.key+","
-      return false
-    })
+    // let excepts=""
+    // console.log(dataSource)
+    // dataSource.map((item)=>{
+    //   excepts+=item.key+","
+    //   return false
+    // })
     // let opti=""
     // if(itemDescs.composite.relationSubdomain){
     //   const opArr=itemDescs.composite.relationSubdomain
@@ -100,7 +101,7 @@ export default class EditTableList extends React.Component {
                               onClick={this.props.handleAdd} 
                               style={{marginBottom:10,marginRight:10}}
                               >新增</Button>}
-              {stmplId?<Button 
+              {selectionTemplateId?<Button 
                               type='primary' 
                               icon="snippets" 
                               size="small"

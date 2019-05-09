@@ -4,37 +4,55 @@ import EditTableList from './editTableList'
 export default class EditTable extends React.Component{
     
     initDetailsList=()=>{
-        const { detailsList,type,itemDescs,cardTitle,dataSource,columns }=this.props
+        const { type,dataSource,columns,getTemplate }=this.props
         const detailsItemList=[];   
+        console.log(columns)
         if(columns){
-            console.log(columns) 
-            console.log(dataSource)
             columns.map((item,index)=>{
-                for(let k in dataSource){
-                    if(item.id.toString()===k){
-                        const data=[]
-                        dataSource[k].map((it,i)=>{
-                            it.fieldMap.key=i+1
-                            data.push(it.fieldMap)
-                        })
-                        const stmplId=item.stmplId
-                        const RANGE=<EditTableList               
-                                        key={Math.random()}
-                                        type={type}
-                                        columns={item.fields}
-                                        dataSource={data} 
-                                        itemDescs={item.fields}
-                                        stmplId={stmplId}
-                                        //count={type==="new"?null:dataSource[index].length}
-                                        cardTitle={cardTitle[index]}
-                                        handleAdd={()=>this.props.handleAdd(columns[index])}
-                                        getTemplate={this.props.getTemplate}
-                                    />
-                        detailsItemList.push(RANGE)         
-                        return false
+                if(JSON.stringify(dataSource) !== "{}" && JSON.stringify(dataSource) !== "[]"){
+                    for(let k in dataSource){
+                        if(item.id.toString()===k){
+                            const data=[]
+                            dataSource[k].map((it,i)=>{
+                                it.fieldMap["order"]=i+1
+                                data.push(it.fieldMap)
+                                return false
+                            })
+                            const selectionTemplateId=item.selectionTemplateId
+                            const dialogSelectType=item.dialogSelectType
+                            const RANGE=<EditTableList               
+                                            key={Math.random()}
+                                            type={type}
+                                            columns={item.fields}
+                                            dataSource={data}
+                                            dialogSelectType={dialogSelectType}
+                                            selectionTemplateId={dialogSelectType?selectionTemplateId:""}
+                                            cardTitle={item.title}
+                                            handleAdd={()=>this.props.handleAdd(item.fields)}
+                                            getTemplate={getTemplate}
+                                        />
+                            detailsItemList.push(RANGE)         
+                            return false
+                        }                      
                     }
-                        
+                }else{
+                    const selectionTemplateId=item.selectionTemplateId
+                    const dialogSelectType=item.dialogSelectType
+                    const RANGE=<EditTableList               
+                                    key={Math.random()}
+                                    type={type}
+                                    columns={item.fields}
+                                    dataSource={dataSource} 
+                                    selectionTemplateId={dialogSelectType?selectionTemplateId:""}
+                                    cardTitle={item.title}
+                                    handleAdd={()=>this.props.handleAdd(item.fields)}
+                                    getTemplate={getTemplate}
+                                />
+                    detailsItemList.push(RANGE)
+
                 }
+                
+                return false
             })
             return detailsItemList;
         }

@@ -35,11 +35,10 @@ export default class BaseInfoForm extends React.Component{
         if(formList && formList.length>0){
             formList.forEach((item)=>{
                 const title=item.title;
-                const field=item.fieldId
+                const field=item.id
                 const fieldValue=item.value;
                 const available=item.fieldAvailable
                 const fieldName=item.name
-                const id=item.id;
                 if(item.type==="date"){
                     const DATE= <FormItem label={title} key={field} className='labelcss'>
                                     {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
@@ -78,7 +77,7 @@ export default class BaseInfoForm extends React.Component{
                                 </FormItem>   
                     formItemList.push(TEXT)                
                 }else if(item.type==="select"){
-                    const SELECT= <FormItem label={title} key={[field]} className='labelcss'>
+                    const SELECT= <FormItem label={title} key={field} className='labelcss'>
                                         {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                             getFieldDecorator(fieldName,{
                                                 initialValue:fieldValue?fieldValue:undefined,
@@ -101,7 +100,7 @@ export default class BaseInfoForm extends React.Component{
                                     </FormItem> 
                     formItemList.push(SELECT)    
                 }else if(item.type==="relation"){ //modelForm里面的关系下拉框
-                    const SELECT= <FormItem label={title} key={[field]} className='labelcss'>
+                    const SELECT= <FormItem label={title} key={field} className='labelcss'>
                                         {getFieldDecorator(fieldName,{
                                             initialValue:fieldValue,
                                             rules:item.validators?[{
@@ -261,6 +260,6 @@ export default class BaseInfoForm extends React.Component{
     render(){
         return(
                 this.initFormList()           
-                )
-             }
+            )
+        }
     }

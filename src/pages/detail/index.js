@@ -47,20 +47,25 @@ export default class Detail extends React.Component{
         }).then((res)=>{     
             const formltmpl=[]
             const editformltmpl=[]
-            const cardTitle=[]
             res.config.dtmpl.groups.map((item)=>{
                 if(item.composite===null){
                     formltmpl.push(item)
                 }else{
-                    cardTitle.push(item.title)
                     editformltmpl.push(item)
                 }
+                return false
             })
-            console.log(formltmpl)
-            console.log(editformltmpl)
+             console.log(res)
+            // console.log(editformltmpl)
             this.requestSelect(formltmpl,editformltmpl)
-            if(code){
+            if(code && code!=='new'){
                 this.loadRequest(formltmpl,editformltmpl)
+            }else{
+                this.setState({
+                    editformltmpl,
+                    columns:this.renderColumns(editformltmpl),
+                    dataSource:[],
+                })
             }
             if(res.config.premises && res.config.premises.length>0){
                 const result=[]
@@ -81,7 +86,6 @@ export default class Detail extends React.Component{
                 })  
             }
             this.setState({
-                cardTitle,
                 menuTitle:res.menu.title,
                 actions:res.config.actions,
                 formltmpl
@@ -96,25 +100,35 @@ export default class Detail extends React.Component{
             data:{
                 isShowLoading:true
             }          
-        }).then((res)=>{       
+        }).then((res)=>{  
+            const arrayMap=res.entity.arrayMap
+            const fieldMap=res.entity.fieldMap
             formltmpl.map((item)=>{
                 item.fields.map((item)=>{
-                    for(let k in res.entity.fieldMap){
+                    for(let k in fieldMap){
                         if(item.id.toString()===k){
-                            item.value=res.entity.fieldMap[k]
+                            item.value=fieldMap[k]
                         }
                     }
+                    return false
                 })
+                return false
             })
-            console.log(formltmpl)
             this.detailTitle(res.entity.title,type)
+            for(let k in arrayMap){
+                arrayMap[k].map((item,index)=>{
+                    item.fieldMap["key"]=index //为了不报错
+                    return item.relationLabel?item.fieldMap["关系"]=item.relationLabel:false
+                })
+            }
+            //console.log(res)
+            //console.log(arrayMap)
             this.setState({
                 loading:false,
-                actions:res.actions,
                 formltmpl,
                 editformltmpl,
                 columns:this.renderColumns(editformltmpl),
-                dataSource:res.entity.arrayMap,
+                dataSource:arrayMap,
             })          
         })
     }
@@ -150,22 +164,7 @@ export default class Detail extends React.Component{
     toHistory=(e)=>{
         const {menuId,type}=this.state
         const historyCode=e.target.getAttribute("code");
-        //console.log(historyCode)
-        this.props.history.push(`/${menuId}/${type}/${historyCode}`)
-        // Super.super({
-        //     url:`/api2/entity/curd/detail/${menuId}/${historyCode}`,                
-        // }).then((res)=>{
-        //     const detailsList=res.entity.fieldGroups; 
-        //     this.detailTitle(res,type)
-        //     this.renderList(detailsList)
-        //     if(res.history){                   
-        //         const detailHistory=this.renderHistoryList(res.history);
-        //         this.setState({
-        //             detailHistory
-        //         }) 
-        //     }
-        //     this.setState({loading:false})
-        // })
+        this.props.history.push(`/${menuId}/${type}/${historyCode}`)       
     }
     detailTitle=(dataTitle,type)=>{
         const {menuTitle}=this.state
@@ -180,86 +179,54 @@ export default class Detail extends React.Component{
             menuTitle,
 		});
 	}
-    // renderList=(detailsList)=>{
-    //     const itemDescs=[]
-    //     const columns=[]
-    //     const dataSource=[]
-    //     const cardTitle=[]
-    //     const formList=[] 
-    //     const descsFlag=[]
-    //     let scrollIds=[]
-    //     detailsList.map((item)=>{
-    //         if(item.descs){
-    //             cardTitle.push(item.title)
-    //             itemDescs.push(item)
-    //             descsFlag.push(item.descs)
-    //             columns.push(this.renderColumns(item))
-    //             dataSource.push(this.requestTableList(item))
-    //         }else if(item.fields){
-    //             formList.push(item)
-    //         }
-    //         scrollIds.push(item.title)
-    //         return false
-    //     })
-    //     this.requestSelect(formList,itemDescs)
-    //     Units.setLocalStorge("scrollIds",scrollIds)
-    //     this.setState({
-    //         detailsList,
-    //         formList,           
-    //         itemDescs,
-    //         columns,
-    //         dataSource,
-    //         cardTitle,
-    //         descsFlag //为了加$$flag$$
-    //     })
-    //     this.handleNav(scrollIds)
-    // }
     renderColumns=(editformltmpl)=>{
         const {type}=this.state 
         const columns=[]
         editformltmpl.map((item)=>{
-            const totalName=item.title
 			item.fields.map((item,index)=>{
                 const id=item.id
-                item["dataIndex"]=id;	
-                item["key"]=index;                
+                item["dataIndex"]=id               
                 if(type==="detail"){
                     if(item.type==="decimal"){
                         item["sorter"]=(a, b) => a[id] - b[id]; 
                     }else{
-                        item["sorter"]=(a, b) => a[id].length - b[id].length; 
+                        item["sorter"]=(a, b) =>{ 
+                            if(a[id]&&b[id]){
+                                return a[id].length - b[id].length;
+                            }
+                         }
                     }
                 }           
                 return false      					
             })  
             if(item.composite && item.composite.addType===5){//判断是否有关系属性
                 let rela={
-                    dataIndex:`${totalName}.关系`,
-                    fieldName:"关系",
+                    dataIndex:"关系",
+                    name:"关系",
                     title:"关系",
                     type:"relation",
-                    available:true,
+                    fieldAvailable:true,
+                    id:Units.RndNum(5),//随机5位数
                     options:item.composite.relationSubdomain
                 }
                 item.fields.unshift(rela) 
             }      
             const order={
                 title: '序号',
-                key: 'order',
                 width:65,
-                dataIndex:'key',
+                dataIndex:'order',
                 render: (text, record,index) => (
                     <label>{index+1}</label>
                     ),
             } 
             item.fields.unshift(order)
-            if(type==="edit"){
+            if(type!=="detail"){
                 const act={
                     title: '操作',
                     key: 'action',
                     render: (record) => (
                     <div className="editbtn">
-                        <Button type='primary' icon="edit" size="small"  onClick={()=>this.visibleForm(item.descs,record)}></Button>
+                        <Button type='primary' icon="edit" size="small"  onClick={()=>this.visibleForm(editformltmpl,record)}></Button>
                         <Button type='danger' icon="delete" size="small" onClick={()=>this.removeList(record)}></Button>
                     </div>
                     ),
@@ -267,6 +234,7 @@ export default class Detail extends React.Component{
                 item.fields.push(act) 
             }
             columns.push(item)
+            return false
         })   
         return columns
     }
@@ -308,128 +276,30 @@ export default class Detail extends React.Component{
                     optionsMap:res.optionsMap
                 })
             })
-            // superagent
-            //     .post(`/api2/meta/dict/field_options`)
-            //     .set({"datacenter-token":tokenName})
-            //     .send(formData)
-            //     .end((req,res)=>{
-            //         if(res.status===200){                                          
-            //             optArr.push(res.body.optionsMap)
-            //             this.setState({
-            //                 optArr
-            //             })
-            //         }else if(res.status===403){
-            //             message.info("请求权限不足,可能是token已经超时")
-            //             window.location.href="/#/login";
-            //         }else if(res.status===404||res.status===504){
-            //             message.info("服务器未开···")
-            //         }else if(res.status===500){
-            //             message.info("后台处理错误。")
-            //         }
-            //         //console.log(optArr)
-            //     })
             }
         }
     }
-    // removeList=(record)=>{
-    //     const deleKey=record.key
-    //     const dataSource =[...this.state.dataSource];      
-    //     const newDataSource=[]
-    //     const records=[]
-    //     dataSource.map((item)=>{
-    //         const newData=[]
-    //         item.map((it)=>{
-    //             if(it.key!==deleKey){
-    //                 newData.push(it)
-    //             }
-    //             return false
-    //         })
-    //         newData.map((item,index)=>{ //删除行，更改数字标签
-    //             let list={}
-    //             let ins=newData.indexOf(item)
-    //             for(let k in item){
-    //                 let nk=k.replace(/\[.*?\]/g,`[${index}]`)
-    //                 list[nk]=item[k]
-    //             }
-    //             newData.splice(ins, 1,list)
-    //             return false
-    //         })
-    //         newDataSource.push(newData)           
-    //         return false
-    //     })
-    //     newDataSource.map((item)=>{
-    //         item.map((it)=>{
-    //             let list={}
-    //             for(let k in it){
-    //                 if(k.indexOf("[")>-1 && it[k].indexOf("download-files")===-1){ //去除key，total，object，fieldName
-    //                     list[k]=it[k]
-    //                 }
-    //             }
-    //             records.push(list)
-    //             return false
-    //         })
-    //         return false
-    //     })
-    //     //console.log(newDataSource)
-    //     this.setState({
-    //         dataSource:newDataSource,
-    //         records,
-    //     })
-    // }
-    // requestTableList=(data)=>{
-    //     const {type}=this.state
-    //     const res=[]              
-    //     console.log(data)
-    //     if(data && type!=="new"){
-    //         data.map((item,index)=>{
-    //             const list={};   
-    //             const code=item.code;
-    //             let fieldName=""
-    //             list["key"]=code;       
-    //             if(item.relationLabel){
-    //                 list["关系"]=item.relationLabel;
-    //                 list["fieldName"]="关系";
-    //                 list["title"]="关系";
-    //                 list["type"]="relation";
-    //                 list["value"]=item.relationLabel;
-    //                 list["options"]=data.composite.relationSubdomain
-    //             }
-    //             fieldsArray.map((it)=>{
-    //                 fieldName=it.fieldName
-    //                 const fieldValue=it.value;     
-    //                 const fieldType=it.type;                
-    //                 const a=fieldName.split(".")[0]
-    //                 const b=fieldName.split(".")[1];
-    //                 if(fieldType==="file"){
-    //                     list[fieldName]=fieldValue?
-    //                     <span className="downEditPic">
-    //                         <img style={{width:55}} src={`/file-server/${fieldValue}`} alt="图片加载失败"/>
-    //                         <Button size="small" href={`/file-server/${fieldValue}`} download="logo.png"><Icon type="download"/></Button>
-    //                     </span>
-    //                     :"无文件"
-    //                 }else{
-    //                     list[fieldName]=fieldValue?fieldValue:"";
-    //                 } 
-    //                 list[a+`[${index}].唯一编码`]=code;
-    //                 list[a+`[${index}].`+b]=fieldValue?fieldValue:"";
-    //                 if(data.composite.relationKey){
-    //                     list[a+`[${index}].$$label$$`]=item.relation;    
-    //                     list[a+".关系"]=relation
-    //                 }
-    //                 return false
-    //             })
-    //             res.push(list) 
-    //             return false             
-    //         })        
-    //     }
-    //     return res
-    // }
+    removeList=(record)=>{
+        const deleKey=record.key
+        const {dataSource}=this.state
+        for(let k in dataSource){
+            if(k===record.groupId.toString()){
+                dataSource[k].map((item,index)=>{
+                    if(item.fieldMap.key===deleKey){
+                        dataSource[k].splice(index,1); 
+                    }
+                    return false
+                })
+            }
+        }
+        this.setState({
+            dataSource
+        })
+    }
     showHistory=()=>{
         this.renderHistoryList();
-        // console.log(detailHistory)
         this.setState({
             visibleDrawer: true,
-            //detailHistory
         });
     }
     // handleOk = (e) => {
@@ -518,7 +388,7 @@ export default class Detail extends React.Component{
                     }
                 })
             },
-          });          
+        });          
     }
     handleCancel = () => {
         this.setState({
@@ -528,63 +398,6 @@ export default class Detail extends React.Component{
             visibleDrawer: false,
         });
     }
-    // getRecords=()=>{
-    //     const dataSource =[...this.state.dataSource];
-    //     const {records}=this.state
-    //     dataSource.map((item)=>{
-    //         item.map((it)=>{
-    //             let list={}
-    //             for(let k in it){
-    //                 if(k.indexOf("[")>-1&& k.split(".")[1]!=="关系"){
-    //                     if(typeof it[k]==="object"){ //图片，取自定义的owlner属性
-    //                         if(it[k].props.owlner){
-    //                             list[k]=it[k].props.owlner
-    //                         }else{
-    //                             delete it[k]
-    //                         }
-    //                     }else if(typeof it[k]==="string" && it[k].indexOf("download-files")>-1){
-    //                         delete it[k]
-    //                     }else{
-    //                         list[k]=it[k]
-    //                     }
-    //                 }
-    //             }
-    //             records.push(list)
-    //             return false
-    //         })
-    //         return false
-    //     })
-    //     let isOK=true   
-    //     let res={}  
-    //     records.map((item)=>{
-    //         for(let k in item){
-    //             res[k]=item[k] //去重
-    //         }
-    //         return false
-    //     })
-    //     for(let k in res){//判断新增记录，关系有没有选
-    //         if(k.indexOf("$$label$$")>-1 && res[k]===""){
-    //             isOK=false
-    //         }
-    //     }
-    //     if(isOK){
-    //         this.setState({
-    //             records,
-    //             visibleModal: true,
-    //         })
-    //     }else{           
-    //         message.error("关系列表未选！")
-    //     }
-    // }
-    // showModal = () => {
-    //     this.baseinfo.handleBaseInfoSubmit() //获取BaseInfo数据
-    //     this.getRecords()
-    // }   
-    // baseInfo=(baseValue)=>{         
-    //     this.setState({
-    //         baseValue
-    //     });
-    // }
     //调用子组件方法
 	onRef=(ref)=>{
 		this.baseinfo=ref
@@ -619,156 +432,127 @@ export default class Detail extends React.Component{
             }
         }        
     }
-    // visibleForm=(data,record)=>{
-    //     this.getForm(data,record)
-    //     this.setState({
-    //         visibleForm:true,
-    //     })
-    // }
-    // modelhandleOk=(fieldsValue)=>{    
-    //     const key=fieldsValue.key;
-    //     const totalName=fieldsValue.totalName;
-    //     let { dataSource,isNew,columns }=this.state;
-    //     if(isNew){ //新增记录
-    //         let i="";
-    //         columns.map((item,index)=>{ //得知第几个数组新增
-    //             item.map((it)=>{
-    //                 for(let k in it){
-    //                     if(typeof it[k]==="string" && it[k].indexOf(totalName)>-1){
-    //                         i=index
-    //                     }
-    //                 }
-    //                 return false
-    //             })
-    //             return false
-    //         })
-    //         const list={}
-    //         list["key"]=key;
-    //         for(let k in fieldsValue){
-    //             if(k!=="key" && k!=="totalName"){
-    //                 list[`${totalName}.${k}`]=fieldsValue[k];
-    //                 list[`${totalName}[${dataSource[i].length}].${k}`]=fieldsValue[k];
-    //             }
-    //             if(k==="关系"){
-    //                 list[`${totalName}[${dataSource[i].length}].$$label$$`]=fieldsValue[k];
-    //             }
-    //         }
-    //         dataSource[i].push(list)
-    //     }else{     //修改记录  
-    //         dataSource.map((item)=>{
-    //             item.map((it)=>{
-    //                 if(it.key===key){
-    //                     for(let k in fieldsValue){                      
-    //                         for(let ki in it){
-    //                             if(ki.indexOf(k)>-1){
-    //                                 it[ki]=fieldsValue[k]
-    //                             }
-    //                             const va=fieldsValue["关系"]
-    //                             if(ki.indexOf("label")>-1){
-    //                                 it[ki]=va?va:""
-    //                             }
-    //                             if(ki.split(".")[1]==="关系"){
-    //                                 it[ki]=va?va:""
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //                 return false
-    //             })
-    //             return false
-    //         })
-    //     }
-    //     this.setState({
-    //         dataSource,
-    //         visibleForm:false
-    //     })
-    // }
-    // getForm=(columns,record)=>{
-    //     this.modelform.handleReset()
-    //     let editFormList=[]
-    //     columns.map((item)=>{
-    //         if(item.type){
-    //             const list={}
-    //             list["title"]=item.title;
-    //             list["fieldName"]=item.fieldName;                
-    //             list["available"]=item.available;
-    //             if(record){
-    //                 this.setState({
-    //                     isNew:false,
-    //                     title:"修改",
-    //                 })
-    //                 list["key"]=record["key"]
-    //                 for(let k in record){
-    //                     if(k.indexOf(item.fieldName)>-1){
-    //                         let value=""
-    //                         if(typeof record[k]==="object"){ 
-    //                             if(record[k].props.children){                                               
-    //                                 record[k].props.children.map((item)=>{ 
-    //                                     if(item.props.src){
-    //                                         value=item.props.src.split("/.")[1]//多了file-server/
-    //                                     }
-    //                                     return false
-    //                                 })
-    //                             }else{
-    //                                 value=record[k].props.src.split("/.")[1]
-    //                             }
-    //                             list["value"]=value
-    //                         }else{
-    //                             list["value"]=record[k]
-    //                         }    
-    //                     }
-    //                 }
-    //             }else{
-    //                 this.setState({
-    //                     isNew:true,
-    //                     title:"新增",
-    //                 })
-    //                 list["value"]="";
-    //             }
-    //             list["type"]=item.type;
-    //             list["fieldId"]=item.fieldId;              
-    //             list["available"]=item.available;
-    //             if(item.type==="relation"){
-    //                 const options=[]
-    //                 item.options.map((it)=>{
-    //                     const op={}
-    //                     op["title"]=it
-    //                     op["value"]=it
-    //                     options.push(op)
-    //                     return false
-    //                 })
-    //                 list["options"]=options
-    //             }
-    //             editFormList.push(list)
-    //         }
-    //         return false
-    //     })
-    //     //console.log(editFormList)
-    //     //console.log(columns)
-    //     this.setState({
-    //         editFormList,
-    //         visibleForm:true,
-    //     })
-    // }
-    // handleActions=(actionId)=>{
-    //     const {menuId,code}=this.state;
-    //     this.setState({Loading:true})
-    //     Super.super({
-    //         url:`/api/entity/curd/do_action/${menuId}/${actionId}`, 
-    //         data:{
-    //             codes:code
-    //         }                 
-    //     }).then((res)=>{
-    //         this.setState({Loading:false})
-    //         if(res && res.status==="suc"){
-    //             message.info(res.msg)
-    //             sessionStorage.setItem(menuId,"")
-    //             window.history.back(-1);
-    //         }else{
-    //             message.error(res.status)
-    //         }
-    //     })
-    // }
+    modelhandleOk=(fieldsValue)=>{   
+        const Key=fieldsValue.key;
+        const groupId=fieldsValue.groupId
+        let { dataSource,isNew,columns }=this.state;
+        console.log(dataSource)
+        const data={}
+        columns.map((item)=>{
+            data[item.id]=[]
+            return false
+        })
+        for(let k in data){
+            for(let i in dataSource){
+                if(i===k){
+                    data[k]=dataSource[i]
+                }
+            }
+        }
+        dataSource=data
+        if(isNew){ //新增记录
+            const list={
+                fieldMap:fieldsValue
+            }
+            dataSource[groupId].push(list)
+        }else{     //修改记录  
+            for(let k in dataSource){
+                if(k===groupId.toString()){
+                    dataSource[k].map((item)=>{
+                        if(item.fieldMap.key===Key){
+                            item.fieldMap=fieldsValue
+                        }
+                        return false
+                    })
+                }
+            }
+        }
+        this.setState({
+            dataSource,
+            visibleForm:false
+        })
+    }
+    visibleForm=(data,record)=>{
+        this.getForm(data,record)
+        this.setState({
+            visibleForm:true,
+        })
+    }
+    getForm=(columns,record)=>{
+        this.modelform.handleReset()
+        let editFormList=[]
+        if(record){
+            columns.map((item)=>{
+                if(item.id===record.groupId){
+                    columns=item.fields
+                }
+                return false
+            })
+        }
+        columns.map((item)=>{
+            if(item.type){
+                const list={
+                    title:item.title,
+                    name:item.name,
+                    fieldAvailable:item.fieldAvailable,
+                    type:item.type,
+                    groupId:item.groupId,
+                    id:item.id
+                }
+                if(record){
+                    for(let k in record){
+                        if(k===item.title){
+                            list["key"]=record.key
+                            list["value"]=record[k]
+                        }
+                    }
+                }else{
+                    list["value"]="";
+                }
+                if(item.type==="relation"){
+                    const options=[]
+                    item.options.map((it)=>{
+                        const op={
+                            title:it,
+                            value:it
+                        }
+                        options.push(op)
+                        return false
+                    })
+                    list["options"]=options
+                }
+                editFormList.push(list)
+            }
+            return false
+        })
+        //console.log(editFormList)
+        //console.log(columns)
+        this.setState({
+            editFormList,
+            visibleForm:true,
+            isNew:record?false:true,
+            title:record?"修改":"新增",
+        })
+    }
+    handleActions=(actionId)=>{
+        const {menuId,code}=this.state;
+        this.setState({Loading:true})
+        Super.super({
+            url:`/api2/entity/curd/do_action/${menuId}/${actionId}`, 
+            data:{
+                codes:code
+            }                 
+        }).then((res)=>{
+            this.setState({Loading:false})
+            if(res && res.status==="suc"){
+                message.info(res.msg)
+                sessionStorage.setItem(menuId,"")
+                window.history.back(-1);
+            }else{
+                message.error(res.status)
+            }
+        })
+    }
     // getTemplate=(stmplId,columns,pageNo,oexcepts,oopti)=>{
     //     let {menuId,fields,excepts,opti}=this.state;
     //     if(!excepts){
@@ -868,7 +652,7 @@ export default class Detail extends React.Component{
     // }
     render(){
         const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,detailsList,visibleForm,editFormList,actions,premises,templateData,stmplId,
-            columns,dataSource,cardTitle,itemDescs,visibleModal,visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fields,editformltmpl
+            columns,dataSource,itemDescs,visibleModal,visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fields,editformltmpl
         }=this.state;
         let premisestitle=""
         if(premises && premises.length>0){
@@ -891,11 +675,9 @@ export default class Detail extends React.Component{
         if(actions && actions.length>0){
             content = (
                 <div className="btns">
-                  {
-                      actions.map((item)=>{
-                          return <Button key={item.id} type="primary" onClick={()=>this.handleActions(item.id)}>{item.title}</Button>
-                      })
-                  }
+                    {actions.map((item)=>{
+                            return <Button key={item.id} type="primary" onClick={()=>this.handleActions(item.id)}>{item.title}</Button>
+                        })}
                 </div>
             );
         } 
@@ -908,9 +690,6 @@ export default class Detail extends React.Component{
                 list.push(item.title)
                 return false
             })          
-        }
-        if(cardTitle){
-            list.push(...cardTitle)
         }
         return(
             <div className="detailPage">
@@ -966,7 +745,6 @@ export default class Detail extends React.Component{
                                         key={111}
                                         formList={premises} 
                                         type="detail"
-                                        //form={form}
                                         width={220}
                                         />
                                 </Card>
@@ -987,7 +765,6 @@ export default class Detail extends React.Component{
                     type={type}
                     columns={columns}
                     dataSource={dataSource}
-                    cardTitle={cardTitle}
                     itemDescs={itemDescs}
                     handleAdd={this.getForm}
                     onRef3={this.onRef3}
@@ -1035,13 +812,13 @@ export default class Detail extends React.Component{
                     fields={fields}
                     TemplatehandleOk={this.TemplatehandleOk}
                 />
-                {
+                {/* {
                     !cardTitle||cardTitle.length<=3?"":
                     <RightBar 
                         list={list}
                     />
                 }
-                
+                 */}
             </div>
         )
     }
