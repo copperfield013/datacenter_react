@@ -23,17 +23,18 @@ class ModelForm extends React.Component{
             }
             return false
         })      
-        //console.log(formList)
         let fieldsValue=form.getFieldsValue()[totalName]
+        //console.log(formList)
         const trueKey=key?key:Units.RndNum(9);//随机生成key，进行第二次更改
         for(let k in fieldsValue){
+            fieldsValue[k+"*"]=fieldsValue[k]
             formList.map((item)=>{
                 if(k===item.title){
                     fieldsValue[item.id]=fieldsValue[k]
                 }
                 return false
             })
-            if(k.indexOf("期")>-1 && fieldsValue[k]){ //日期格式转换
+            if(fieldsValue[k] && moment(fieldsValue[k],moment.ISO_8601).isValid()){ //日期格式转换
                 fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
             }else if(!fieldsValue[k]){ //去除undefined
                 fieldsValue[k]=""
@@ -53,7 +54,7 @@ class ModelForm extends React.Component{
             fieldsValue["关系"]=relation
         }
         // console.log(formList)
-         //console.log(fieldsValue)
+        //console.log(fieldsValue)
         this.props.handleOk(fieldsValue);
     } 
     render(){

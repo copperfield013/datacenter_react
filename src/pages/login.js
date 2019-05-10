@@ -54,27 +54,22 @@ class Loginit extends React.Component{
                         password:values.password
                     }                  
                 }).then((res)=>{
-                        if(res.status === "504"){
-                            message.info('服务器连接失败');
-                        }else{
-                            if(res.status === 'suc'){ 
-                                if(remember){
-                                    const accountInfo = username+ '&' +password;
-                                    Units.setCookie('accountInfo',accountInfo,30);
-                                }else {
-                                    Units.delCookie('accountInfo');
-                                    this.setState({
-                                        username:"",
-                                        password:"",
-                                    })
-                                }
-                                window.location.href="/#/home";
-                                Units.setLocalStorge("tokenName",res.token)
-                                Units.setLocalStorge("name",values.username)
-                            }else if(res.errorMsg){
-                                message.info(res.errorMsg);
-                            }
+                    if(res.status === 'suc'){ 
+                        if(remember){
+                            const accountInfo = username+ '&' +password;
+                            Units.setCookie('accountInfo',accountInfo,30);
+                        }else {
+                            Units.delCookie('accountInfo');
+                            this.setState({
+                                username:"",
+                                password:"",
+                            })
                         }
+                        window.location.href="/#/home";
+                        Units.setLocalStorge("tokenName",res.token)
+                    }else if(res.errorMsg){
+                        message.info(res.errorMsg);
+                    }
                 })
             }
         })

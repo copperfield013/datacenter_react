@@ -13,6 +13,7 @@ import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 import TemplateList from '../../components/templateList';
 const confirm = Modal.confirm;
 
+const api="http://47.100.187.235:7080/datacenter_api2"
 export default class Detail extends React.Component{
     state={
         visibleModal: false,
@@ -47,16 +48,18 @@ export default class Detail extends React.Component{
         }).then((res)=>{     
             const formltmpl=[]
             const editformltmpl=[]
+            const descsFlag=[]
             res.config.dtmpl.groups.map((item)=>{
                 if(item.composite===null){
                     formltmpl.push(item)
                 }else{
                     editformltmpl.push(item)
+                    descsFlag.push(item.title)
                 }
                 return false
             })
-             console.log(res)
-            // console.log(editformltmpl)
+             //console.log(res)
+            //console.log(editformltmpl)
             this.requestSelect(formltmpl,editformltmpl)
             if(code && code!=='new'){
                 this.loadRequest(formltmpl,editformltmpl)
@@ -88,7 +91,8 @@ export default class Detail extends React.Component{
             this.setState({
                 menuTitle:res.menu.title,
                 actions:res.config.actions,
-                formltmpl
+                formltmpl,
+                descsFlag
             })
         })  
     }
@@ -194,7 +198,7 @@ export default class Detail extends React.Component{
                             if(a[id]&&b[id]){
                                 return a[id].length - b[id].length;
                             }
-                         }
+                        }
                     }
                 }           
                 return false      					
@@ -302,72 +306,60 @@ export default class Detail extends React.Component{
             visibleDrawer: true,
         });
     }
-    // handleOk = (e) => {
-    //     e.preventDefault();
-    //     this.setState({loading:true})
-    //     const tokenName=Units.getLocalStorge("tokenName")
-    //     const formData = new FormData();
-    //     const { menuId,code,type,records,baseValue,fuseMode,descsFlag }=this.state
-    //     formData.append('唯一编码', type==="new"?"":code);
-    //     formData.append('%fuseMode%',fuseMode);
-    //     for(let k in baseValue){
-    //         formData.append(k, baseValue[k]?baseValue[k]:"");
-    //     }
-    //     descsFlag.map((item)=>{ //添加$$flag$$
-    //         item.map((it)=>{
-    //             const fieldName=it.fieldName;
-    //             if(fieldName && fieldName!=="关系"){               
-    //                 const list={}
-    //                 const a=fieldName.split(".")[0]
-    //                 list[`${a}.$$flag$$`]=true;
-    //                 records.push(list)
-    //             }
-    //             return false
-    //         })
-    //         return false
-    //     })
-    //     let res={}
-    //     records.map((item)=>{
-    //         for(let k in item){
-    //             res[k]=item[k] //去重
-    //         }          
-    //         return false
-    //     })  
-    //     if(res){
-    //         for(let k in res){
-    //             formData.append(k, res[k]);
-    //         }
-    //     }
-    //     const loading=document.getElementById('ajaxLoading')
-    //     loading.style.display="block"
-    //     superagent
-    //         .post(`/api/entity/curd/update/${menuId}`)
-    //         .set({"datamobile-token":tokenName})
-    //         .send(formData)
-    //         .end((req,res)=>{
-    //             loading.style.display="none"
-    //             if(res.status===200){                   
-    //                 if(res.body.status==="suc"){
-    //                     message.info("保存成功！")
-    //                     sessionStorage.setItem(menuId,"")
-    //                     window.history.back(-1);
-    //                 }else{
-    //                     message.error(res.body.status)
-    //                 }
-    //             }else if(res.status===403){
-    //                 message.info("请求权限不足,可能是token已经超时")
-    //                 window.location.href="/#/login";
-    //             }else if(res.status===404||res.status===504){
-    //                 message.info("服务器未开···")
-    //             }else if(res.status===500){
-    //                 message.info("后台处理错误。")
-    //             }
-    //         })
-    //     this.setState({
-    //         visibleModal: false,
-    //         loading:false
-    //     });
-    //   }
+    handleOk = (actionId,e) => {
+        e.preventDefault();
+        const loading=document.getElementById('ajaxLoading')
+        const tokenName=Units.getLocalStorge("tokenName")
+        loading.style.display="block"
+        const { menuId,code,type,baseValue,fuseMode,dataSource,descsFlag,columns }=this.state       
+        const formData = new FormData();        
+        for(let k in baseValue){
+            formData.append(k, baseValue[k]);
+        }       
+        descsFlag.map((item)=>{
+            formData.append(`${item}.$$flag$$`, true);
+        })
+        if(dataSource.constructor===Object){
+            console.log(dataSource)
+            for(let k in dataSource){
+                dataSource[k].map((item)=>{
+                    const fieldMap=item.fieldMap
+                    const totalName=fieldMap.totalName
+                    const order=fieldMap.order-1
+                    console.log(fieldMap)
+                    for(let i in fieldMap){
+                        if(i.includes("*") && fieldMap[i]){
+                            const name=i.split("*")[0];
+                            formData.append(`${totalName}[${order}].${name}`,fieldMap[i]);
+                        }
+                        if(i==="关系"){
+                            formData.append(`${totalName}[${order}].$$label$$`,fieldMap[i]);
+                        }
+                    }
+                })
+            }
+        }
+        if(type!=="new"){
+            formData.append('唯一编码', type==="new"?"":code);
+            formData.append('%fuseMode%',fuseMode);
+        }
+        Super.super({
+            url:`/api2/entity/curd/save/normal/${menuId}`, 
+            data:formData
+        },'formdata').then((res)=>{
+            if(res && res.status==="suc"){
+                message.success("保存成功!")
+                sessionStorage.setItem(menuId,"")
+                window.history.back(-1);
+            }else{
+                message.error("保存失败!")
+            }
+        })
+        this.setState({
+            visibleModal: false,
+            loading:false
+        });
+      }
     exportDetail=()=>{
         const {menuId,code}=this.state
         confirm({
@@ -398,6 +390,15 @@ export default class Detail extends React.Component{
             visibleDrawer: false,
         });
     }
+    showModal = () => {
+        this.baseinfo.handleBaseInfoSubmit() //获取BaseInfo数据
+    }
+    baseInfo=(baseValue)=>{         
+        this.setState({
+            baseValue,
+            visibleModal: true,
+        });
+    } 
     //调用子组件方法
 	onRef=(ref)=>{
 		this.baseinfo=ref
@@ -405,11 +406,11 @@ export default class Detail extends React.Component{
     onRef2=(ref)=>{
 		this.modelform=ref
     }
-    // fuseMode=(checked)=>{
-    //     this.setState({
-    //         fuseMode:checked
-    //     })
-    // }
+    fuseMode=(checked)=>{
+        this.setState({
+            fuseMode:checked
+        })
+    }
     // handleNav=(scrollIds)=>{
     //     const list=document.getElementsByClassName("rightBar")[0]
     //     if(list){
@@ -432,11 +433,11 @@ export default class Detail extends React.Component{
             }
         }        
     }
-    modelhandleOk=(fieldsValue)=>{   
+    modelhandleOk=(fieldsValue)=>{
+            console.log(fieldsValue)
         const Key=fieldsValue.key;
         const groupId=fieldsValue.groupId
         let { dataSource,isNew,columns }=this.state;
-        console.log(dataSource)
         const data={}
         columns.map((item)=>{
             data[item.id]=[]
@@ -532,25 +533,6 @@ export default class Detail extends React.Component{
             visibleForm:true,
             isNew:record?false:true,
             title:record?"修改":"新增",
-        })
-    }
-    handleActions=(actionId)=>{
-        const {menuId,code}=this.state;
-        this.setState({Loading:true})
-        Super.super({
-            url:`/api2/entity/curd/do_action/${menuId}/${actionId}`, 
-            data:{
-                codes:code
-            }                 
-        }).then((res)=>{
-            this.setState({Loading:false})
-            if(res && res.status==="suc"){
-                message.info(res.msg)
-                sessionStorage.setItem(menuId,"")
-                window.history.back(-1);
-            }else{
-                message.error(res.status)
-            }
         })
     }
     // getTemplate=(stmplId,columns,pageNo,oexcepts,oopti)=>{
@@ -652,8 +634,7 @@ export default class Detail extends React.Component{
     // }
     render(){
         const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,detailsList,visibleForm,editFormList,actions,premises,templateData,stmplId,
-            columns,dataSource,itemDescs,visibleModal,visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fields,editformltmpl
-        }=this.state;
+            columns,dataSource,itemDescs,visibleModal,visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fields,}=this.state;
         let premisestitle=""
         if(premises && premises.length>0){
             premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
@@ -676,7 +657,11 @@ export default class Detail extends React.Component{
             content = (
                 <div className="btns">
                     {actions.map((item)=>{
-                            return <Button key={item.id} type="primary" onClick={()=>this.handleActions(item.id)}>{item.title}</Button>
+                            return <Button 
+                                        key={item.id} 
+                                        type="primary" 
+                                        onClick={(e)=>this.handleOk(item.id,e)}
+                                        >{item.title}</Button>
                         })}
                 </div>
             );
@@ -725,8 +710,18 @@ export default class Detail extends React.Component{
                                 保存
                             </Button>
                             </div>
-                            <Switch checkedChildren="开" unCheckedChildren="关" style={{marginRight:10}} title="融合模式" onChange={this.fuseMode}/>
-                            <Button className="hoverbig" title="刷新" onClick={()=>this.loadltmpl(menuId,type,code)}><Icon type="sync" /></Button>
+                            {code?<Switch 
+                                    checkedChildren="开" 
+                                    unCheckedChildren="关" 
+                                    style={{marginRight:10}} 
+                                    title="融合模式" 
+                                    onChange={this.fuseMode}/>
+                                :""}
+                            <Button 
+                                className="hoverbig" 
+                                title="刷新" 
+                                onClick={()=>this.loadltmpl(menuId,type,code)}
+                                ><Icon type="sync" /></Button>
                         </div>
                     }               
                     
@@ -772,7 +767,7 @@ export default class Detail extends React.Component{
                 />
                 <Modal
                     visible={visibleModal}
-                    onOk={this.handleOk}
+                    onOk={(e)=>this.handleOk("",e)}
                     onCancel={this.handleCancel}
                     okText="确认"
                     cancelText="取消"

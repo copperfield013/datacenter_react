@@ -35,7 +35,7 @@ export default class BaseInfoForm extends React.Component{
         if(formList && formList.length>0){
             formList.forEach((item)=>{
                 const title=item.title;
-                const field=item.id
+                const field=item.fieldId
                 const fieldValue=item.value;
                 const available=item.fieldAvailable
                 const fieldName=item.name

@@ -13,20 +13,17 @@ class FormCard extends React.Component{
             if(!err){
                 const result={}
                 for(let k in values){
-                    if(k.indexOf("日期")>-1 && values[k]){ //日期格式转换
+                    if(values[k] && moment(values[k],moment.ISO_8601).isValid()){ //日期格式转换
                         result[k]=moment(values[k]).format("YYYY-MM-DD")
-                    }else if(k.indexOf("时间")>-1 && values[k]){ //日期格式转换
-                        result[k]=moment(values[k]).format("YYYY-MM-DD")
-                    }else if(k==="头像"){
-                        if(values[k]){
-                            result[k]=values[k].originFileObj
-                        }else{
-                            result[k]=""
-                        }
+                    }else if(values[k] && values[k].originFileObj){
+                        result[k]=values[k].originFileObj
+                    }else if(!values[k] || values[k].length===0){
+                        delete values[k]
                     }else{
                         result[k]=values[k]
                     }
                 }
+                //console.log(result)
                 this.props.baseInfo(result)
             }
         })
