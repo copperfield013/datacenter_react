@@ -32,10 +32,11 @@ export default class BaseInfoForm extends React.Component{
         const { getFieldDecorator } = this.props.form?this.props.form:"";
         const { formList,width,type }=this.props
         const formItemList=[]; 
+        //console.log(formList)
         if(formList && formList.length>0){
-            formList.forEach((item)=>{
+            formList.forEach((item,index)=>{
                 const title=item.title;
-                const field=item.fieldId
+                const field=item.code?item.code+index:item.fieldId
                 const fieldValue=item.value;
                 const available=item.fieldAvailable
                 const fieldName=item.name
@@ -101,7 +102,7 @@ export default class BaseInfoForm extends React.Component{
                     formItemList.push(SELECT)    
                 }else if(item.type==="relation"){ //modelForm里面的关系下拉框
                     const SELECT= <FormItem label={title} key={field} className='labelcss'>
-                                        {getFieldDecorator(fieldName,{
+                                        {getFieldDecorator("relation",{
                                             initialValue:fieldValue,
                                             rules:item.validators?[{
                                                     required: true, message: `请选择${title}`,

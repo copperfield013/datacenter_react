@@ -9,7 +9,7 @@ export default class Admin extends React.Component{
 	handleNav=(e)=>{	
 		e.preventDefault()
 		e.stopPropagation()	
-		let scrollIds=Units.getLocalStorge("scrollIds")
+		let scrollIds=Units.getLocalStorge("rightNav")
 		const obj=document.getElementsByClassName("main")[0]		
 		const scrollTop  = obj.scrollTop;  //页面滚动高度
 		const clientHeight=obj.clientHeight;

@@ -1,5 +1,4 @@
 import React from 'react'
-import superagent from 'superagent'
 import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Popover,Card,Form} from 'antd'
 import Super from "./../../super"
 import Units from '../../units'
@@ -13,22 +12,17 @@ import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 import TemplateList from '../../components/templateList';
 const confirm = Modal.confirm;
 
-const api="http://47.100.187.235:7080/datacenter_api2"
 export default class Detail extends React.Component{
     state={
-        visibleModal: false,
         visibleDrawer:false,
         loading:false,
         visibleExport:false,
         fuseMode:false,
         searchText:"",
-        scrollIds:[],
         options:[],
         visibleForm:false,
         visibleTemplateList:false,
         isNew:false,
-        records:[],
-        optArr:[],
     }
     componentWillMount(){
         const {menuId,code,type}=this.props.match.params
@@ -49,7 +43,12 @@ export default class Detail extends React.Component{
             const formltmpl=[]
             const editformltmpl=[]
             const descsFlag=[]
+            const rightNav=[]
+            const premises=res.config.premises
+            const actions=res.config.actions
+            const menuTitle=res.menu.title
             res.config.dtmpl.groups.map((item)=>{
+                rightNav.push(item.title)
                 if(item.composite===null){
                     formltmpl.push(item)
                 }else{
@@ -58,8 +57,8 @@ export default class Detail extends React.Component{
                 }
                 return false
             })
-             //console.log(res)
-            //console.log(editformltmpl)
+            //console.log(res)
+            //console.log(rightNav)
             this.requestSelect(formltmpl,editformltmpl)
             if(code && code!=='new'){
                 this.loadRequest(formltmpl,editformltmpl)
@@ -70,9 +69,10 @@ export default class Detail extends React.Component{
                     dataSource:[],
                 })
             }
-            if(res.config.premises && res.config.premises.length>0){
+            if(premises && premises.length>0){
                 const result=[]
-                res.config.premises.map((item)=>{
+                rightNav.unshift("默认字段")
+                premises.map((item)=>{
                     let list={}
                     for(let k in item){
                         list[k]=item[k]
@@ -88,22 +88,20 @@ export default class Detail extends React.Component{
                     premises:result
                 })  
             }
+            Units.setLocalStorge("rightNav",rightNav)
             this.setState({
-                menuTitle:res.menu.title,
-                actions:res.config.actions,
+                menuTitle,
+                actions,
                 formltmpl,
-                descsFlag
+                descsFlag,
+                rightNav
             })
         })  
     }
     loadRequest=(formltmpl,editformltmpl)=>{
         const {menuId,type,code}=this.props.match.params
-        this.setState({loading:true})
         Super.super({
-            url:`/api2/entity/curd/detail/${menuId}/${code}`,       
-            data:{
-                isShowLoading:true
-            }          
+            url:`/api2/entity/curd/detail/${menuId}/${code}`,          
         }).then((res)=>{  
             const arrayMap=res.entity.arrayMap
             const fieldMap=res.entity.fieldMap
@@ -120,15 +118,23 @@ export default class Detail extends React.Component{
             })
             this.detailTitle(res.entity.title,type)
             for(let k in arrayMap){
-                arrayMap[k].map((item,index)=>{
-                    item.fieldMap["key"]=index //为了不报错
-                    return item.relationLabel?item.fieldMap["关系"]=item.relationLabel:false
+                let totalName
+                editformltmpl.map((item)=>{
+                    if(item.id.toString()===k){
+                        totalName=item.title 
+                    }
+                })
+                arrayMap[k].map((item)=>{
+                    item.fieldMap["code"]=item.code //为了后面操作修改
+                    item.fieldMap["key"]=item.code
+                    item.fieldMap["groupId"]=k
+                    item.fieldMap["totalName"]=totalName
+                    return item.relationLabel?item.fieldMap["10000"]=item.relationLabel:false
                 })
             }
-            //console.log(res)
+            //console.log(editformltmpl)
             //console.log(arrayMap)
             this.setState({
-                loading:false,
                 formltmpl,
                 editformltmpl,
                 columns:this.renderColumns(editformltmpl),
@@ -205,12 +211,12 @@ export default class Detail extends React.Component{
             })  
             if(item.composite && item.composite.addType===5){//判断是否有关系属性
                 let rela={
-                    dataIndex:"关系",
-                    name:"关系",
+                    dataIndex:"10000",
+                    name:"relation",
                     title:"关系",
                     type:"relation",
                     fieldAvailable:true,
-                    id:Units.RndNum(5),//随机5位数
+                    id:10000,//随机5位数
                     options:item.composite.relationSubdomain
                 }
                 item.fields.unshift(rela) 
@@ -231,7 +237,7 @@ export default class Detail extends React.Component{
                     render: (record) => (
                     <div className="editbtn">
                         <Button type='primary' icon="edit" size="small"  onClick={()=>this.visibleForm(editformltmpl,record)}></Button>
-                        <Button type='danger' icon="delete" size="small" onClick={()=>this.removeList(record)}></Button>
+                        <Button type='danger' icon="delete" size="small" onClick={()=>this.visibleModal(record)}></Button>
                     </div>
                     ),
                 }  
@@ -241,6 +247,30 @@ export default class Detail extends React.Component{
             return false
         })   
         return columns
+    }
+    visibleModal=(record)=>{
+        const _this=this
+        confirm({
+            title: '确定要删除这条记录吗?',
+            okText: '确定',
+            okType: 'danger',
+            cancelText: '取消',
+            onOk() {
+                _this.removeList(record)
+            },
+          });
+    }
+    visibleModal2=(id,title)=>{
+        const _this=this
+        confirm({
+            title: `确定要执行【${title}】吗?`,
+            okText: '确定',
+            okType: 'danger',
+            cancelText: '取消',
+            onOk() {
+                _this.handleOk(id)
+            },
+          });
     }
     requestSelect=(formltmpl,editformltmpl)=>{
         const { type }=this.state; 
@@ -306,36 +336,43 @@ export default class Detail extends React.Component{
             visibleDrawer: true,
         });
     }
-    handleOk = (actionId,e) => {
-        e.preventDefault();
-        const loading=document.getElementById('ajaxLoading')
-        const tokenName=Units.getLocalStorge("tokenName")
-        loading.style.display="block"
-        const { menuId,code,type,baseValue,fuseMode,dataSource,descsFlag,columns }=this.state       
-        const formData = new FormData();        
+    handleOk = (actionId) => {
+        const { menuId,code,type,baseValue,fuseMode,dataSource,descsFlag }=this.state       
+        const formData = new FormData(); 
+        if(actionId){
+            formData.append("%actionId%", actionId)
+        }
         for(let k in baseValue){
             formData.append(k, baseValue[k]);
         }       
         descsFlag.map((item)=>{
             formData.append(`${item}.$$flag$$`, true);
         })
+        console.log(dataSource)
         if(dataSource.constructor===Object){
-            console.log(dataSource)
             for(let k in dataSource){
                 dataSource[k].map((item)=>{
                     const fieldMap=item.fieldMap
                     const totalName=fieldMap.totalName
                     const order=fieldMap.order-1
-                    console.log(fieldMap)
-                    for(let i in fieldMap){
-                        if(i.includes("*") && fieldMap[i]){
-                            const name=i.split("*")[0];
-                            formData.append(`${totalName}[${order}].${name}`,fieldMap[i]);
-                        }
-                        if(i==="关系"){
-                            formData.append(`${totalName}[${order}].$$label$$`,fieldMap[i]);
-                        }
-                    }
+                    const key=fieldMap.key
+                    if(key){ //有key证明数据本来就有,没有修改
+                        formData.append(`${totalName}[${order}].唯一编码`,fieldMap.code);
+                    }else{
+                        for(let i in fieldMap){
+                            if(i.includes("*") && fieldMap[i]){
+                                const name=i.split("*")[0];
+                                if(fieldMap[i].constructor===Object){ //上传图片
+                                    formData.append(`${totalName}[${order}].${name}`,fieldMap[i].props.owlner);
+                                }else{
+                                    formData.append(`${totalName}[${order}].${name}`,fieldMap[i]); 
+                                }                          
+                            }
+                            if(i==="relation"){
+                                formData.append(`${totalName}[${order}].$$label$$`,fieldMap[i]);
+                            }
+                        }    
+                    }                                    
                 })
             }
         }
@@ -355,10 +392,6 @@ export default class Detail extends React.Component{
                 message.error("保存失败!")
             }
         })
-        this.setState({
-            visibleModal: false,
-            loading:false
-        });
       }
     exportDetail=()=>{
         const {menuId,code}=this.state
@@ -367,12 +400,9 @@ export default class Detail extends React.Component{
             okText: "确认",
             cancelText: "取消",
             onOk() {
-                const loading=document.getElementById('ajaxLoading')
-                loading.style.display="block"
                 Super.super({
                     url:`/api2/entity/export/detail/${menuId}/${code}`,                 
                 }).then((res)=>{
-                    loading.style.display="none"
                     if(res.status==="suc"){
                         Units.downloadFile(`/api2/entity/export/download/${res.uuid}`)
                     }else{
@@ -384,7 +414,6 @@ export default class Detail extends React.Component{
     }
     handleCancel = () => {
         this.setState({
-            visibleModal: false,
             visibleForm: false,
             visibleTemplateList:false,
             visibleDrawer: false,
@@ -393,10 +422,18 @@ export default class Detail extends React.Component{
     showModal = () => {
         this.baseinfo.handleBaseInfoSubmit() //获取BaseInfo数据
     }
-    baseInfo=(baseValue)=>{         
+    baseInfo=(baseValue)=>{  
+        const _this=this
+        confirm({
+            title: '确定要保存修改吗?',
+            okText: '确定',
+            cancelText: '取消',
+            onOk() {
+                _this.handleOk()
+            },
+          });    
         this.setState({
             baseValue,
-            visibleModal: true,
         });
     } 
     //调用子组件方法
@@ -411,16 +448,6 @@ export default class Detail extends React.Component{
             fuseMode:checked
         })
     }
-    // handleNav=(scrollIds)=>{
-    //     const list=document.getElementsByClassName("rightBar")[0]
-    //     if(list){
-    //         const lis=list.getElementsByTagName("li")
-    //         for(let i=0;i<lis.length;i++){
-    //             lis[i].style.backgroundColor="#fff"
-    //         }
-    //         lis[0].style.backgroundColor="#cfe3f5"
-    //     }
-    // } 
     getOptions=(id)=>{  
         const {optionsMap}=this.state
         if(optionsMap){
@@ -433,46 +460,6 @@ export default class Detail extends React.Component{
             }
         }        
     }
-    modelhandleOk=(fieldsValue)=>{
-            console.log(fieldsValue)
-        const Key=fieldsValue.key;
-        const groupId=fieldsValue.groupId
-        let { dataSource,isNew,columns }=this.state;
-        const data={}
-        columns.map((item)=>{
-            data[item.id]=[]
-            return false
-        })
-        for(let k in data){
-            for(let i in dataSource){
-                if(i===k){
-                    data[k]=dataSource[i]
-                }
-            }
-        }
-        dataSource=data
-        if(isNew){ //新增记录
-            const list={
-                fieldMap:fieldsValue
-            }
-            dataSource[groupId].push(list)
-        }else{     //修改记录  
-            for(let k in dataSource){
-                if(k===groupId.toString()){
-                    dataSource[k].map((item)=>{
-                        if(item.fieldMap.key===Key){
-                            item.fieldMap=fieldsValue
-                        }
-                        return false
-                    })
-                }
-            }
-        }
-        this.setState({
-            dataSource,
-            visibleForm:false
-        })
-    }
     visibleForm=(data,record)=>{
         this.getForm(data,record)
         this.setState({
@@ -484,12 +471,13 @@ export default class Detail extends React.Component{
         let editFormList=[]
         if(record){
             columns.map((item)=>{
-                if(item.id===record.groupId){
+                if(item.id.toString()===record.groupId){
                     columns=item.fields
                 }
                 return false
             })
         }
+        const code=Units.RndNum(9)
         columns.map((item)=>{
             if(item.type){
                 const list={
@@ -498,12 +486,12 @@ export default class Detail extends React.Component{
                     fieldAvailable:item.fieldAvailable,
                     type:item.type,
                     groupId:item.groupId,
-                    id:item.id
+                    id:item.id,
+                    code:record?record.code:code
                 }
                 if(record){
                     for(let k in record){
-                        if(k===item.title){
-                            list["key"]=record.key
+                        if(k===item.id.toString()){
                             list["value"]=record[k]
                         }
                     }
@@ -526,8 +514,8 @@ export default class Detail extends React.Component{
             }
             return false
         })
-        //console.log(editFormList)
-        //console.log(columns)
+        // console.log(columns)
+        // console.log(record)
         this.setState({
             editFormList,
             visibleForm:true,
@@ -535,6 +523,51 @@ export default class Detail extends React.Component{
             title:record?"修改":"新增",
         })
     }
+    modelhandleOk=(fieldsValue)=>{
+        const Code=fieldsValue.code;
+        const groupId=fieldsValue.groupId.toString()
+        let { dataSource,isNew,columns }=this.state;
+        const data={}
+        columns.map((item)=>{
+            data[item.id]=[]
+            return false
+        })
+        for(let k in data){
+            for(let i in dataSource){
+                if(i===k){
+                    data[k]=dataSource[i]
+                }
+            }
+        }
+        dataSource=data
+        if(isNew){ //新增记录
+            const list={
+                fieldMap:fieldsValue
+            }
+            dataSource[groupId].push(list)
+        }else{     //修改记录  
+            for(let k in dataSource){
+                if(k===groupId){
+                    dataSource[k].map((item)=>{
+                        const fildcode=item.fieldMap.code.toString()
+                        console.log(fildcode)
+                        console.log(Code)
+                        if(fildcode===Code){
+                            item.fieldMap=fieldsValue
+                        }else{
+                            
+                        }
+                        return false
+                    })
+                }
+            }
+        }
+        console.log(dataSource)
+        this.setState({
+            dataSource,
+            visibleForm:false
+        })
+}
     // getTemplate=(stmplId,columns,pageNo,oexcepts,oopti)=>{
     //     let {menuId,fields,excepts,opti}=this.state;
     //     if(!excepts){
@@ -633,25 +666,9 @@ export default class Detail extends React.Component{
         
     // }
     render(){
-        const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,detailsList,visibleForm,editFormList,actions,premises,templateData,stmplId,
-            columns,dataSource,itemDescs,visibleModal,visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fields,}=this.state;
-        let premisestitle=""
-        if(premises && premises.length>0){
-            premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
-            formltmpl.map((item)=>{
-                item.fields.map((it)=>{
-                    premises.map((i)=>{
-                        if(i.fieldName===it.fieldName){
-                            it.available=false
-                            it["value"]= i["value"]
-                        }
-                        return false
-                    })
-                    return false
-                })
-                return false
-            })
-        }
+        const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,visibleForm,editFormList,actions,premises,templateData,stmplId,rightNav,
+            columns,dataSource,visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fields,title,options}=this.state;
+        const premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
         let content
         if(actions && actions.length>0){
             content = (
@@ -660,54 +677,38 @@ export default class Detail extends React.Component{
                             return <Button 
                                         key={item.id} 
                                         type="primary" 
-                                        onClick={(e)=>this.handleOk(item.id,e)}
+                                        onClick={()=>this.visibleModal2(item.id,item.title)}
                                         >{item.title}</Button>
                         })}
                 </div>
             );
-        } 
-        const list=[]
-        if(premises){
-            list.push("默认字段")
-        }
-        if(formltmpl){
-            formltmpl.map((item)=>{
-                list.push(item.title)
-                return false
-            })          
         }
         return(
             <div className="detailPage">
                 <h3>
-                    {
-                        type==="new"&& menuTitle ? menuTitle+"--创建":detailsTitle
-                    }   
-                    {
-                        type==="detail"?
+                    {type==="new"&& menuTitle ? menuTitle+"--创建":detailsTitle }   
+                    {type==="detail"?
                         <div className="fr pad">
                             <Button className="hoverbig" title="导出" onClick={this.exportDetail}><Icon type="upload" /></Button>
                             <Button className="hoverbig" title="查看历史" onClick={this.showHistory}><Icon type="schedule" /></Button>                                                      
                             <Button className="hoverbig" title="刷新" onClick={()=>this.loadltmpl(menuId,code)}><Icon type="sync" /></Button>
-                        </div>
-                        :
+                        </div>:
                         <div className="fr pad">
                             <div className="buttonGroup">
-                            {
-                                actions?
+                            {actions?
                                 <Popover placement="leftTop" content={content} trigger="click">
                                     <Button>
                                         <Icon type="swap" />
                                     </Button>
-                                </Popover>:""
-                            }
+                                </Popover>:""}
                             <Button 
                                 type='primary' 
                                 icon="cloud-upload" 
                                 className="submitBtn" 
                                 key="btn" 
                                 onClick={this.showModal} 
-                                style={{background:fuseMode===true?"#001529":""}}>
-                                保存
+                                style={{background:fuseMode===true?"#001529":""}}
+                                >保存
                             </Button>
                             </div>
                             {code?<Switch 
@@ -722,12 +723,9 @@ export default class Detail extends React.Component{
                                 title="刷新" 
                                 onClick={()=>this.loadltmpl(menuId,type,code)}
                                 ><Icon type="sync" /></Button>
-                        </div>
-                    }               
-                    
+                        </div>}                                  
                 </h3>
-                {
-                    premises && premises.length>0?<Form layout="inline" autoComplete="off">  
+                { premises?<Form layout="inline" autoComplete="off">  
                                 <Card 
                                     title={premisestitle} 
                                     key={premisestitle} 
@@ -744,8 +742,7 @@ export default class Detail extends React.Component{
                                         />
                                 </Card>
                             </Form>
-                                :""
-                }
+                                :"" }
                 <FormCard
                     formList={formltmpl}
                     type={type}
@@ -756,24 +753,13 @@ export default class Detail extends React.Component{
                     options={this.state.options}
                 />
                 <EditTable 
-                    detailsList={detailsList}
                     type={type}
                     columns={columns}
                     dataSource={dataSource}
-                    itemDescs={itemDescs}
                     handleAdd={this.getForm}
                     onRef3={this.onRef3}
                     getTemplate={this.getTemplate}
-                />
-                <Modal
-                    visible={visibleModal}
-                    onOk={(e)=>this.handleOk("",e)}
-                    onCancel={this.handleCancel}
-                    okText="确认"
-                    cancelText="取消"
-                    >
-                    <p>确认提交数据吗？</p>
-                </Modal>               
+                />               
                 <ModelForm
                     handleCancel={this.handleCancel}
                     handleOk={this.modelhandleOk}
@@ -781,9 +767,9 @@ export default class Detail extends React.Component{
                     formList={editFormList}
                     type="edit"                       
                     getOptions={this.getOptions}
-                    options={this.state.options}
+                    options={options}
                     onRef2={this.onRef2}
-                    title={this.state.title}
+                    title={title}
                 />
                 <Drawer
                     title="查看历史"
@@ -807,13 +793,10 @@ export default class Detail extends React.Component{
                     fields={fields}
                     TemplatehandleOk={this.TemplatehandleOk}
                 />
-                {/* {
-                    !cardTitle||cardTitle.length<=3?"":
+                {!rightNav||rightNav.length<=3?"":
                     <RightBar 
-                        list={list}
-                    />
-                }
-                 */}
+                        list={rightNav}
+                    />}              
             </div>
         )
     }

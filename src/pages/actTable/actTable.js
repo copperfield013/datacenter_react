@@ -155,7 +155,7 @@ export default class actTable extends React.Component{
     handleOperate=(type,record)=>{
         const { menuId,selectCodes }=this.state
         const code=record.code
-        this.setState({loading:true,Loading:true})
+        this.setState({Loading:true})
         if(type==="delete"){
             Modal.confirm({
 				title:"删除提示",
@@ -169,7 +169,10 @@ export default class actTable extends React.Component{
                             codes:selectCodes
                         }            
 					}).then((res)=>{
-                        this.setState({loading:false,Loading:false})
+                        this.setState({
+                            Loading:false,
+                            selectedRowKeys:[],
+                        })
 						if(res.status==="suc"){ 
 							this.fresh("删除成功！")     //刷新列表       
 						}else{
@@ -242,7 +245,10 @@ export default class actTable extends React.Component{
                 codes:selectCodes
             }                 
         }).then((res)=>{
-            this.setState({Loading:false,selectedRowKeys: [],})
+            this.setState({
+                Loading:false,
+                selectedRowKeys:[],
+            })
             if(res && res.status==="suc"){
                 this.fresh('操作成功!')
             }else{

@@ -14,47 +14,53 @@ class ModelForm extends React.Component{
     } 
     handleOk=()=>{
         const {formList,form}=this.props
-        let key,groupId,totalName
+        let code,groupId,totalName
         formList.map((item)=>{
             if(item.name!=="关系"){
-                key=item.key
+                code=item.code
                 groupId=item.groupId
                 totalName=item.name.split(".")[0]
             }
             return false
         })      
-        let fieldsValue=form.getFieldsValue()[totalName]
-        //console.log(formList)
-        const trueKey=key?key:Units.RndNum(9);//随机生成key，进行第二次更改
+        let fieldsValue=form.getFieldsValue()[totalName]     
         for(let k in fieldsValue){
-            fieldsValue[k+"*"]=fieldsValue[k]
-            formList.map((item)=>{
-                if(k===item.title){
-                    fieldsValue[item.id]=fieldsValue[k]
+            if(fieldsValue[k]){
+                fieldsValue[k+"*"]=fieldsValue[k].constructor!==Object?fieldsValue[k]:<img 
+                                                                                        style={{width:55}} 
+                                                                                        src={fieldsValue[k].thumbUrl} 
+                                                                                        owlner={fieldsValue[k].originFileObj} 
+                                                                                        alt="" />
+                formList.map((item)=>{
+                    if(k===item.title){
+                        if(fieldsValue[k].constructor!==Object){
+                            fieldsValue[item.id]=fieldsValue[k]
+                        }else{
+                            fieldsValue[item.id]=<img 
+                                                style={{width:55}} 
+                                                src={fieldsValue[k].thumbUrl} 
+                                                owlner={fieldsValue[k].originFileObj} 
+                                                alt="" />
+                        }
+                    }
+                    return false
+                })
+                if(fieldsValue[k] && moment(fieldsValue[k],moment.ISO_8601).isValid()){ //日期格式转换
+                    fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
+                }else if(!fieldsValue[k]){ //去除undefined
+                    fieldsValue[k]=""
                 }
-                return false
-            })
-            if(fieldsValue[k] && moment(fieldsValue[k],moment.ISO_8601).isValid()){ //日期格式转换
-                fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
-            }else if(!fieldsValue[k]){ //去除undefined
-                fieldsValue[k]=""
-            }else if(typeof fieldsValue[k]==="object"){ //图片
-                fieldsValue[k]=<img 
-                                style={{width:55}} 
-                                src={fieldsValue[k].thumbUrl} 
-                                owlner={fieldsValue[k].originFileObj} 
-                                alt="" />
-            }
+            }            
         }
-        fieldsValue["key"]=trueKey
-        fieldsValue["groupId"]=groupId
+        fieldsValue["code"]=code
+        fieldsValue["groupId"]=groupId.toString()
         fieldsValue["totalName"]=totalName    
-        const relation=form.getFieldsValue()["关系"]
+        const relation=form.getFieldsValue()["relation"]
         if(relation){
-            fieldsValue["关系"]=relation
+            fieldsValue["10000"]=relation
         }
         // console.log(formList)
-        //console.log(fieldsValue)
+        // console.log(fieldsValue)
         this.props.handleOk(fieldsValue);
     } 
     render(){
@@ -71,7 +77,6 @@ class ModelForm extends React.Component{
                 >
                 <Form layout="inline" autoComplete="off"> 
                     <BaseInfoForm
-                        key={title}
                         formList={formList} 
                         type={type} 
                         form={form}

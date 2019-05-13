@@ -7,7 +7,7 @@ export default class EditTable extends React.Component{
         const { type,dataSource,columns,getTemplate }=this.props
         const detailsItemList=[];
         if(columns){
-            columns.map((item,index)=>{
+            columns.map((item)=>{
                 if(JSON.stringify(dataSource) !== "{}" && JSON.stringify(dataSource) !== "[]"){
                     for(let k in dataSource){
                         if(item.id.toString()===k){
