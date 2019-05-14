@@ -18,14 +18,12 @@ export default class EditTable extends React.Component{
                                 return false
                             })
                             const selectionTemplateId=item.selectionTemplateId
-                            const dialogSelectType=item.dialogSelectType
                             const RANGE=<EditTableList               
                                             key={Math.random()}
                                             type={type}
                                             columns={item.fields}
                                             dataSource={data}
-                                            dialogSelectType={dialogSelectType}
-                                            selectionTemplateId={dialogSelectType?selectionTemplateId:""}
+                                            haveTemplate={selectionTemplateId?true:false}
                                             cardTitle={item.title}
                                             handleAdd={()=>this.props.handleAdd(item.fields)}
                                             getTemplate={getTemplate}
@@ -36,13 +34,12 @@ export default class EditTable extends React.Component{
                     }
                 }else{
                     const selectionTemplateId=item.selectionTemplateId
-                    const dialogSelectType=item.dialogSelectType
                     const RANGE=<EditTableList               
                                     key={Math.random()}
                                     type={type}
                                     columns={item.fields}
                                     dataSource={dataSource} 
-                                    selectionTemplateId={dialogSelectType?selectionTemplateId:""}
+                                    haveTemplate={selectionTemplateId?true:false}
                                     cardTitle={item.title}
                                     handleAdd={()=>this.props.handleAdd(item.fields)}
                                     getTemplate={getTemplate}

@@ -222,13 +222,12 @@ export default class actTable extends React.Component{
         this.requestLtmpl(menuId,{...params})			
     }
     //页码
-	pageTo=(pageNo)=>{       
+	pageTo=(pageNo, pageSize)=>{      
         const {queryKey}=this.state
         const url=decodeURI(this.props.history.location.search)
         let data="";
-        this.setState({Loading:true})
         data=url?Units.urlToObj(url):""
-        this.queryList(queryKey,{...data,pageNo})			
+        this.queryList(queryKey,{...data,pageNo,pageSize})			
     }
     handleNew=(menuId)=>{
         this.props.history.push(`/${menuId}/new`)
@@ -275,11 +274,11 @@ export default class actTable extends React.Component{
     onRef=(ref)=>{
 		this.child=ref
     }
-    reset=()=>{
-        const {menuId}=this.state
-        this.child.reset()//搜索栏重置
-        this.props.history.push(`/${menuId}`)
-    }
+    // reset=()=>{
+    //     const {menuId}=this.state
+    //     this.child.reset()//搜索栏重置
+    //     this.props.history.push(`/${menuId}`)
+    // }
     render(){
         const {selectedRowKeys,filterOptions,moduleTitle,list,loading,pageInfo,
             formList,tmplGroup,columns,Loading,currentPage,menuId,pageCount,isSeeTotal,optionsMap,queryKey } = this.state;
@@ -362,7 +361,7 @@ export default class actTable extends React.Component{
                         hideQuery={hideQuery}
                         onRef={this.onRef}
                         optionsMap={optionsMap}
-                        reset={this.reset}
+                        //reset={this.reset}
                         />          
                 </Card>
                 <Table
@@ -381,9 +380,11 @@ export default class actTable extends React.Component{
                         style={{display:'inline-block'}}
                         showQuickJumper 
                         showSizeChanger 
+                        pageSizeOptions={['5','10','15','20']}
                         defaultCurrent={1} 
                         current={currentPage}
-                        onChange={(params)=>this.pageTo(params)} 
+                        onChange={(page, pageSize)=>this.pageTo(page, pageSize)} 
+                        onShowSizeChange={(current, size)=>this.pageTo(current, size)}
                         hideOnSinglePage={true}
                         total={pageCount}
                         />

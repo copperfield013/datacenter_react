@@ -43,6 +43,28 @@ export default class Superagent{
                 })              
         })
     }
+    static get(options){
+        return new Promise((resolve,reject)=>{
+            superagent
+                .get(api+options.url)               
+                .query(options.query||'')
+                .end((req,res)=>{ 
+                    console.log(res)
+                    if(res.status===200){
+                        resolve(res.body)
+                    }else if(res.status===403){
+                        message.info("请求权限不足,可能是token已经超时")
+                        window.location.href="/#/login";
+                    }else if(res.status===404||res.status===504){
+                        message.info("服务器连接失败!")
+                    }else if(res.status===500){
+                        message.info("后台处理错误。")
+                    }else{
+                        reject(res.body)
+                    }
+                })              
+        })
+    }
     // static post(options){
     //     let loading;
     //     if(options.data && options.data.isShowLoading!==false){

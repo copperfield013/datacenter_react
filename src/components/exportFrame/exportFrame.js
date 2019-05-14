@@ -88,7 +88,13 @@ export default class ExportFrame extends React.Component{
     }
     download=()=>{
         let uuid=this.state.uuid;
-        Units.downloadFile(`/api2/entity/export/download/${uuid}`)
+        const tokenName=Units.getLocalStorge("tokenName")
+       // Units.downloadFile(`/api2/entity/export/download/${uuid}`) 
+        Super.get({
+            url:`/api2/entity/export/download/${uuid}?@token=${tokenName}`,     
+		}).then((res)=>{
+            console.log(res)
+		})      
     }
     handleCancel=()=>{
         this.setState({

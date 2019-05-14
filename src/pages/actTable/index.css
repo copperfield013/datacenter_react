@@ -4,7 +4,7 @@
 .actTable h3{
     font-size: 18px
 }
-.actTable .seeTotal{
+.seeTotal{
     margin-right:20px;
     text-decoration:underline;
     cursor:pointer

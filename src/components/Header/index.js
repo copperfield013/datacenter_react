@@ -1,16 +1,35 @@
 import React from 'react'
 import {Row,Col,Dropdown,Menu,Icon} from 'antd'
+import { withRouter } from 'react-router-dom'
 import Units from './../../units'
+import Super from "./../../super"
 import "./index.css"
 
-export default class Header extends React.Component{
+class Header extends React.Component{
 	componentWillMount(){
 		this.setState({
 			userName:Units.getLocalStorge("name")
 		})
+		this.getUser()
 	}
 	loginout=()=>{
 		window.location.href="/#/login";
+	}
+	getUser=()=>{
+		Super.super({
+			url:'/api2/meta/user/current_user',                   
+		}).then((res)=>{
+			console.log(res)
+			this.setState({
+				userName:res.user.username,
+				id:res.user.id
+			})
+		})
+	}
+	userDetail=(type)=>{
+		console.log(type)
+		const {id}=this.state
+		this.props.history.push(`/user/${type}/${id}`)
 	}
 	render(){
 		const style={
@@ -19,10 +38,10 @@ export default class Header extends React.Component{
 		const menu = (
 			<Menu>
 				<Menu.Item>
-					<span><Icon type="user" style={style}/>用户详情</span>
+					<span onClick={()=>this.userDetail("detail")}><Icon type="user" style={style}/>用户详情</span>
 				</Menu.Item>
 				<Menu.Item>
-					<span><Icon type="form" style={style}/>用户修改</span>
+					<span onClick={()=>this.userDetail("edit")}><Icon type="form" style={style}/>用户修改</span>
 				</Menu.Item>
 				<Menu.Item>
 					<span onClick={this.loginout}><Icon type="logout" style={style}/>退出登录</span>
@@ -47,3 +66,4 @@ export default class Header extends React.Component{
 		)
 	}
 }
+export default withRouter(Header)

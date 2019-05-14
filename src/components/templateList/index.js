@@ -1,85 +1,89 @@
 import React from 'react'
 import { Modal,Table,Pagination, message } from 'antd';
 import Super from './../../super'
+import BaseForm from './../BaseForm'
 
 export default class TemplateList extends React.Component{
     state={
         selectedRowKeys: [],
+        isSeeTotal:false,
+        currentPage:1,
+        pageCount:0,
+
     }
     handleOk=()=>{
-        const {menuId,stmplId,fields}=this.props
         const {selectCodes}=this.state
-        Super.super({
-            url:`/api/entity/curd/load_entities/${menuId}/${stmplId}`,  
-            data:{
-                codes:selectCodes,
-                fields,
-            }                
-        }).then((res)=>{
-            this.props.handleCancel()
-            if(res.status==="suc"){
-                this.props.TemplatehandleOk(res.entities)
-                this.setState({selectedRowKeys:[]})
-            }else{
-                message.error(res.status)
-            }
-        })
+        this.props.TemplatehandleOk(selectCodes)
+        this.setState({selectedRowKeys:[]})     
     }
-    changePagination=(stmplId,params)=>{
-        this.props.getTemplate(stmplId,"",params)
-        this.setState({selectedRowKeys:[]})
+    seeTotal=()=>{
+        const {isSeeTotal}=this.state
+        const {queryKey}=this.props.templateData
+        if(!isSeeTotal){
+            Super.super({
+                url:`/api2/entity/curd/get_entities_count/${queryKey}`,                
+            }).then((res)=>{
+                this.setState({
+                    isSeeTotal:res.count,
+                })
+            })
+        }       
+    }
+    //页码
+	pageTo=(pageNo, pageSize)=>{
+        const {queryKey}=this.props.templateData
+        this.setState({
+            currentPage:pageNo
+        })
+        this.props.templatePageTo(queryKey,{pageNo,pageSize})			
+    }
+    onRef=(ref)=>{
+		this.child=ref
     }
     render(){
-        const {templateData,visibleTemplateList,handleCancel,width,stmplId}=this.props
-        const {selectedRowKeys}=this.state
+        const {templateDtmpl,visibleTemplateList,handleCancel,width,templateData,menuId}=this.props
+        let {selectedRowKeys,isSeeTotal,currentPage,pageCount,formList}=this.state
         const rowSelection = {
             selectedRowKeys,
             onChange: (selectedRowKeys, selectedRows) => {
                 //console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
                 let selectCodes=""
+                const arr=[]
                 selectedRows.map((item)=>{
-                    selectCodes+=item.code+","
+                    arr.push(item.code)
                     return false
                 })
+                selectCodes=arr.join(',')
                 this.setState({selectCodes,selectedRowKeys})
             },
           };
-        const columns=[]
+        const columns=templateDtmpl?templateDtmpl.config.columns:[]
         const dataSource=[]
-        let pageCount=0
-        if(templateData){
-            pageCount=templateData.pageInfo.count
-            templateData.entities[0].fields.map((item)=>{
-                const value=item.title;
-                item["dataIndex"]=value;
-                columns.push(item)	
+        if(templateDtmpl && templateData){
+            formList=templateDtmpl.config.criterias
+            pageCount=templateData.pageInfo.virtualEndPageNo*templateData.pageInfo.pageSize           
+            columns.map((item)=>{
+                item["dataIndex"]=item.id;
+                if(item.title==="序号"){
+                    item["dataIndex"]="order";
+                }
                 return false
             })
-            const order={
-                title: '序号',
-                key: 'order',
-                render: (text, record,index) => (
-                    <label>{index+1}</label>
-                    ),
-            } 
-            columns.unshift(order)
             templateData.entities.map((item,index)=>{
                 const list={}
                 list['key']=index;
+                list['order']=index+1;
                 list['code']=item.code;
-                item.fields.map((it)=>{
-                    const key=it.title
-                    const value=it.value
-                    list[key]=value
-                    return false
-                })
+                for(let k in item.cellMap){
+                    list[k]=item.cellMap[k]
+                }
                 dataSource.push(list)
                 return false
             })
         }
         return (
                 <Modal
-                    title="选择"
+                    title="选择实体"
                     visible={visibleTemplateList}
                     okText="确认"
                     cancelText="取消"
@@ -89,6 +93,15 @@ export default class TemplateList extends React.Component{
                     onCancel={handleCancel}
                     destroyOnClose
                     >
+                    <BaseForm 
+                        formList={formList} 
+                        filterSubmit={this.props.templateSearch} 
+                        handleOperate={this.handleOperate}
+                        handleActions={this.handleActions}
+                        menuId={menuId}
+                        hideDelete='true'
+                        onRef={this.onRef}
+                        />    
                     <Table
                         rowSelection={rowSelection}
                         columns={columns}
@@ -97,14 +110,26 @@ export default class TemplateList extends React.Component{
                         pagination={false}
                     >
                     </Table>
-                    <Pagination 
-                        showQuickJumper 
-                        defaultCurrent={1} 
-                        total={pageCount} 
-                        onChange={(params)=>this.changePagination(stmplId,params)} 
-                        hideOnSinglePage={true}
-                        showTotal={()=>`共 ${pageCount} 条`}
-                        />
+                    <div className='Pagination'>
+                        <span 
+                            className={isSeeTotal?'sewTotal':'seeTotal'} 
+                            onClick={this.seeTotal}
+                            >
+                            {isSeeTotal?`共${isSeeTotal}条`:'点击查看总数'}
+                        </span>
+                        <Pagination 
+                            style={{display:'inline-block'}}
+                            showQuickJumper 
+                            showSizeChanger 
+                            pageSizeOptions={['5','10','15','20']}
+                            defaultCurrent={1} 
+                            current={currentPage}
+                            onChange={(page, pageSize)=>this.pageTo(page, pageSize)} 
+                            onShowSizeChange={(current, size)=>this.pageTo(current, size)}
+                            hideOnSinglePage={true}
+                            total={pageCount}
+                            />
+                    </div>
                 </Modal>
         )
     }

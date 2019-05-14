@@ -53,6 +53,7 @@ class ModelForm extends React.Component{
             }            
         }
         fieldsValue["code"]=code
+        fieldsValue["key"]=code
         fieldsValue["groupId"]=groupId.toString()
         fieldsValue["totalName"]=totalName    
         const relation=form.getFieldsValue()["relation"]

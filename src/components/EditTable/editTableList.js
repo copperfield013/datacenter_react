@@ -67,15 +67,24 @@ export default class EditTableList extends React.Component {
     })
   }
   render() {
-    const { cardTitle,columns,type,dataSource,selectionTemplateId }=this.props
+    const { cardTitle,columns,type,dataSource,haveTemplate }=this.props
     const page={pageSize:5,hideOnSinglePage:true}
-    // let excepts=""
-    // console.log(dataSource)
-    // dataSource.map((item)=>{
-    //   excepts+=item.key+","
-    //   return false
-    // })
-    // let opti=""
+    let groupId
+    const arr1=[]
+    const arr2=[]
+    columns.map((item)=>{
+      if(item.groupId){
+        groupId=item.groupId
+        arr2.push(item.id)
+      }
+    })
+    dataSource.map((item)=>{
+      arr1.push(item.code)
+      return false
+    })
+    let excepts=arr1.join(',')
+    let dfieldIds=arr2.join(',')
+    let opti
     // if(itemDescs.composite.relationSubdomain){
     //   const opArr=itemDescs.composite.relationSubdomain
     //   if(opArr.length===1){
@@ -101,11 +110,11 @@ export default class EditTableList extends React.Component {
                               onClick={this.props.handleAdd} 
                               style={{marginBottom:10,marginRight:10}}
                               >新增</Button>}
-              {selectionTemplateId?<Button 
+              {haveTemplate?<Button 
                               type='primary' 
                               icon="snippets" 
                               size="small"
-                              //onClick={()=>this.props.getTemplate(stmplId,columns,1,excepts,opti)}
+                              onClick={()=>this.props.getTemplate(groupId,excepts,dfieldIds)}
                               style={{marginBottom:10,marginRight:10}}
                               >选择</Button>:""}
               <Table

@@ -59,7 +59,7 @@ export default class BaseInfoForm extends React.Component{
                                     )}
                                 </FormItem>
                     formItemList.push(DATE)                
-                }else if(item.type==="text"){
+                }else if(item.type==="text"  || item.type==="password"){
                     const TEXT= <FormItem label={title} key={field} className='labelcss'>
                                     {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{

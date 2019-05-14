@@ -1,5 +1,6 @@
 import React from 'react'
 import {Select,Radio,message} from 'antd'
+import Units from './../units'
 const Option = Select.Option;
 
 export default {
@@ -46,10 +47,11 @@ export default {
         return options
     },
     downloadFile(url) {  
+        const tokenName=Units.getLocalStorge("tokenName")
         const api="http://47.100.187.235:7080/datacenter_api2" 
         try{ 
             let elemIF = document.createElement("iframe");   
-            elemIF.src = api+url;   
+            elemIF.src = api+url+`?%token%=${tokenName}`;   
             elemIF.style.display = "none";   
             document.body.appendChild(elemIF);   
         }catch(e){ 
