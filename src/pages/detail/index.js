@@ -234,8 +234,27 @@ export default class Detail extends React.Component{
                     key: 'action',
                     render: (record) => (
                     <div className="editbtn">
-                        <Button type='primary' icon="edit" size="small"  onClick={()=>this.visibleForm(record)}></Button>
-                        <Button type='danger' icon="delete" size="small" onClick={()=>this.visibleModal(record)}></Button>
+                        <Button 
+                            type='primary' 
+                            title="编辑当前行" 
+                            icon="edit" 
+                            size="small"  
+                            onClick={()=>this.visibleForm(record)}
+                            ></Button>
+                        <Button 
+                            type='danger' 
+                            icon="delete" 
+                            size="small" 
+                            onClick={()=>this.visibleModal(record,'removeList','确定要删除这条记录吗')}
+                            ></Button>
+                        {item.rabcTemplateGroupId && item.rabcUnupdatable===null?
+                            <Button 
+                                title="编辑当前实体" 
+                                type='primary' 
+                                icon="form" 
+                                size="small"  
+                                onClick={()=>this.getFormTmpl(record)}
+                                ></Button>:""}
                     </div>
                     ),
                 }  
@@ -246,27 +265,15 @@ export default class Detail extends React.Component{
         })   
         return columns
     }
-    visibleModal=(record)=>{
+    visibleModal=(record,name,string)=>{
         const _this=this
         confirm({
-            title: '确定要删除这条记录吗?',
+            title: string,
             okText: '确定',
             okType: 'danger',
             cancelText: '取消',
             onOk() {
-                _this.removeList(record)
-            },
-          });
-    }
-    visibleModal2=(id,title)=>{
-        const _this=this
-        confirm({
-            title: `确定要执行【${title}】吗?`,
-            okText: '确定',
-            okType: 'danger',
-            cancelText: '取消',
-            onOk() {
-                _this.handleOk(id)
+                _this[name](record)
             },
           });
     }
@@ -425,15 +432,7 @@ export default class Detail extends React.Component{
         this.baseinfo.handleBaseInfoSubmit() //获取BaseInfo数据
     }
     baseInfo=(baseValue)=>{  
-        const _this=this
-        confirm({
-            title: '确定要保存修改吗?',
-            okText: '确定',
-            cancelText: '取消',
-            onOk() {
-                _this.handleOk()
-            },
-          });    
+        this.visibleModal(null,'handleOk','确定要保存修改吗')//弹出确认框    
         this.setState({
             baseValue,
         });
@@ -468,17 +467,66 @@ export default class Detail extends React.Component{
             visibleForm:true,
         })
     }
-    getForm=(record)=>{
+    getFormTmpl=(record)=>{
+        const {menuId,columns}=this.state
+        const formTmplGroupId=record.groupId
+        const arr=[]
+        columns.map((item)=>{
+            if(item.id.toString()===formTmplGroupId){
+                item.fields.map((it)=>{
+                    if(it.groupId){
+                        arr.push(it.id)
+                    }
+                })
+            }
+        })
+        Super.super({
+            url:`/api2/meta/tmpl/dtmpl_config/rabc/${menuId}/${formTmplGroupId}`,                 
+        }).then((res)=>{
+            let templateDtmpl=res.config.dtmpl.groups
+            const moduleTitle=res.config.module.title
+            Super.super({
+                url:`/api2/entity/curd/detail/${menuId}/${record.code}`, 
+                data:{
+                    fieldGroupId: formTmplGroupId
+                }         
+            }).then((resi)=>{ 
+                const entityTitle=resi.entity.title
+                templateDtmpl.map((item)=>{
+                    item.code=resi.entity.code
+                    item.fields.map((it)=>{
+                        for(let k in resi.entity.fieldMap){
+                            if(k===it.id.toString()){
+                                it.value=resi.entity.fieldMap[k]
+                            }
+                        }
+                    })
+                })           
+                this.setState({
+                    getFormTmpl:true,
+                    templateDtmpl,
+                    title:moduleTitle+"-"+entityTitle+"-修改",
+                    visibleTemplateList:true,
+                    formTmplGroupId, //修改实体模板groupId
+                    dfieldIds:arr.join(',')
+                })
+
+             })
+        })
+    }
+    getForm=(record,isNew)=>{
         let {columns}=this.state
         this.modelform.handleReset()
         let editFormList=[]
-        if(record){
+        if(!isNew){
             columns.map((item)=>{
                 if(item.id.toString()===record.groupId){
                     columns=item.fields
                 }
                 return false
             })
+        }else{
+            columns=record
         }
         const code=Units.RndNum(9)
         columns.map((item)=>{
@@ -490,7 +538,7 @@ export default class Detail extends React.Component{
                     type:item.type,
                     groupId:item.groupId,
                     id:item.id,
-                    code:record?record.code:code,
+                    code:isNew?code:record.code,
                     key:item.key
                 }
                 if(record){
@@ -518,13 +566,10 @@ export default class Detail extends React.Component{
             }
             return false
         })
-        // console.log(editFormList)
-        // console.log(record)
         this.setState({
             editFormList,
-            visibleForm:true,
-            isNew:record?false:true,
-            title:record?"修改":"新增",
+            isNew,
+            title:isNew?"新增":"修改",
         })
     }
     modelhandleOk=(fieldsValue)=>{
@@ -548,7 +593,7 @@ export default class Detail extends React.Component{
             const list={
                 fieldMap:fieldsValue
             }
-            dataSource[groupId].push(list)
+            dataSource[groupId].unshift(list)
         }else{     //修改记录  
             for(let k in dataSource){
                 if(k===groupId){
@@ -570,7 +615,7 @@ export default class Detail extends React.Component{
             visibleForm:false
         })
     }
-    getTemplate=(groupId,oexcepts,fieldIds,searchParams)=>{
+    getTemplate=(templateGroupId,oexcepts,fieldIds,searchParams)=>{
         let {menuId,dfieldIds,excepts}=this.state;
         if(!excepts){
             excepts=oexcepts
@@ -579,9 +624,8 @@ export default class Detail extends React.Component{
             excepts=oexcepts
         }
         Super.super({
-            url:`/api2/meta/tmpl/select_config/${menuId}/${groupId}`,               
+            url:`/api2/meta/tmpl/select_config/${menuId}/${templateGroupId}`,               
         }).then((res)=>{
-            console.log(res)
             if(!dfieldIds){
                 dfieldIds=fieldIds
             }
@@ -590,12 +634,13 @@ export default class Detail extends React.Component{
             }
             this.setState({
                 templateDtmpl:res,
-                groupId,
+                templateGroupId, //选择模板groupId
                 dfieldIds,
+                getFormTmpl:false,
             })
         })
         Super.super({
-            url:`/api2/entity/curd/query_select_entities/${menuId}/${groupId}`, 
+            url:`/api2/entity/curd/query_select_entities/${menuId}/${templateGroupId}`, 
             data:{
                 excepts,
                 ...searchParams,
@@ -617,35 +662,48 @@ export default class Detail extends React.Component{
             this.setState({
                 templateData:res,
                 visibleTemplateList:true,
+                title:'选择实体'
             })
         })
     }
     templateSearch=(params)=>{
-        let {groupId,excepts,dfieldIds}=this.state;
-        this.getTemplate(groupId,excepts,dfieldIds,params)
+        let {templateGroupId,excepts,dfieldIds}=this.state;
+        this.getTemplate(templateGroupId,excepts,dfieldIds,params)
     }
-    TemplatehandleOk=(codes)=>{
-        const {menuId,dfieldIds,groupId,dataSource}=this.state
+    TemplatehandleOk=(codes,formTmplGroupId)=>{
+        let {menuId,dfieldIds,templateGroupId,dataSource}=this.state
+        if(formTmplGroupId){
+            templateGroupId=formTmplGroupId
+        }
         Super.super({
-            url:`/api2/entity/curd/load_entities/${menuId}/${groupId}`,  
+            url:`/api2/entity/curd/load_entities/${menuId}/${templateGroupId}`,  
             data:{
                 codes,
                 dfieldIds,
             }                
         }).then((res)=>{
-            console.log(res)
-            console.log(dataSource)
+            // console.log(res)
+            // console.log(dataSource)
             res.entities.map((item)=>{
                 item.byDfieldIds.key=item['唯一编码']
                 item.byDfieldIds.code=item['唯一编码']
-                item.byDfieldIds.groupId=groupId.toString()
+                item.byDfieldIds.groupId=templateGroupId.toString()
                 let list={
                     code:item['唯一编码'],
                     fieldMap:item.byDfieldIds,                   
                 }               
                 for(let k in dataSource){
-                    if(k===groupId.toString()){
-                        dataSource[k].push(list)
+                    if(k===templateGroupId){
+                        if(formTmplGroupId){
+                            dataSource[k].map((it,index)=>{
+                                if(it.code===item['唯一编码']){
+                                    dataSource[k].splice(index,1,list); 
+                                }
+                            })
+                        }else{
+                            dataSource[k].push(list)
+                        }
+                        
                     }
                 }
             })
@@ -656,8 +714,8 @@ export default class Detail extends React.Component{
         })
     }
     render(){
-        const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,visibleForm,editFormList,actions,premises,templateDtmpl,rightNav,
-            columns,dataSource,visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,dfieldIds,title,options,templateData}=this.state;
+        const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,visibleForm,editFormList,actions,premises,templateDtmpl,rightNav,getFormTmpl,
+            columns,dataSource,visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,dfieldIds,title,options,templateData,formTmplGroupId}=this.state;
         const premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
         let content
         if(actions && actions.length>0){
@@ -667,7 +725,7 @@ export default class Detail extends React.Component{
                             return <Button 
                                         key={item.id} 
                                         type="primary" 
-                                        onClick={()=>this.visibleModal2(item.id,item.title)}
+                                        onClick={()=>this.visibleModal(item.id,'handleOk','确实要执行这项操作吗？')}
                                         >{item.title}</Button>
                         })}
                 </div>
@@ -755,7 +813,7 @@ export default class Detail extends React.Component{
                     handleOk={this.modelhandleOk}
                     visibleForm={visibleForm}
                     formList={editFormList}
-                    type="edit"                       
+                    type="edit"            
                     getOptions={this.getOptions}
                     options={options}
                     onRef2={this.onRef2}
@@ -777,13 +835,17 @@ export default class Detail extends React.Component{
                     handleCancel={this.handleCancel}
                     templateDtmpl={templateDtmpl}
                     templateData={templateData}
-                    width={780}
+                    width={900}
                     menuId={menuId}
+                    getFormTmpl={getFormTmpl}
+                    formTmplGroupId={formTmplGroupId}
+                    type="edit"
                     getTemplate={this.getTemplate}
                     templateSearch={this.templateSearch}
                     dfieldIds={dfieldIds}
                     TemplatehandleOk={this.TemplatehandleOk}
                     templatePageTo={this.templatePageTo}
+                    title={title}
                 />
                 {!rightNav||rightNav.length<=3?"":
                     <RightBar 

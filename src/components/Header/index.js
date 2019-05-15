@@ -19,7 +19,6 @@ class Header extends React.Component{
 		Super.super({
 			url:'/api2/meta/user/current_user',                   
 		}).then((res)=>{
-			console.log(res)
 			this.setState({
 				userName:res.user.username,
 				id:res.user.id
@@ -27,7 +26,6 @@ class Header extends React.Component{
 		})
 	}
 	userDetail=(type)=>{
-		console.log(type)
 		const {id}=this.state
 		this.props.history.push(`/user/${type}/${id}`)
 	}

@@ -25,7 +25,7 @@ export default class EditTable extends React.Component{
                                             dataSource={data}
                                             haveTemplate={selectionTemplateId?true:false}
                                             cardTitle={item.title}
-                                            handleAdd={()=>this.props.handleAdd(item.fields)}
+                                            handleAdd={()=>this.props.handleAdd(item.fields,true)}
                                             getTemplate={getTemplate}
                                         />
                             detailsItemList.push(RANGE)         
@@ -41,7 +41,7 @@ export default class EditTable extends React.Component{
                                     dataSource={dataSource} 
                                     haveTemplate={selectionTemplateId?true:false}
                                     cardTitle={item.title}
-                                    handleAdd={()=>this.props.handleAdd(item.fields)}
+                                    handleAdd={()=>this.props.handleAdd(item.fields,true)}
                                     getTemplate={getTemplate}
                                 />
                     detailsItemList.push(RANGE)

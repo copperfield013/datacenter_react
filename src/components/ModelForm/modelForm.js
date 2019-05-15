@@ -1,7 +1,6 @@
 import React from 'react'
 import {Form,Modal} from 'antd'
 import moment from 'moment';
-import Units from './../../units'
 import BaseInfoForm from './../BaseForm/BaseInfoForm'
 
 class ModelForm extends React.Component{
@@ -61,9 +60,12 @@ class ModelForm extends React.Component{
             fieldsValue["10000"]=relation
         }
         // console.log(formList)
-        // console.log(fieldsValue)
+         //console.log(fieldsValue)
         this.props.handleOk(fieldsValue);
     } 
+    onRef=(ref)=>{
+		this.child=ref
+    }
     render(){
         const { formList,type,form,title,visibleForm,handleCancel,getOptions,options }=this.props;
         return(
@@ -75,6 +77,7 @@ class ModelForm extends React.Component{
                 okText="确认"
                 cancelText="取消"
                 destroyOnClose
+                width={900}
                 >
                 <Form layout="inline" autoComplete="off"> 
                     <BaseInfoForm
@@ -86,7 +89,7 @@ class ModelForm extends React.Component{
                         options={options}
                         flag={false}
                         />          
-                </Form>                    
+                </Form>       
             </Modal> 
         )
     }

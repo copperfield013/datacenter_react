@@ -1,5 +1,5 @@
 import React from 'react'
-import {Input,Form,Select,DatePicker,Avatar,Icon,InputNumber,Button} from 'antd'
+import {Input,Form,Select,DatePicker,Avatar,Icon,InputNumber,Button,Col} from 'antd'
 import Units from "../../units";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
@@ -144,10 +144,6 @@ export default class BaseInfoForm extends React.Component{
                                 </FormItem>
                     formItemList.push(LABEL)   
                 }else if(item.type==="caselect"){ 
-                    // let arrVal=[]
-                    // if(fieldValue){
-                    //     arrVal=fieldValue.split("->")
-                    // }
                     const CASELECT= <FormItem label={title} key={field} className='labelcss'>
                                         {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         fieldValue?<div>
@@ -260,7 +256,7 @@ export default class BaseInfoForm extends React.Component{
     }
     render(){
         return(
-                this.initFormList()           
+            this.initFormList()
             )
         }
     }

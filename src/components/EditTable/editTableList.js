@@ -121,7 +121,7 @@ export default class EditTableList extends React.Component {
                 bordered
                 dataSource={type==="edit"?dataSource:this.state.dataSource}
                 columns={columns}    
-                pagination={type==="edit"?false:page}
+                pagination={page}
                 onChange={this.tableChange}
               />
           </div>
