@@ -44,7 +44,7 @@ export default class ExportFrame extends React.Component{
             });
         }
         Super.super({
-            url:`/api2/entity/export/start/${menuId}/${queryKey}`,    
+            url:`api2/entity/export/start/${menuId}/${queryKey}`,    
             data:{
                 scope,
                 withDetail:withDetail,
@@ -61,14 +61,14 @@ export default class ExportFrame extends React.Component{
                 this.statusOut(res.uuid)
                 this.timerID=setInterval(
                     () =>this.statusOut(res.uuid),
-                    500
+                    1000
                   );
             }
 		})
     }
     statusOut=(uuid)=>{
         Super.super({
-            url:`/api2/entity/export/status`,   
+            url:`api2/entity/export/status`,   
             data:{
                 uuid
             }         
@@ -89,12 +89,7 @@ export default class ExportFrame extends React.Component{
     download=()=>{
         let uuid=this.state.uuid;
         const tokenName=Units.getLocalStorge("tokenName")
-       // Units.downloadFile(`/api2/entity/export/download/${uuid}`) 
-        Super.get({
-            url:`/api2/entity/export/download/${uuid}?@token=${tokenName}`,     
-		}).then((res)=>{
-            console.log(res)
-		})      
+        Units.downloadFile(`api2/entity/export/download/${uuid}?@token=${tokenName}`)      
     }
     handleCancel=()=>{
         this.setState({

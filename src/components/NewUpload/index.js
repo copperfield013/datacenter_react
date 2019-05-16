@@ -7,15 +7,15 @@ export default class NewUpload extends React.Component{
         fileList:[]
     }
     componentDidMount(){
-        const fieldValue=this.props.fieldValue;
-        const fieldName=this.props.fieldName;
+        const {fieldValue,fieldName}=this.props
         if(fieldValue){
+            const url="http://47.100.187.235:7080/datacenter_api2/"+fieldValue
             this.setState({
                 fileList:[{
                     uid:"-1",
                     name:`${fieldName}`,
                     status: 'done',
-                    url: `/file-server/${fieldValue}`,
+                    url: url,
                 }]
             })
         }
@@ -32,7 +32,7 @@ export default class NewUpload extends React.Component{
         }
     }
     triggerChange = (changedValue) => {
-        const onChange = this.props.onChange;
+        const {onChange} = this.props
         if (onChange) {
           onChange(changedValue);
         }
@@ -45,6 +45,7 @@ export default class NewUpload extends React.Component{
     }
     render(){
         const {fieldValue,width}=this.props
+        const url="http://47.100.187.235:7080/datacenter_api2/"+fieldValue
         return (
             <div>                                           
                 <Upload
@@ -54,7 +55,7 @@ export default class NewUpload extends React.Component{
                     defaultFileList={fieldValue?[{
                         uid:"-1",
                         status: 'done',
-                        url: `/file-server/${fieldValue}`,
+                        url: url,
                     }]:""}
                     onChange={this.handleChange}
                 >    

@@ -16,7 +16,7 @@ export default class ModelImport extends React.Component{
         const menuId=this.props.menuId;
         this.handleVisibleChange(true)
         Super.super({
-            url:`/api/entity/import/tmpls/${menuId}`,        
+            url:`api/entity/import/tmpls/${menuId}`,        
         }).then((res)=>{
             if(res){
                 this.setState({
@@ -28,7 +28,7 @@ export default class ModelImport extends React.Component{
     handelModel=(tmplId)=>{
         const menuId=this.props.menuId;
         Super.super({
-            url:`/api/entity/import/tmpl/${menuId}/${tmplId}`,        
+            url:`api/entity/import/tmpl/${menuId}/${tmplId}`,        
         }).then((res)=>{
             if(res){
                 let data=[]
@@ -87,7 +87,7 @@ export default class ModelImport extends React.Component{
                 cancelText: '取消',
                 onOk() {
                     Super.super({
-                        url:`/api/entity/import/save_tmpl/${menuId}`, 
+                        url:`api/entity/import/save_tmpl/${menuId}`, 
                         data:{
                             tmplId,
                             modelName,
@@ -95,7 +95,7 @@ export default class ModelImport extends React.Component{
                         }     
                     },"json").then((res)=>{
                         if(res){
-                            Units.downloadFile(`/api/entity/import/download_tmpl/${tokenName}/${res.uuid}`)
+                            Units.downloadFile(`api/entity/import/download_tmpl/${tokenName}/${res.uuid}`)
                         }
                     })
                 

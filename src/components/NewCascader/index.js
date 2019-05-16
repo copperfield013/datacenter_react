@@ -23,7 +23,7 @@ export default class NewCascader extends React.Component{
         const optGroupId=optionKey.split("@")[0]
         const time=optionKey.split("@")[1]
         Super.super({
-			url:`/api2/meta/dict/cas_ops/${optGroupId}`,                
+			url:`api2/meta/dict/cas_ops/${optGroupId}`,                
 		}).then((res)=>{
 			const ops=[]
             res.options.map((item)=>{
@@ -54,7 +54,7 @@ export default class NewCascader extends React.Component{
                 return false
             })
             Super.super({
-                url:`/api2/meta/dict/cas_ops/${id}`,                
+                url:`api2/meta/dict/cas_ops/${id}`,                
             }).then((res)=>{
                 const ops=[]
                 const time=this.state.time

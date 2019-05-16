@@ -1,5 +1,5 @@
 import React from 'react'
-import {Input,Form,Select,DatePicker,Avatar,Icon,InputNumber,Button,Col} from 'antd'
+import {Input,Form,Select,DatePicker,Avatar,Icon,InputNumber,Button} from 'antd'
 import Units from "../../units";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
@@ -174,18 +174,19 @@ export default class BaseInfoForm extends React.Component{
                                 </FormItem>
                     formItemList.push(CASELECT)   
                 }else if(item.type==="file"){
+                    const url=fieldValue?fieldValue.props.src:""
                     const FILE= <FormItem label={title} key={field} className='labelcss'>
                                         {type==="detail"?
                                             fieldValue && fieldValue!=="无文件"?<span className="downAvatar">
-                                                <Avatar shape="square" src={`/file-server/${fieldValue}`}/>
-                                                <Button href={`/file-server/${fieldValue}`} download="logo.png" size="small"><Icon type="download"/></Button>
+                                                {fieldValue}
+                                                <Button href={url} download="logo.png" size="small"><Icon type="download"/></Button>
                                                 </span>:<span className="downAvatar">无文件</span>
                                         :
                                         fieldValue && fieldValue!=="无文件"?
                                         <div>
                                             <span className="downAvatar" style={{display:this.state.close}}>
-                                                <Avatar shape="square" src={`/file-server/${fieldValue}`}/>
-                                                <Button onClick={this.changeFile} size="small"><Icon type="close" /></Button>
+                                               {fieldValue}
+                                                <Button onClick={()=>this.setState({close:'none'})} size="small"><Icon type="close" /></Button>
                                             </span>
                                             {this.state.close==="none"?getFieldDecorator(fieldName,{
                                                     rules:item.validators?[{

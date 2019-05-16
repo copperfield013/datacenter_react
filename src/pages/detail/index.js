@@ -12,6 +12,7 @@ import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 import TemplateList from '../../components/templateList';
 const confirm = Modal.confirm;
 
+const api="http://47.100.187.235:7080/datacenter_api2/"
 export default class Detail extends React.Component{
     state={
         visibleDrawer:false,
@@ -24,7 +25,7 @@ export default class Detail extends React.Component{
         visibleTemplateList:false,
         isNew:false,
     }
-    componentWillMount(){
+    componentDidMount(){
         const {menuId,code,type}=this.props.match.params
         this.setState({
             menuId,
@@ -33,9 +34,9 @@ export default class Detail extends React.Component{
         })
         this.loadltmpl(menuId,code)
     }
-    loadltmpl=(menuId,code)=>{
+    loadltmpl=(menuId,code,versionCode)=>{
         Super.super({
-            url:`/api2/meta/tmpl/dtmpl_config/normal/${menuId}/`,        
+            url:`api2/meta/tmpl/dtmpl_config/normal/${menuId}/`, 
         }).then((res)=>{     
             const formltmpl=[]
             const editformltmpl=[]
@@ -56,7 +57,7 @@ export default class Detail extends React.Component{
             //console.log(rightNav)
             this.requestSelect(formltmpl,editformltmpl)
             if(code && code!=='new'){
-                this.loadRequest(formltmpl,editformltmpl)
+                this.loadRequest(formltmpl,editformltmpl,versionCode)
             }else{
                 this.setState({
                     editformltmpl,
@@ -92,14 +93,17 @@ export default class Detail extends React.Component{
             })
         })  
     }
-    loadRequest=(formltmpl,editformltmpl)=>{
+    loadRequest=(formltmpl,editformltmpl,versionCode)=>{
         const {menuId,type,code}=this.props.match.params
         Super.super({
-            url:`/api2/entity/curd/detail/${menuId}/${code}`,          
+            url:`api2/entity/curd/detail/${menuId}/${code}`, 
+            data:{
+                versionCode,
+            }          
         }).then((res)=>{  
             const arrayMap=res.entity.arrayMap
-            const fieldMap=res.entity.fieldMap
-            const descsFlag=[]
+            const fieldMap=this.forPic(res.entity.fieldMap)
+            const descsFlag=[]           
             formltmpl.map((item)=>{
                 item.fields.map((item)=>{
                     for(let k in fieldMap){
@@ -122,11 +126,14 @@ export default class Detail extends React.Component{
                     return false
                 })
                 arrayMap[k].map((item)=>{
-                    item.fieldMap["code"]=item.code //为了后面操作修改
-                    item.fieldMap["key"]=item.code
-                    item.fieldMap["groupId"]=k
-                    item.fieldMap["totalName"]=totalName
-                    return item.relationLabel?item.fieldMap["10000"]=item.relationLabel:false
+                    const fieldMap=this.forPic(item.fieldMap) //有图片，转化为图片
+                    fieldMap["code"]=item.code //为了后面操作修改
+                    fieldMap["key"]=item.code
+                    fieldMap["groupId"]=k
+                    fieldMap["totalName"]=totalName
+                    if(item.relationLabel){
+                        fieldMap["10000"]=item.relationLabel
+                    }
                 })
             }
             //console.log(editformltmpl)
@@ -140,13 +147,27 @@ export default class Detail extends React.Component{
             })          
         })
     }
-    renderHistoryList=()=>{
+    forPic=(fieldMap)=>{
+        for(let i in fieldMap){
+            if(fieldMap[i] && fieldMap[i].includes("download-files")){
+                const url=api+ fieldMap[i]
+                fieldMap[i]=<img 
+                                style={{width:55}} 
+                                src={url} 
+                                alt="" />
+            }
+        }
+        return fieldMap
+    }
+    renderHistoryList=(versionCode)=>{
         const {menuId,code,}=this.state
         Super.super({
-            url:`/api2/entity/curd/history/${menuId}/${code}/1`,                
+            url:`api2/entity/curd/history/${menuId}/${code}/1`,     
+            data:{
+                versionCode,
+            }           
         }).then((res)=>{
             let detailHistory
-            console.log(res)
             if(res.history.length>0){
                 detailHistory= res.history.map((item,index)=>{
                     const color=item.current?"red":"blue";
@@ -165,14 +186,16 @@ export default class Detail extends React.Component{
                     })
             }
             this.setState({
-                detailHistory
+                detailHistory,
+                visibleDrawer: true,
             })
         })
     }
     toHistory=(e)=>{
-        const {menuId,type}=this.state
-        const historyCode=e.target.getAttribute("code");
-        this.props.history.push(`/${menuId}/${type}/${historyCode}`)       
+        const {menuId,code}=this.state
+        const versionCode=e.target.getAttribute("code");
+        this.renderHistoryList(versionCode)
+        this.loadltmpl(menuId,code,versionCode)
     }
     detailTitle=(dataTitle,type)=>{
         const {menuTitle}=this.state
@@ -239,7 +262,7 @@ export default class Detail extends React.Component{
                             title="编辑当前行" 
                             icon="edit" 
                             size="small"  
-                            onClick={()=>this.visibleForm(record)}
+                            onClick={()=>this.getForm(record)}
                             ></Button>
                         <Button 
                             type='danger' 
@@ -306,7 +329,7 @@ export default class Detail extends React.Component{
                 return false
             })
             Super.super({
-                url:`/api2/meta/dict/field_options`,       
+                url:`api2/meta/dict/field_options`,       
                 data:{
                     fieldIds
                 },
@@ -335,12 +358,6 @@ export default class Detail extends React.Component{
             dataSource
         })
     }
-    showHistory=()=>{
-        this.renderHistoryList();
-        this.setState({
-            visibleDrawer: true,
-        });
-    }
     handleOk = (actionId) => {
         const { menuId,code,type,baseValue,fuseMode,dataSource,descsFlag }=this.state       
         const formData = new FormData(); 
@@ -354,7 +371,7 @@ export default class Detail extends React.Component{
             formData.append(`${item}.$$flag$$`, true);
             return false
         })
-        //console.log(dataSource)
+        console.log(dataSource)
         if(dataSource.constructor===Object){
             for(let k in dataSource){
                 dataSource[k].map((item)=>{
@@ -362,20 +379,19 @@ export default class Detail extends React.Component{
                     const totalName=fieldMap.totalName
                     const order=fieldMap.order-1
                     const key=fieldMap.key
-                    if(key){ //有key证明数据本来就有,没有修改
+                    if(key && key.length>9){ //有key证明数据本来就有,没有修改
                         formData.append(`${totalName}[${order}].唯一编码`,fieldMap.code);
-                    }else{
-                        for(let i in fieldMap){
-                            if(i.includes("*") && fieldMap[i]){
-                                const name=i.split("*")[0];
-                                if(fieldMap[i].constructor===Object){ //上传图片
-                                    formData.append(`${totalName}[${order}].${name}`,fieldMap[i].props.owlner);
-                                }else{
-                                    formData.append(`${totalName}[${order}].${name}`,fieldMap[i]); 
-                                }                          
-                            }                           
-                        }    
                     }
+                    for(let i in fieldMap){
+                        if(i.includes("*") && fieldMap[i]){
+                            const name=i.split("*")[0];
+                            if(fieldMap[i].constructor===Object){ //上传图片
+                                formData.append(`${totalName}[${order}].${name}`,fieldMap[i].props.owlner);
+                            }else{
+                                formData.append(`${totalName}[${order}].${name}`,fieldMap[i]); 
+                            }                          
+                        }                           
+                    }                       
                     for(let i in fieldMap){
                         if(i==="10000"){
                             formData.append(`${totalName}[${order}].$$label$$`,fieldMap[i]);
@@ -390,7 +406,7 @@ export default class Detail extends React.Component{
             formData.append('%fuseMode%',fuseMode);
         }
         Super.super({
-            url:`/api2/entity/curd/save/normal/${menuId}`, 
+            url:`api2/entity/curd/save/normal/${menuId}`, 
             data:formData
         },'formdata').then((res)=>{
             if(res && res.status==="suc"){
@@ -410,10 +426,11 @@ export default class Detail extends React.Component{
             cancelText: "取消",
             onOk() {
                 Super.super({
-                    url:`/api2/entity/export/detail/${menuId}/${code}`,                 
+                    url:`api2/entity/export/detail/${menuId}/${code}`,                 
                 }).then((res)=>{
                     if(res.status==="suc"){
-                        Units.downloadFile(`/api2/entity/export/download/${res.uuid}`)
+                        const tokenName=Units.getLocalStorge("tokenName")
+                        Units.downloadFile(`api2/entity/export/download/${res.uuid}?@token=${tokenName}`)
                     }else{
                         message.error(res.status)
                     }
@@ -461,57 +478,69 @@ export default class Detail extends React.Component{
             }
         }        
     }
-    visibleForm=(record)=>{
-        this.getForm(record)
-        this.setState({
-            visibleForm:true,
-        })
-    }
     getFormTmpl=(record)=>{
         const {menuId,columns}=this.state
-        const formTmplGroupId=record.groupId
+        const formTmplGroupId=record.groupId.toString()
         const arr=[]
+        console.log(record)
         columns.map((item)=>{
             if(item.id.toString()===formTmplGroupId){
                 item.fields.map((it)=>{
                     if(it.groupId){
                         arr.push(it.id)
                     }
+                    return false
                 })
             }
+            return false
         })
         Super.super({
-            url:`/api2/meta/tmpl/dtmpl_config/rabc/${menuId}/${formTmplGroupId}`,                 
+            url:`api2/meta/tmpl/dtmpl_config/rabc/${menuId}/${formTmplGroupId}`,                 
         }).then((res)=>{
             let templateDtmpl=res.config.dtmpl.groups
             const moduleTitle=res.config.module.title
-            Super.super({
-                url:`/api2/entity/curd/detail/${menuId}/${record.code}`, 
-                data:{
-                    fieldGroupId: formTmplGroupId
-                }         
-            }).then((resi)=>{ 
-                const entityTitle=resi.entity.title
-                templateDtmpl.map((item)=>{
-                    item.code=resi.entity.code
-                    item.fields.map((it)=>{
-                        for(let k in resi.entity.fieldMap){
-                            if(k===it.id.toString()){
-                                it.value=resi.entity.fieldMap[k]
+            if(record.code){
+                Super.super({
+                    url:`api2/entity/curd/detail/${menuId}/${record.code}`, 
+                    data:{
+                        fieldGroupId: formTmplGroupId
+                    }         
+                }).then((resi)=>{ 
+                    const entityTitle=resi.entity.title
+                    const fieldMap=this.forPic(resi.entity.fieldMap)
+                    templateDtmpl.map((item)=>{
+                        item.code=resi.entity.code
+                        item.fields.map((it)=>{
+                            for(let k in fieldMap){
+                                if(k===it.id.toString()){
+                                    it.value=fieldMap[k]
+                                }
                             }
-                        }
-                    })
-                })           
+                            return false
+                        })
+                        return false
+                    })           
+                    this.setState({
+                        getFormTmpl:true,
+                        templateDtmpl,
+                        title:moduleTitle+"-"+entityTitle+"-修改",
+                        visibleTemplateList:true,
+                        formTmplGroupId, //修改实体模板groupId
+                        dfieldIds:arr.join(',')
+                    })   
+                 })
+            }else{
+                console.log(arr)
                 this.setState({
                     getFormTmpl:true,
                     templateDtmpl,
-                    title:moduleTitle+"-"+entityTitle+"-修改",
+                    title:"创建实体",
                     visibleTemplateList:true,
                     formTmplGroupId, //修改实体模板groupId
                     dfieldIds:arr.join(',')
-                })
-
-             })
+                })   
+            }
+            
         })
     }
     getForm=(record,isNew)=>{
@@ -528,6 +557,7 @@ export default class Detail extends React.Component{
         }else{
             columns=record
         }
+        console.log(columns)
         const code=Units.RndNum(9)
         columns.map((item)=>{
             if(item.type){
@@ -566,10 +596,12 @@ export default class Detail extends React.Component{
             }
             return false
         })
+        console.log(editFormList)
         this.setState({
             editFormList,
             isNew,
             title:isNew?"新增":"修改",
+            visibleForm:true,
         })
     }
     modelhandleOk=(fieldsValue)=>{
@@ -615,28 +647,17 @@ export default class Detail extends React.Component{
             visibleForm:false
         })
     }
-    getTemplate=(templateGroupId,oexcepts,fieldIds,searchParams)=>{
-        let {menuId,dfieldIds,excepts}=this.state;
-        if(!excepts){
-            excepts=oexcepts
-        }        
-        if(excepts && excepts!==oexcepts){
-            excepts=oexcepts
-        }
+    getTemplate=(templateGroupId,excepts,dfieldIds,searchParams)=>{
+        let {menuId}=this.state;
         Super.super({
-            url:`/api2/meta/tmpl/select_config/${menuId}/${templateGroupId}`,               
+            url:`api2/meta/tmpl/select_config/${menuId}/${templateGroupId}`,               
         }).then((res)=>{
-            if(!dfieldIds){
-                dfieldIds=fieldIds
-            }
-            if(dfieldIds && dfieldIds!==fieldIds){
-                dfieldIds=fieldIds
-            }
             this.setState({
                 templateDtmpl:res,
                 templateGroupId, //选择模板groupId
                 dfieldIds,
                 getFormTmpl:false,
+                excepts,
             })
         })
         Super.super({
@@ -648,15 +669,12 @@ export default class Detail extends React.Component{
         }).then((res)=>{
             if(res){
                 this.templatePageTo(res.queryKey)
-                this.setState({
-                    excepts
-                })
             }
         })
     }
     templatePageTo=(queryKey,data)=>{
         Super.super({
-            url:`/api2/entity/curd/ask_for/${queryKey}`, 
+            url:`api2/entity/curd/ask_for/${queryKey}`, 
             data,              
         }).then((res)=>{
             this.setState({
@@ -670,35 +688,60 @@ export default class Detail extends React.Component{
         let {templateGroupId,excepts,dfieldIds}=this.state;
         this.getTemplate(templateGroupId,excepts,dfieldIds,params)
     }
-    TemplatehandleOk=(codes,formTmplGroupId)=>{
-        let {menuId,dfieldIds,templateGroupId,dataSource}=this.state
+    TemplatehandleOk=(codes,formTmplGroupId,isPush)=>{
+        console.log(isPush)
+        let {menuId,dfieldIds,templateGroupId,dataSource,columns}=this.state
         if(formTmplGroupId){
             templateGroupId=formTmplGroupId
         }
         Super.super({
-            url:`/api2/entity/curd/load_entities/${menuId}/${templateGroupId}`,  
+            url:`api2/entity/curd/load_entities/${menuId}/${templateGroupId}`,  
             data:{
                 codes,
                 dfieldIds,
             }                
         }).then((res)=>{
-            // console.log(res)
-            // console.log(dataSource)
+            console.log(res)
+            console.log(columns)
+            let relationSubdomain=[]
+            let totalName
+            columns.map((item)=>{
+                if(item.id.toString()===templateGroupId.toString()){
+                    relationSubdomain=item.relationSubdomain
+                    totalName=item.composite.name
+                }
+                return false
+            })
             res.entities.map((item)=>{
-                item.byDfieldIds.key=item['唯一编码']
-                item.byDfieldIds.code=item['唯一编码']
-                item.byDfieldIds.groupId=templateGroupId.toString()
+                const byDfieldIds=item.byDfieldIds
+                byDfieldIds.key=item['唯一编码']
+                byDfieldIds.code=item['唯一编码']
+                byDfieldIds.groupId=templateGroupId.toString()
+                byDfieldIds.totalName=totalName
+                for(let k in byDfieldIds){
+                    if(byDfieldIds[k]&&byDfieldIds[k].includes("download-files")){
+                        const url=api+byDfieldIds[k]
+                        byDfieldIds[k]=<img 
+                                            style={{width:55}} 
+                                            src={url} 
+                                            alt="" />
+                    }
+                }
+                if(relationSubdomain.length===1){ //默认关系只有一个选项时，自动添加
+                    item.byDfieldIds['10000']=relationSubdomain[0]
+                }
                 let list={
                     code:item['唯一编码'],
                     fieldMap:item.byDfieldIds,                   
                 }               
                 for(let k in dataSource){
-                    if(k===templateGroupId){
-                        if(formTmplGroupId){
+                    if(k===templateGroupId.toString()){
+                        if(!isPush){
                             dataSource[k].map((it,index)=>{
                                 if(it.code===item['唯一编码']){
                                     dataSource[k].splice(index,1,list); 
                                 }
+                                return false
                             })
                         }else{
                             dataSource[k].push(list)
@@ -706,6 +749,7 @@ export default class Detail extends React.Component{
                         
                     }
                 }
+                return false
             })
             console.log(dataSource)
             this.setState({
@@ -738,7 +782,7 @@ export default class Detail extends React.Component{
                     {type==="detail"?
                         <div className="fr pad">
                             <Button className="hoverbig" title="导出" onClick={this.exportDetail}><Icon type="upload" /></Button>
-                            <Button className="hoverbig" title="查看历史" onClick={this.showHistory}><Icon type="schedule" /></Button>                                                      
+                            <Button className="hoverbig" title="查看历史" onClick={()=>this.renderHistoryList(null)}><Icon type="schedule" /></Button>                                                      
                             <Button className="hoverbig" title="刷新" onClick={()=>this.loadltmpl(menuId,code)}><Icon type="sync" /></Button>
                         </div>:
                         <div className="fr pad">
@@ -806,7 +850,8 @@ export default class Detail extends React.Component{
                     dataSource={dataSource}
                     handleAdd={this.getForm}
                     onRef3={this.onRef3}
-                    getTemplate={this.getTemplate}
+                    getTemplate={this.getTemplate} //新增选择实体模板
+                    getFormTmpl={this.getFormTmpl}//新增修改实体模板
                 />               
                 <ModelForm
                     handleCancel={this.handleCancel}
@@ -846,6 +891,8 @@ export default class Detail extends React.Component{
                     TemplatehandleOk={this.TemplatehandleOk}
                     templatePageTo={this.templatePageTo}
                     title={title}
+                    getOptions={this.getOptions}
+                    options={options}
                 />
                 {!rightNav||rightNav.length<=3?"":
                     <RightBar 

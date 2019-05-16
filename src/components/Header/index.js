@@ -17,7 +17,7 @@ class Header extends React.Component{
 	}
 	getUser=()=>{
 		Super.super({
-			url:'/api2/meta/user/current_user',                   
+			url:'api2/meta/user/current_user',                   
 		}).then((res)=>{
 			this.setState({
 				userName:res.user.username,

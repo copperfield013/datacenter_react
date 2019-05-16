@@ -14,7 +14,7 @@ export default class TemplateList extends React.Component{
     }
     handleOk=()=>{
         const {selectCodes}=this.state
-        this.props.TemplatehandleOk(selectCodes)
+        this.props.TemplatehandleOk(selectCodes,null)
         this.setState({selectedRowKeys:[]})     
     }
     seeTotal=()=>{
@@ -22,7 +22,7 @@ export default class TemplateList extends React.Component{
         const {queryKey}=this.props.templateData
         if(!isSeeTotal){
             Super.super({
-                url:`/api2/entity/curd/get_entities_count/${queryKey}`,                
+                url:`api2/entity/curd/get_entities_count/${queryKey}`,                
             }).then((res)=>{
                 this.setState({
                     isSeeTotal:res.count,
@@ -49,23 +49,25 @@ export default class TemplateList extends React.Component{
         const {menuId,templateDtmpl,formTmplGroupId}=this.props
         const code=templateDtmpl[0].code
         const formData = new FormData(); 
-        formData.append('唯一编码',code)
+        if(code){ //有code是修改，没有是新增实体模板
+            formData.append('唯一编码',code)
+        }
         for(let k in result){
             formData.append(k, result[k])
         }
         Super.super({
-            url:`/api2/entity/curd/save/rabc/${menuId}/${formTmplGroupId}`,    
+            url:`api2/entity/curd/save/rabc/${menuId}/${formTmplGroupId}`,    
             data:formData       
         },'formdata').then((res)=>{
             if(res.status==="suc"){
-                this.props.TemplatehandleOk(res.code,formTmplGroupId)
+                this.props.TemplatehandleOk(res.code,formTmplGroupId,code?false:true) //为了后面新增的push
             }else{
                 message.error("操作失败")
             }
         })
     }
     render(){
-        const {templateDtmpl,visibleTemplateList,handleCancel,width,templateData,menuId,getFormTmpl,type,title}=this.props
+        const {templateDtmpl,visibleTemplateList,handleCancel,width,templateData,menuId,getFormTmpl,type,title,options}=this.props
         let {selectedRowKeys,isSeeTotal,currentPage,pageCount,formList}=this.state
         const rowSelection = {
             selectedRowKeys,
@@ -83,9 +85,7 @@ export default class TemplateList extends React.Component{
           };
         let columns=[]
         let dataSource=[]
-        if(getFormTmpl){
-            console.log(templateDtmpl)
-        }else{            
+        if(!getFormTmpl){            
             columns=templateDtmpl?templateDtmpl.config.columns:[]          
             if(templateDtmpl && templateData){
                 formList=templateDtmpl.config.criterias
@@ -128,8 +128,8 @@ export default class TemplateList extends React.Component{
                         type={type}
                         baseInfo={this.baseInfo}
                         onRef={this.onRef}
-                        // getOptions={getOptions}
-                        // options={options}
+                        getOptions={this.props.getOptions}
+                        options={options}
                     />:
                     <div>
                         <BaseForm 

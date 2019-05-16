@@ -3,6 +3,7 @@ import {Table,Input,Button,Card,Icon} from 'antd';
 import Highlighter from 'react-highlight-words';
 import "./index.css"
 
+const api="http://47.100.187.235:7080/datacenter_api2/"
 export default class EditTableList extends React.Component {
   state={
     count:this.props.count,
@@ -67,7 +68,7 @@ export default class EditTableList extends React.Component {
     })
   }
   render() {
-    const { cardTitle,columns,type,dataSource,haveTemplate }=this.props
+    let { cardTitle,columns,type,dataSource,haveTemplate,rabcTemplatecreatable }=this.props
     const page={pageSize:5,hideOnSinglePage:true}
     let groupId
     const arr1=[]
@@ -77,6 +78,7 @@ export default class EditTableList extends React.Component {
         groupId=item.groupId
         arr2.push(item.id)
       }
+      return false
     })
     dataSource.map((item)=>{
       arr1.push(item.code)
@@ -84,13 +86,6 @@ export default class EditTableList extends React.Component {
     })
     let excepts=arr1.join(',')
     let dfieldIds=arr2.join(',')
-    let opti
-    // if(itemDescs.composite.relationSubdomain){
-    //   const opArr=itemDescs.composite.relationSubdomain
-    //   if(opArr.length===1){
-    //     opti=opArr[0]
-    //   }
-    // }
     return (
       <Card 
           title={cardTitle} 
@@ -117,6 +112,13 @@ export default class EditTableList extends React.Component {
                               onClick={()=>this.props.getTemplate(groupId,excepts,dfieldIds)}
                               style={{marginBottom:10,marginRight:10}}
                               >选择</Button>:""}
+              {rabcTemplatecreatable?<Button 
+                                        type='primary' 
+                                        icon="plus-square" 
+                                        size="small"
+                                        onClick={()=>this.props.getFormTmpl({groupId})} 
+                                        style={{marginBottom:10,marginRight:10}}
+                                        >新增</Button>:""}
               <Table
                 bordered
                 dataSource={type==="edit"?dataSource:this.state.dataSource}

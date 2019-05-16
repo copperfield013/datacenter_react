@@ -47,7 +47,7 @@ export default class actTable extends React.Component{
     requestLtmpl=(menuId,data)=>{ 
         const {optionsMap}=this.state
         Super.super({
-            url:`/api2/entity/curd/start_query/${menuId}`,     
+            url:`api2/entity/curd/start_query/${menuId}`,     
             data           
         }).then((res)=>{
             //console.log(res)
@@ -120,7 +120,7 @@ export default class actTable extends React.Component{
     }
     requestSelect=(fieldIds)=>{
         Super.super({
-            url:`/api2/meta/dict/field_options`,  
+            url:`api2/meta/dict/field_options`,  
             data:{fieldIds}        
 		}).then((res)=>{
             this.setState({
@@ -132,7 +132,7 @@ export default class actTable extends React.Component{
         const {isSeeTotal}=this.state
         const dataSource=[]
         Super.super({
-            url:`/api2/entity/curd/ask_for/${queryKey}`,     
+            url:`api2/entity/curd/ask_for/${queryKey}`,     
             data           
         }).then((res)=>{   
             sessionStorage.setItem(queryKey,JSON.stringify(res))
@@ -164,7 +164,7 @@ export default class actTable extends React.Component{
 				cancelText:"取消",
 				onOk:()=>{
 					Super.super({
-                        url:`/api2/entity/curd/remove/${menuId}`,
+                        url:`api2/entity/curd/remove/${menuId}`,
                         data:{
                             codes:selectCodes
                         }            
@@ -239,7 +239,7 @@ export default class actTable extends React.Component{
         const {menuId,selectCodes}=this.state;     
         this.setState({Loading:true})
         Super.super({
-            url:`/api2/entity/curd/do_action/${menuId}/${actionId}`, 
+            url:`api2/entity/curd/do_action/${menuId}/${actionId}`, 
             data:{
                 codes:selectCodes
             }                 
@@ -263,7 +263,7 @@ export default class actTable extends React.Component{
         const {queryKey,isSeeTotal}=this.state
         if(!isSeeTotal){
             Super.super({
-                url:`/api2/entity/curd/get_entities_count/${queryKey}`,                
+                url:`api2/entity/curd/get_entities_count/${queryKey}`,                
             }).then((res)=>{
                 this.setState({
                     isSeeTotal:res.count

@@ -37,7 +37,7 @@ export default class Import extends React.Component{
             uploading: true,
         });
         superagent
-            .post(`/api/entity/import/start/${menuId}`)
+            .post(`api/entity/import/start/${menuId}`)
             .set("datamobile-token",tokenName)
             .send(formData)
             .end((req,res)=>{
@@ -56,7 +56,7 @@ export default class Import extends React.Component{
         }
         handleStatus=(uuid)=>{
             Super.super({
-                url:`/api/entity/import/status/${uuid}`,  
+                url:`api/entity/import/status/${uuid}`,  
                 data:{
                     msgIndex:0
                 }          

@@ -2,7 +2,7 @@ import superagent from 'superagent'
 import { message } from 'antd';
 import Units from './../units'
 
-const api="http://47.100.187.235:7080/datacenter_api2"
+const api="http://47.100.187.235:7080/datacenter_api2/"
 export default class Superagent{
     static super(options,type){
         const tokenName=Units.getLocalStorge("tokenName")
