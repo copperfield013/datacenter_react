@@ -53,7 +53,7 @@ export default class Detail extends React.Component{
                 }
                 return false
             })
-            //console.log(res)
+            console.log(res)
             //console.log(rightNav)
             this.requestSelect(formltmpl,editformltmpl)
             if(code && code!=='new'){

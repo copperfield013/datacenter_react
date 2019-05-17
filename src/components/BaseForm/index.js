@@ -70,7 +70,7 @@ class BaseForm extends React.Component{
                         )}
                     </FormItem>   
                     formItemList.push(TIMEPICKER)                
-                }else if(item.inputType==="decimal"){
+                }else if(item.inputType==="decimal" || item.inputType==="int"){
                     const TIMEPICKER= <FormItem label={label} key={field}>
                         {getFieldDecorator(field,{initialValue:value?value:""})(
                             <InputNumber placeholder={`请输入${label}`} style={{width:160}} min={0}/>

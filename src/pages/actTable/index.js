@@ -1,9 +1,9 @@
 import React from 'react'
 import { Pagination ,Card,Table,Button,Icon,Popover,Modal,message} from 'antd';
-import BaseForm from "./../../components/BaseForm"
-import ExportFrame from './../../components/exportFrame/exportFrame'
-import Units from './../../units'
-import Super from "./../../super"
+import BaseForm from "../../components/BaseForm"
+import ExportFrame from '../../components/exportFrame/exportFrame'
+import Units from '../../units'
+import Super from "../../super"
 import './index.css'
 import moment from 'moment';
 import {HelloWorld} from 'datacenter_api2_resolver';
@@ -50,7 +50,6 @@ export default class actTable extends React.Component{
             url:`api2/entity/curd/start_query/${menuId}`,     
             data           
         }).then((res)=>{
-            //console.log(res)
             this.queryList(res.queryKey)
             const fieldIds=[]
             if(!optionsMap){
@@ -235,6 +234,9 @@ export default class actTable extends React.Component{
     handleImport=(menuId)=>{
         this.props.history.push(`/${menuId}/import`)
     }
+    handleTree=(menuId)=>{
+        this.props.history.push(`/${menuId}/ActTree`)
+    }
     handleActions=(actionId)=>{
         const {menuId,selectCodes}=this.state;     
         this.setState({Loading:true})
@@ -300,26 +302,12 @@ export default class actTable extends React.Component{
                 this.setState({selectCodes,selectedRowKeys})
             },
           };
-        let hideCreate=false
-        let hideDelete=false
-        let hideExport=false
-        let hideImport=false
-        let hideQuery=false
-        if(tmplGroup){
-            for(let k in tmplGroup){
-                if(k==="hideCreateButton" && tmplGroup[k]===1){
-                    hideCreate=true
-                }else if(k==="hideDeleteButton" && tmplGroup[k]===1){
-                    hideDelete=true
-                }else if(k==="hideExportButton" && tmplGroup[k]===1){
-                    hideExport=true
-                }else if(k==="hideImportButton" && tmplGroup[k]===1){
-                    hideImport=true
-                }else if(k==="hideQueryButton" && tmplGroup[k]===1){
-                    hideQuery=true
-                }
-            }
-        }
+        let hideCreate=tmplGroup&&tmplGroup.hideCreateButton===1?true:false
+        let hideDelete=tmplGroup&&tmplGroup.hideDeleteButton===1?true:false
+        let hideExport=tmplGroup&&tmplGroup.hideExportButton===1?true:false
+        let hideImport=tmplGroup&&tmplGroup.hideImportButton===1?true:false
+        let hideQuery=tmplGroup&&tmplGroup.hideQueryButton===1?true:false
+        let hideTreeToggle=tmplGroup&&tmplGroup.treeTemplateId&&!tmplGroup.hideTreeToggleButton?false:true
         return(
             <div className="actTable">
                 <h3>
@@ -339,7 +327,13 @@ export default class actTable extends React.Component{
                         </Button>}
                         {hideExport?"":<Popover content={content} title="导出" placement="bottomRight" trigger="click">
                             <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
-                        </Popover> }                      
+                        </Popover> }  
+                        {hideTreeToggle?"":<Button 
+                            className="hoverbig" 
+                            title="导入" 
+                            onClick={()=>this.handleTree(menuId)}>
+                            <Icon type="cluster" />
+                        </Button>}                    
                         <Button 
                             className="hoverbig" 
                             title="刷新" 

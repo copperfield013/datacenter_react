@@ -4,9 +4,10 @@ import App from './App'
 import Admin from './pages/admin'
 import Loginit from './pages/login'
 import Home from './pages/home'
-import ActTable from "./pages/actTable/actTable"
+import ActTable from "./pages/actTable"
 import Detail from "./pages/detail"
 import Import from "./pages/importData/importData"
+import ActTree from "./pages/actTree"
 
 export default class iRouter extends React.Component{
    
@@ -23,6 +24,7 @@ export default class iRouter extends React.Component{
                                     <Route path="/:menuId" component={ActTable} exact />
                                     <Route path="/:menuId/search" component={ActTable} exact />
                                     <Route path="/:menuId/import" component={Import} exact />
+                                    <Route path="/:menuId/ActTree" component={ActTree} exact />
                                     <Route path="/:menuId/:type" component={Detail} exact />
                                     <Route path="/:menuId/:type/:code" component={Detail}/>
                                     <Route path="/user/:type/:code" component={Detail}/>
