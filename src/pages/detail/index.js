@@ -134,6 +134,7 @@ export default class Detail extends React.Component{
                     if(item.relationLabel){
                         fieldMap["10000"]=item.relationLabel
                     }
+                    return false
                 })
             }
             //console.log(editformltmpl)
