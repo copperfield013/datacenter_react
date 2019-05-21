@@ -47,7 +47,7 @@ export default {
         return options
     },
     downloadFile(url) {
-        const api="http://47.100.187.235:7080/datacenter_api2/" 
+        const api="http://47.100.187.235:7080/hydrocarbon-api/" 
         try{ 
             let elemIF = document.createElement("iframe");   
             elemIF.src = api+url;   

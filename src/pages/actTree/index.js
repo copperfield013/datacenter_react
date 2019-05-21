@@ -1,8 +1,10 @@
 import React from 'react'
 import Super from './../../super'
-import {Tree,Card,Icon, } from 'antd'
+import {Tree,Card,Icon,Button,message } from 'antd'
 import BaseForm from './../../components/BaseForm'
+import moment from 'moment';
 import './index.css'
+import Units from './../../units'
 const { TreeNode } = Tree;
 
 export default class ActTree extends React.Component{
@@ -12,12 +14,13 @@ export default class ActTree extends React.Component{
         treeData:[]
     }
     componentDidMount(){
-        this.loadTree()
-    }
-    loadTree=()=>{
         const menuId=this.props.match.params.menuId;
+        this.loadTree(menuId)
+    }
+    loadTree=(menuId,data)=>{
         Super.super({
             url:`/api2/entity/curd/tree/${menuId}`, 
+            data,
         }).then((res)=>{
             console.log(res)
             const fieldIds=[]
@@ -53,6 +56,7 @@ export default class ActTree extends React.Component{
                 pageNo
             }       
 		}).then((res)=>{
+            console.log(res)
             if(code){ //最里面列表的加载更多
                 res.entities.map((item)=>{
                     item.title=item.text
@@ -81,6 +85,7 @@ export default class ActTree extends React.Component{
                 res.entities.map((item,index)=>{
                     item.title=item.text
                     item.key=(pageNo-1)*10+index
+                    item.nodeId=nodeTmpl.id
                     item.children=[];
                     nodeTmpl.relations.map((it,i)=>{
                         const copyRel = Object.assign({}, it);
@@ -149,6 +154,7 @@ export default class ActTree extends React.Component{
                         resq.entities.map((item,index)=>{
                             item.title=item.text
                             item.key=treeNode.props.dataRef.key+"-"+index
+                            item.nodeId=treeNode.props.id
                             item.isLeaf=true
                             return false
                         })
@@ -178,12 +184,29 @@ export default class ActTree extends React.Component{
             })
             
         })
-    renderTreeNodes = data =>
-        data.map(item => {
+    toDetail=(type,code,nodeId)=>{
+        const {menuId}=this.state
+        this.props.history.push(`/${menuId}/${type}/${code}/${nodeId}`)
+    }
+    renderTreeNodes = (data) =>{
+        const {nodeTmpl}=this.state
+        const hideDetail=nodeTmpl?nodeTmpl.hideDetailButton:""
+        const hideUpdate=nodeTmpl?nodeTmpl.hideUpdateButton:""
+        const templateGroupId=nodeTmpl?nodeTmpl.templateGroupId:""
+        return data.map(item => {
           if (item.children) {
             return (
                     <TreeNode 
-                        title={<span onMouseEnter={()=>alert(item.title)}>{item.title}</span>} 
+                        title={<div class="hoverBtn">
+                                {item.title}
+                                {item.title!="加载更多"&&item.nodeColor?<span>
+                                    {hideDetail===null&&templateGroupId?
+                                    <Icon type="read" onClick={()=>this.toDetail('detail',item.code,item.nodeId)} title="打开详情页"/>:""
+                                    }&nbsp;
+                                    {hideUpdate===null&&templateGroupId?
+                                    <Icon type="edit" onClick={()=>this.toDetail('edit',item.code,item.nodeId)} title="打开修改页"/>:""}
+                                </span>:""}
+                                </div>} 
                         key={item.key} 
                         dataRef={item} 
                         selectable={item.selectable?true:false} 
@@ -195,11 +218,60 @@ export default class ActTree extends React.Component{
           }
           return <TreeNode 
                     {...item}
+                    title={<div class="hoverBtn">
+                            {item.title}
+                            {item.title!="加载更多"&&item.nodeColor?<span>
+                                {hideDetail===null&&templateGroupId?
+                                <Icon type="read" onClick={()=>this.toDetail('detail',item.code,item.nodeId)} title="打开详情页"/>:""
+                                }&nbsp;
+                                {hideUpdate===null&&templateGroupId?
+                                <Icon type="edit" onClick={()=>this.toDetail('edit',item.code,item.nodeId)} title="打开修改页"/>:""}
+                            </span>:""}
+                            </div>}  
                     dataRef={item} 
                     selectable={item.selectable?true:false} 
                     icon={item.nodeColor?<Icon type="paper-clip" style={{color:item.nodeColor}}/>:""} 
                     />
-    });
+    });}
+    searchList=(params,menuId)=>{
+        for(let k in params){
+            if(typeof params[k] ==="object"){ //日期格式转换
+                if(params[k] instanceof Array){
+                    const arr=[]
+                    params[k].map(item=>{
+                        arr.push(moment(item).format("YYYY-MM-DD"))
+                        return false
+                    }) 
+                    params[k]=arr.join("~")
+                }else{
+                    params[k]=moment(params[k]).format("YYYY-MM-DD")
+                }
+            }
+        }
+        this.setState({filterOptions:params,treeData:[]})
+        const oldfliter=this.props.history.location.search.slice(1)
+        const newfliter=Units.queryParams(params)
+        const url=decodeURI(this.props.history.location.search)
+        let flag=false
+        if(oldfliter!==newfliter){ //查询条件更新时
+            flag=true
+        }
+        if(!url){ //没有查询条件时
+            flag=true
+        }
+        if(flag){
+            const str=Units.queryParams(params)
+            this.props.history.push(`/${menuId}/ActTree?${str}`)
+        }
+        this.loadTree(menuId,{...params})			
+    }
+    fresh=(msg)=>{
+        const {menuId}=this.state
+        this.setState({treeData:[]})
+        this.child.reset()
+        this.loadTree(menuId)
+        message.success(msg)
+    }
     render(){
         const {treeTitle,formList,menuId,optionsMap,treeData}=this.state
         console.log(treeData)
@@ -207,11 +279,25 @@ export default class ActTree extends React.Component{
             <div className="detailPage tree">
                  <h3>
                     {treeTitle}
+                    <p className="fr pad">
+                        <Button 
+                            className="hoverbig" 
+                            title="创建" 
+                            onClick={()=>this.props.history.goBack()}>
+                            <Icon type="rollback"/>
+                        </Button>
+                        <Button 
+                            className="hoverbig" 
+                            title="刷新" 
+                            onClick={()=>this.fresh("刷新成功!")}>
+                            <Icon type="sync" />
+                        </Button>
+                    </p>
                 </h3>
                 <Card className="hoverable" style={{display:formList?"block":"none"}} headStyle={{background:"#f2f4f5"}}>
                     <BaseForm 
                         formList={formList} 
-                        // filterSubmit={this.searchList} 
+                        filterSubmit={this.searchList} 
                         // handleOperate={this.handleOperate}
                         // actions={tmplGroup?tmplGroup.actions:""}
                         // handleActions={this.handleActions}
@@ -224,13 +310,14 @@ export default class ActTree extends React.Component{
                         // //reset={this.reset}
                         />
                     </Card>
-                <Tree 
+                {treeData&&treeData.length!==0?<Tree 
                     showLine
                     showIcon={true}
                     loadData={this.onLoadData} 
                     onSelect={this.onSelect}
-                    >{this.renderTreeNodes(treeData)}
-                    </Tree>
+                    >
+                    {this.renderTreeNodes(treeData)}
+                </Tree>:<p>暂无实体</p>}
             </div>
         );
     }

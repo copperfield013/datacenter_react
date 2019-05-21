@@ -26,7 +26,8 @@ export default class iRouter extends React.Component{
                                     <Route path="/:menuId/import" component={Import} exact />
                                     <Route path="/:menuId/ActTree" component={ActTree} exact />
                                     <Route path="/:menuId/:type" component={Detail} exact />
-                                    <Route path="/:menuId/:type/:code" component={Detail}/>
+                                    <Route path="/:menuId/:type/:code" component={Detail} exact/>
+                                    <Route path="/:menuId/:type/:code/:nodeId" component={Detail} exact/>
                                     <Route path="/user/:type/:code" component={Detail}/>
                                     <Redirect to="/login" />
                                 </Switch>

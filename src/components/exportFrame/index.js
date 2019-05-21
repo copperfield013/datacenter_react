@@ -1,8 +1,8 @@
 import React from 'react'
 import {Button,Radio,Divider,InputNumber,Checkbox,Progress} from 'antd';
 import './index.css'
-import Super from "./../../super"
-import Units from "./../../units"
+import Super from "../../super"
+import Units from "../../units"
 const RadioGroup = Radio.Group;
 
 export default class ExportFrame extends React.Component{

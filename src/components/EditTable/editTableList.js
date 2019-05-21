@@ -3,7 +3,6 @@ import {Table,Input,Button,Card,Icon} from 'antd';
 import Highlighter from 'react-highlight-words';
 import "./index.css"
 
-const api="http://47.100.187.235:7080/datacenter_api2/"
 export default class EditTableList extends React.Component {
   state={
     count:this.props.count,

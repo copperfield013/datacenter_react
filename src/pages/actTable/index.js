@@ -1,12 +1,14 @@
 import React from 'react'
 import { Pagination ,Card,Table,Button,Icon,Popover,Modal,message} from 'antd';
 import BaseForm from "../../components/BaseForm"
-import ExportFrame from '../../components/exportFrame/exportFrame'
+import ExportFrame from '../../components/exportFrame'
 import Units from '../../units'
 import Super from "../../super"
 import './index.css'
 import moment from 'moment';
 import {HelloWorld} from 'datacenter_api2_resolver';
+import DisableCols from './../../components/DisableCols'
+const confirm = Modal.confirm;
 
 const sessionStorage=window.sessionStorage
 export default class actTable extends React.Component{
@@ -75,12 +77,25 @@ export default class actTable extends React.Component{
             }else{
                 this.child.reset()
             }
+            const plainOptions=[]
+            res.ltmpl.columns.map((item)=>{
+                if(item.title!=="序号"){
+                    const list={
+                        value:item.id,
+                        label:item.title,
+                    }
+                    plainOptions.push(list)
+                }
+            })
             this.setState({
                 moduleTitle:res.ltmpl.title,
                 columns:this.renderColumns(res.ltmpl.columns),
                 queryKey:res.queryKey,
                 formList:res.ltmpl.criterias,
                 tmplGroup:res.tmplGroup,
+                statView:res.statView, //用作统计页面
+                disabledColIds:res.disabledColIds,
+                plainOptions
             })
         })
     }
@@ -133,7 +148,7 @@ export default class actTable extends React.Component{
         Super.super({
             url:`api2/entity/curd/ask_for/${queryKey}`,     
             data           
-        }).then((res)=>{   
+        }).then((res)=>{
             sessionStorage.setItem(queryKey,JSON.stringify(res))
             res.entities.map((item,index)=>{
                 item.cellMap.key=index
@@ -276,20 +291,59 @@ export default class actTable extends React.Component{
     onRef=(ref)=>{
 		this.child=ref
     }
-    // reset=()=>{
-    //     const {menuId}=this.state
-    //     this.child.reset()//搜索栏重置
-    //     this.props.history.push(`/${menuId}`)
-    // }
+    reset=()=>{
+        const {menuId}=this.state
+        this.child.reset()//搜索栏重置
+        this.props.history.push(`/${menuId}`)
+    }
+    recalc=(menuId)=>{
+        const _this=this
+        confirm({
+            title: '确认重新统计？',            
+            okText: "确认",
+            cancelText: "取消",
+            onOk() {
+                Super.super({
+                    url:`api2/entity/curd/recalc/${menuId}`,                 
+                }).then((res)=>{
+                   if(res.status==="suc"){
+                        _this.reset()
+                   }
+                })
+            },
+        });    
+    }
+    handelDisableCols=(disabledColIds)=>{
+        const {menuId}=this.state
+        this.requestLtmpl(menuId,{disabledColIds})
+    }
     render(){
-        const {selectedRowKeys,filterOptions,moduleTitle,list,loading,pageInfo,
+        let {selectedRowKeys,filterOptions,moduleTitle,list,loading,pageInfo,statView,disabledColIds,plainOptions,
             formList,tmplGroup,columns,Loading,currentPage,menuId,pageCount,isSeeTotal,optionsMap,queryKey } = this.state;
+        if(statView!==null&&columns){
+            columns.map((item,index)=>{             
+                if(disabledColIds){
+                    disabledColIds.map((it)=>{
+                        if(item.id===it){
+                            columns.splice(index,1)
+                        }
+                    })
+                }
+            })
+        }
+        const disableCols=<DisableCols
+                            menuId={menuId}
+                            plainOptions={plainOptions}
+                            handelDisableCols={this.handelDisableCols}
+                            /> 
+        
         const content = <ExportFrame //导出组件
                             menuId={menuId}
                             pageInfo={pageInfo}
                             filterOptions={filterOptions}
                             queryKey={queryKey}
                             /> 
+        
         const rowSelection = {
             selectedRowKeys,
             onChange: (selectedRowKeys, selectedRows) => {
@@ -302,11 +356,11 @@ export default class actTable extends React.Component{
                 this.setState({selectCodes,selectedRowKeys})
             },
           };
-        let hideCreate=tmplGroup&&tmplGroup.hideCreateButton===1?true:false
-        let hideDelete=tmplGroup&&tmplGroup.hideDeleteButton===1?true:false
-        let hideExport=tmplGroup&&tmplGroup.hideExportButton===1?true:false
-        let hideImport=tmplGroup&&tmplGroup.hideImportButton===1?true:false
-        let hideQuery=tmplGroup&&tmplGroup.hideQueryButton===1?true:false
+        let hideCreate=tmplGroup&&tmplGroup.hideCreateButton!==1?false:true
+        let hideDelete=tmplGroup&&tmplGroup.hideDeleteButton!==1?false:true
+        let hideExport=tmplGroup&&tmplGroup.hideExportButton!==1?false:statView===null?true:false
+        let hideImport=tmplGroup&&tmplGroup.hideImportButton!==1?false:true
+        let hideQuery=tmplGroup&&tmplGroup.hideQueryButton!==1?false:statView===null?true:false
         let hideTreeToggle=tmplGroup&&tmplGroup.treeTemplateId&&!tmplGroup.hideTreeToggleButton?false:true
         return(
             <div className="actTable">
@@ -325,12 +379,21 @@ export default class actTable extends React.Component{
                             onClick={()=>this.handleImport(menuId)}>
                             <Icon type="download" />
                         </Button>}
+                        {statView===null?"":<Popover content={disableCols} title="显示列" placement="bottomRight" trigger="hover">
+                                <Button className="hoverbig" title="显示列" ><Icon type="table" /></Button>
+                            </Popover>}
+                        {statView===null?"":<Button 
+                            className="hoverbig" 
+                            title="重新统计" 
+                            onClick={()=>this.recalc(menuId)}>
+                            <Icon type="calculator" />
+                        </Button>}
                         {hideExport?"":<Popover content={content} title="导出" placement="bottomRight" trigger="click">
                             <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
                         </Popover> }  
                         {hideTreeToggle?"":<Button 
                             className="hoverbig" 
-                            title="导入" 
+                            title="树形视图" 
                             onClick={()=>this.handleTree(menuId)}>
                             <Icon type="cluster" />
                         </Button>}                    

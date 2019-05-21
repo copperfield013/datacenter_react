@@ -45,7 +45,7 @@ export default class NewUpload extends React.Component{
     }
     render(){
         const {fieldValue,width}=this.props
-        const url="http://47.100.187.235:7080/datacenter_api2/"+fieldValue
+        const url="http://47.100.187.235:7080/hydrocarbon-api/"+fieldValue
         return (
             <div>                                           
                 <Upload

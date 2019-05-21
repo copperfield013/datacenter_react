@@ -26,18 +26,19 @@ export default class Detail extends React.Component{
         isNew:false,
     }
     componentDidMount(){
-        const {menuId,code,type}=this.props.match.params
+        const {menuId,code,type,nodeId}=this.props.match.params
         this.setState({
             menuId,
             type,
             code,
+            nodeId
         })
-        this.loadltmpl(menuId,code)
+        console.log(nodeId)
+        this.loadltmpl(menuId,code,"",nodeId)
     }
-    loadltmpl=(menuId,code,versionCode)=>{
-        Super.super({
-            url:`api2/meta/tmpl/dtmpl_config/normal/${menuId}/`, 
-        }).then((res)=>{     
+    loadltmpl=(menuId,code,versionCode,nodeId)=>{
+        const url=nodeId?`api2/meta/tmpl/dtmpl_config/node/${menuId}/${nodeId}`:`api2/meta/tmpl/dtmpl_config/normal/${menuId}/`
+        Super.super({url}).then((res)=>{     
             const formltmpl=[]
             const editformltmpl=[]
             const rightNav=[]
@@ -94,11 +95,12 @@ export default class Detail extends React.Component{
         })  
     }
     loadRequest=(formltmpl,editformltmpl,versionCode)=>{
-        const {menuId,type,code}=this.props.match.params
+        const {menuId,type,code,nodeId}=this.props.match.params
         Super.super({
             url:`api2/entity/curd/detail/${menuId}/${code}`, 
             data:{
                 versionCode,
+                nodeId
             }          
         }).then((res)=>{  
             const arrayMap=res.entity.arrayMap
@@ -161,11 +163,12 @@ export default class Detail extends React.Component{
         return fieldMap
     }
     renderHistoryList=(versionCode)=>{
-        const {menuId,code,}=this.state
+        const {menuId,code,nodeId}=this.state
         Super.super({
             url:`api2/entity/curd/history/${menuId}/${code}/1`,     
             data:{
                 versionCode,
+                nodeId
             }           
         }).then((res)=>{
             let detailHistory
