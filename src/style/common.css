@@ -49,9 +49,6 @@ body {
     background: #fff;
     padding:15px 10px 10px;
 }
-table{
-    margin-bottom: 15px
-}
 .hoverbig:hover{
     -ms-transform:scale(1.2,1.2); /* IE 9 */
     -webkit-transform: scale(1.2,1.2); /* Safari */

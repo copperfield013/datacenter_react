@@ -1,5 +1,5 @@
 import React from 'react'
-import {Input,Form,Select,DatePicker,Avatar,Icon,InputNumber,Button} from 'antd'
+import {Input,Form,Select,DatePicker,Icon,InputNumber,Button} from 'antd'
 import Units from "../../units";
 import 'moment/locale/zh-cn';
 import locale from 'antd/lib/date-picker/locale/zh_CN';

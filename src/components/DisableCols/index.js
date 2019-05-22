@@ -13,6 +13,7 @@ export default class DisableCols extends React.Component{
         if(plainOptions){
             plainOptions.map((item)=>{
                 checkedValues.push(item.value)
+                return false
             })
         }
         this.setState({
@@ -34,12 +35,15 @@ export default class DisableCols extends React.Component{
                 if(item.value===it){
                     item.selecttd=true
                 }
+                return false
             })
+            return false
         })
         plainOptions.map((item)=>{
             if(!item.selecttd){
                 ids.push(item.value)
             }
+            return false
         })
         this.props.handelDisableCols(ids.join(","))
     }

@@ -1,15 +1,13 @@
 import React from 'react'
-import superagent from 'superagent'
-import {Card,Button,Upload,message,Icon,Progress,List,Checkbox,Row,Col,Modal} from 'antd'
+import {Card,Button,Upload,message,Icon,Progress,List,Checkbox,Row,Col,Modal,Popover,InputNumber } from 'antd'
 import Super from "./../../super"
 import Units from "./../../units"
 import ModelImport from "./../../components/ModelImport"
-import {CopyToClipboard} from 'react-copy-to-clipboard';
 import './index.css'
 
 const CheckboxGroup = Checkbox.Group;
-let MSG=[];
 const checkedList = ['INFO', 'SUC', 'ERROR', 'WARN'];
+let totalMSG=[]
 export default class Import extends React.Component{
     state = {
         fileList:[],
@@ -19,10 +17,9 @@ export default class Import extends React.Component{
         importAgain:"none",
         importbtn:"block",
         checkedList,
-        visible:false,
-    }
-    componentWillUnmount(){
-        MSG=[];
+        selectModulVisible:false,
+        maxMsgCount:100,
+        newsChangeVisible:false,
     }
     componentDidMount(){
         const menuId=this.props.match.params.menuId;
@@ -31,76 +28,80 @@ export default class Import extends React.Component{
     handleUpload = () => {
         const { fileList,menuId } = this.state;
         const formData = new FormData();
-        const tokenName=Units.getLocalStorge("tokenName")
         formData.append('file', ...fileList);
         this.setState({
             uploading: true,
         });
-        superagent
-            .post(`api/entity/import/start/${menuId}`)
-            .set("datamobile-token",tokenName)
-            .send(formData)
-            .end((req,res)=>{
-                if(res.body.status==="suc"){
-                    this.timerID=setInterval(
-                        () =>this.handleStatus(res.body.uuid),
-                        500
-                      );
-                }else{
-                    message.error('导入失败！'); 
-                    this.setState({
-                        uploading: false,
-                    });                          
-                }
+        Super.super({
+            url:`api2/entity/import/start/${menuId}`,
+            query:{
+                fake: 1,
+                exportFaildFile: 1
+            },
+            data:formData,   
+		},"formdata").then((res)=>{
+            console.log(res)
+            if(res.status==="suc"){
+                this.timerID=setInterval(() =>this.handleStatus(res.uuid),500);
+            }else{
+                message.error('导入失败！'); 
+                this.setState({
+                    uploading: false,
+                });                          
+            }
             })
         }
-        handleStatus=(uuid)=>{
-            Super.super({
-                url:`api/entity/import/status/${uuid}`,  
-                data:{
-                    msgIndex:0
-                }          
-            }).then((res)=>{
-                let copyText=""
-                if(res.completed===true){
-                    clearInterval(this.timerID);
-                    res.messageSequeue.messages.map((item)=>{
-                        const time=Units.formateDate(item.createTime)
-                        let color="";
-                        if(item.type==="SUC"){
-                            color="green"
-                        }else if(item.type==="INFO"){
-                            color="black"
-                        }else if(item.type==="ERROR"){
-                            color="red"
-                        }else if(item.type==="WARN"){
-                            color="rgb(250, 225, 4)"
-                        }
-                        const msg=<div type={item.type}><p>{time}</p><p style={{color:color}}>{item.text}</p></div>
-                        copyText+=time+item.text+"\n"
-                        MSG.push(msg)
-                        return false
-                    })                  
-                    message.success('导入完成！');
-                    
-                    this.setState({
-                        statusMsg:res.message,
-                        percent:(res.current/res.totalCount)*100,
-                        uploading:false,
-                        isDisabled:false,
-                        uuid,
-                        messages:MSG,
-                        importAgain:"block",
-                        importbtn:"none",
-                        copyText,
-                    });
+    handleStatus=(uuid)=>{
+        const {maxMsgCount}=this.state
+        Super.super({
+            url:`api2/entity/import/status`,  
+            data:{
+                uuid,
+                msgIndex:0,
+                maxMsgCount,
+                interrupted: false,
+            }          
+        },"","none").then((res)=>{
+            const MSG=[]
+            res.messageSequence.messages.map((item)=>{
+                const time=Units.formateDate(item.createTime)
+                let color="";
+                if(item.type==="SUC"){
+                    color="green"
+                }else if(item.type==="INFO"){
+                    color="black"
+                }else if(item.type==="ERROR"){
+                    color="red"
+                }else if(item.type==="WARN"){
+                    color="rgb(250, 225, 4)"
                 }
+                const msg=<div type={item.type}><p>{time}</p><p style={{color:color}}>{item.text}</p></div>
+                MSG.push(msg)
+                return false
+            })  
+            totalMSG=MSG
+            this.setState({
+                statusMsg:res.message,
+                percent:(res.current/res.totalCount)*100,
+                messages:MSG,
             })
-        } 
+            if(res.completed===true){
+                clearInterval(this.timerID);                            
+                message.success('导入完成！');
+                this.setState({
+                    uploading:false,
+                    isDisabled:false,
+                    uuid,
+                    importAgain:"block",
+                    importbtn:"none",
+                    failedRowsFileUUID:res.failedRowsFileUUID
+                });
+            }
+        })
+    } 
     onChange = (checkedList) => { //日志checkbox选择
-        const messages=MSG
+        const messages=totalMSG
         let newmesg=[]
-        let newCopyText=""
         if(messages.length>0){
             messages.map((it)=>{              
                 checkedList.map((item)=>{                 
@@ -112,33 +113,14 @@ export default class Import extends React.Component{
                 return false
             })
         }
-        newmesg.map((item)=>{
-            if(item.props){
-                item.props.children.map((it)=>{
-                    if(it.props){
-                        newCopyText+=it.props.children+"\n"
-                    }else{
-                        newCopyText+=it
-                    }
-                    return false
-                })
-            }
-            return false
-        })
         this.setState({
             checkedList,
             messages:newmesg,
-            copyText:newCopyText,
         });
-    }
-    handleModal=()=>{
-        this.setState({
-            visible:true,
-        })
     }
     handleCancel=()=>{
         this.setState({
-            visible:false,
+            selectModulVisible:false,
         })
     }
     fresh=()=>{
@@ -153,9 +135,24 @@ export default class Import extends React.Component{
             messages:[]
         })
     }
+    downloadFile=(failedRowsFileUUID)=>{
+        const tokenName=Units.getLocalStorge("tokenName")
+        Units.downloadFile(`api2/entity/export/download/${failedRowsFileUUID}?@token=${tokenName}`)      
+    }
+    onChangeNews=()=>{
+        const {inputValue}=this.state
+        this.setState({
+            maxMsgCount:inputValue,
+            newsChangeVisible:false,
+        })
+        message.success("设置成功！")
+    }
+    handleVisibleChange = visible => {
+        this.setState({ newsChangeVisible:visible });
+      };
     render(){
-        const { uploading, fileList,begin,importbtn,percent,importAgain,checkedList,
-            copyText,statusMsg,messages,visible,menuId } = this.state;
+        const { uploading, fileList,begin,importbtn,percent,importAgain,checkedList,failedRowsFileUUID,maxMsgCount,
+            newsChangeVisible,statusMsg,messages,selectModulVisible,menuId } = this.state;
         const props = {
             accept:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.ms-excel",
             onChange : () => {
@@ -181,19 +178,38 @@ export default class Import extends React.Component{
                   return false;
             },
             fileList,
-        };
+        }
+        const content=(
+            <div>
+                <label>日志消息数上限：</label>
+                <InputNumber 
+                    defaultValue={maxMsgCount} 
+                    onChange={(value)=>this.setState({inputValue:value})}
+                    />
+                <Button 
+                    type="primary" 
+                    style={{marginLeft:'10px'}} 
+                    onClick={this.onChangeNews}
+                    >确定</Button>
+            </div>
+        )
         return(
             <div className="importData">
                 <h3>
                     导入
                     <p className="fr">                      
-                        <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
+                        <Button 
+                            className="hoverbig"
+                            title="刷新"
+                            onClick={this.fresh}>
+                            <Icon type="sync" />
+                        </Button>
                     </p>
                 </h3>              
                 <Row>
                     <Col span={14} offset={5}>
                         <Card style={{minWidth:600}}>
-                            <Button style={{float:"right"}} onClick={this.handleModal}>
+                            <Button style={{float:"right"}} onClick={()=>this.setState({selectModulVisible:true,})}>
                                 <Icon type="snippets"/>选择导入模板
                             </Button>
                             <Upload {...props}>
@@ -224,26 +240,41 @@ export default class Import extends React.Component{
                             </div>               
                             <List
                                 header={
-                                        <div className="listHeader">
-                                            <h4>导入日志</h4>
-                                            <div className="checks">              
-                                                <CheckboxGroup value={checkedList} onChange={this.onChange}>
-                                                    <Checkbox value="INFO" className="infoColor">常规</Checkbox>
-                                                    <Checkbox value="SUC" className="sucColor">成功</Checkbox>
-                                                    <Checkbox value="ERROR"  className="errorColor">错误</Checkbox>
-                                                    <Checkbox value="WARN"  className="warnColor">警告</Checkbox>
-                                                </CheckboxGroup>                             
-                                                <CopyToClipboard 
-                                                    text={copyText}
-                                                    onCopy={() => {
-                                                        this.setState({copied: true})
-                                                        message.success("复制成功！")
-                                                    }}>
-                                                    <Button title="复制" type="primary" size="small"><Icon type="copy" style={{cursor:"pointer"}}/></Button>
-                                                </CopyToClipboard>
+                                    <div className="listHeader">
+                                        <h4>导入日志</h4>
+                                        <div className="checks">              
+                                            <CheckboxGroup value={checkedList} onChange={this.onChange}>
+                                                <Checkbox value="INFO" className="infoColor">常规</Checkbox>
+                                                <Checkbox value="SUC" className="sucColor">成功</Checkbox>
+                                                <Checkbox value="ERROR"  className="errorColor">错误</Checkbox>
+                                                <Checkbox value="WARN"  className="warnColor">警告</Checkbox>
+                                            </CheckboxGroup>
+                                            <div className="btns">
+                                                {failedRowsFileUUID?
+                                                <Button 
+                                                    title="导入日志下载" 
+                                                    type="primary" 
+                                                    size="small"
+                                                    onClick={()=>this.downloadFile(failedRowsFileUUID)}
+                                                    >
+                                                    <Icon type="copy"/>
+                                                </Button>:""}
+                                                <Popover 
+                                                    content={content} 
+                                                    title="导入日志设置" 
+                                                    trigger="click" 
+                                                    placement="top" 
+                                                    visible={newsChangeVisible}
+                                                    onVisibleChange={this.handleVisibleChange}
+                                                    >
+                                                    <Button title="导入日志设置" type="primary" size="small">
+                                                        <Icon type="setting"/>
+                                                    </Button>
+                                                </Popover>
                                             </div>
                                         </div>
-                                        }
+                                    </div>
+                                }
                                 footer={<div>{statusMsg}</div>}
                                 bordered
                                 dataSource={messages}
@@ -255,10 +286,10 @@ export default class Import extends React.Component{
                 </Row>
                 <Modal
                     title="字段"
-                    visible={visible}
+                    visible={selectModulVisible}
                     onCancel={this.handleCancel}
                     footer={null}
-                    width={750}
+                    width={950}
                     style={{top:40}}
                     >
                     <ModelImport 

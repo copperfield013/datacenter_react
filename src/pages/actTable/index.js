@@ -86,6 +86,7 @@ export default class actTable extends React.Component{
                     }
                     plainOptions.push(list)
                 }
+                return false
             })
             this.setState({
                 moduleTitle:res.ltmpl.title,
@@ -327,8 +328,10 @@ export default class actTable extends React.Component{
                         if(item.id===it){
                             columns.splice(index,1)
                         }
+                        return false
                     })
                 }
+                return false
             })
         }
         const disableCols=<DisableCols

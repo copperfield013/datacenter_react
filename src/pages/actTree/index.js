@@ -72,6 +72,7 @@ export default class ActTree extends React.Component{
                                 it.children.push(...res.entities)
                                 it.children.map((i,index)=>{
                                     i.key=it.key+"-"+index
+                                    return false
                                 })
                             }
                             return false
@@ -199,7 +200,7 @@ export default class ActTree extends React.Component{
                     <TreeNode 
                         title={<div class="hoverBtn">
                                 {item.title}
-                                {item.title!="加载更多"&&item.nodeColor?<span>
+                                {item.title!=="加载更多"&&item.nodeColor?<span>
                                     {hideDetail===null&&templateGroupId?
                                     <Icon type="read" onClick={()=>this.toDetail('detail',item.code,item.nodeId)} title="打开详情页"/>:""
                                     }&nbsp;
@@ -220,7 +221,7 @@ export default class ActTree extends React.Component{
                     {...item}
                     title={<div class="hoverBtn">
                             {item.title}
-                            {item.title!="加载更多"&&item.nodeColor?<span>
+                            {item.title!=="加载更多"&&item.nodeColor?<span>
                                 {hideDetail===null&&templateGroupId?
                                 <Icon type="read" onClick={()=>this.toDetail('detail',item.code,item.nodeId)} title="打开详情页"/>:""
                                 }&nbsp;

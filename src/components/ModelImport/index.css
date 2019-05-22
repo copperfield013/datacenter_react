@@ -30,3 +30,16 @@
     background:red;
     color:#fff;
 }
+.selectModal .table{
+    width:50%;
+    float: left;
+    overflow-y:auto;
+    min-height:300px;
+}
+.ant-collapse{
+    width:45%;
+    float: right;
+}
+.selectModal .ant-tag{
+    margin-bottom: 4px
+}

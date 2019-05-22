@@ -14,11 +14,11 @@
 .listHeader .checks{
     float:right;
     position: relative;
-    padding-right: 32px
+    padding-right: 62px
 }
-.listHeader button{
+.listHeader .btns{
     position: absolute;
-    right:0;
+    right:-22px;
     top:0;
 }
 .infoColor{

@@ -1,6 +1,5 @@
 import React from 'react'
 import {Select,Radio,message} from 'antd'
-import Units from './../units'
 const Option = Select.Option;
 
 export default {

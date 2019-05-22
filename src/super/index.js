@@ -4,16 +4,18 @@ import Units from './../units'
 
 const api="http://47.100.187.235:7080/hydrocarbon-api/"
 export default class Superagent{
-    static super(options,type){
+    static super(options,type,load){
         const tokenName=Units.getLocalStorge("tokenName")
         let loading;
         if(options.data && options.data.isShowLoading!==false){
             loading=document.getElementById('ajaxLoading')
-            loading.style.display="block"
+            loading.style.display=load?load:"block"
         }
         let ty="form"
         if(type==="formdata"){
             ty=null
+        }else if(type==="json"){
+            ty="application/json"
         }
         return new Promise((resolve,reject)=>{
             superagent
