@@ -1,10 +1,12 @@
 import React from 'react'
 import Super from "./../../super"
 import Units from "./../../units"
-import {Button,Icon,Popover,Input,Table,Modal, message,Collapse,Tag} from 'antd'
+import {Button,Icon,Popover,Input,Table,Modal, message,Collapse} from 'antd'
+import MyTag from './../MyTag'
+//import DragTable from './../DragTable'
 import './index.css'
-const confirm = Modal.confirm;
-const Panel=Collapse.Panel
+const {confirm} = Modal
+const {Panel}=Collapse
 
 export default class ModelImport extends React.Component{
 
@@ -12,6 +14,7 @@ export default class ModelImport extends React.Component{
         modelList:[],
         title:"",
         visible:false,
+        dataSource:[]
     }
     componentDidMount(){
         const {menuId}=this.props
@@ -21,9 +24,19 @@ export default class ModelImport extends React.Component{
         Super.super({
             url:`api2/entity/import/dict/${menuId}`,        
         }).then((res)=>{
-            console.log(res)
+            let selectWords=res.fieldDictionary.composites
+            selectWords.map((item)=>{
+                if(item.fields.length>0){
+                    item.fields.map((it)=>{
+                        it.checked=false
+                        it.key=it.name
+                        return false
+                    })
+                }
+                return false
+            })
             this.setState({
-                selectWords:res.fieldDictionary.composites
+                selectWords
             })
         })
     }
@@ -45,13 +58,12 @@ export default class ModelImport extends React.Component{
         Super.super({
             url:`api2/entity/import/tmpl/${menuId}/${tmplId}`,        
         }).then((res)=>{
-            console.log(res)
             if(res){
                 let data=[]
                 const fields=[]
                 res.tmpl.fields.map((item)=>{
                     let list={
-                        key:item.id,
+                        key:item.title,
                         name:item.title,
                         words:item.title
                     }
@@ -79,7 +91,6 @@ export default class ModelImport extends React.Component{
     handleSave=()=>{
         const {menuId}=this.props
         const {tmplId,title,fields}=this.state
-        console.log(fields)
         const data=JSON.stringify({
                         tmplId,
                         title,
@@ -142,18 +153,105 @@ export default class ModelImport extends React.Component{
         })
     }
     deleteRow=(record)=>{
-        const {dataSource}=this.state
+        const {dataSource,selectWords}=this.state
         dataSource.map((item,i)=>{
             if(item.key===record.key){
                 dataSource.splice(i,1)
             }
+            return false
         })
+        if(record.type==="normal"){           
+            selectWords.map((item,i)=>{
+                if(item.fields.length>0){
+                    item.fields.map((it)=>{
+                        if(it.key===record.key){
+                            it.checked=false
+                        }
+                        return false
+                    })
+                }
+                return false
+            })
+        }else{
+            console.log(record)
+            console.log(dataSource)
+            let len=[]
+            dataSource.map((item,i)=>{
+                if(item.id===record.id && !item.key.includes("label")){
+                    len.push(item)
+                }
+            })
+            len.map((item,i)=>{
+                console.log(i)
+                const NM=`${record.totalName}[${i}].${record.name.split(".")[1]}`
+                item.id=item.id
+                item.key=NM
+                item.name=NM
+                item.words=NM
+                item.totalName=item.totalName
+                item.type=item.type
+
+            })
+        }     
         this.setState({
-            dataSource
+            dataSource,
+            selectWords
+        })
+    }
+    getWords=(list,type)=>{
+        let {dataSource,selectWords}=this.state
+        if(type==="normal"){
+            dataSource.push(list)
+            selectWords.map((item,i)=>{ //normal改变tag选中状态
+                if(item.fields.length>0){
+                    item.fields.map((it)=>{
+                        if(it.key===list.key){
+                            it.checked=true
+                        }
+                        return false
+                    })
+                }
+                return false
+            })
+        }else{
+            let len=[]
+            dataSource.map((item)=>{
+                if(item.id===list.id && !item.key.includes("label")){
+                    len.push(item)
+                }
+            })
+            const NM=`${list.totalName}[${len.length}].${list.name}`
+            const res={
+                id:list.id,
+                key:NM,
+                name:NM,
+                words:NM,
+                totalName:list.totalName,
+                type:list.type,
+            }
+            if(type==="relation"){
+                const NLabel=`${list.totalName}[${len.length}].$label$`
+                const labelRes={
+                    id:list.id,
+                    key:NLabel,
+                    name:NLabel,
+                    words:NLabel,
+                    totalName:list.totalName,
+                }   
+                dataSource.push(labelRes)
+            }
+            dataSource.push(res)
+            console.log(dataSource)
+        }
+        
+        this.setState({
+            dataSource:Units.uniq(dataSource,"key"),
+            selectWords
         })
     }
     render(){
         const { visible,title,dataSource,selectWords,modelList,tmplId }=this.state
+        //console.log(selectWords)
         const content = (
             <div>
                 {modelList.map((item)=>{
@@ -179,9 +277,12 @@ export default class ModelImport extends React.Component{
             title: '操作',
             key: 'action',
             render: (text, record) => (
-                <span>
-                    <Icon type="delete" onClick={()=>this.deleteRow(record)}/>
-                </span>
+                <Button 
+                    style={{display:record.key.includes("label")?'none':'block'}} 
+                    size='small' type="danger"
+                     onClick={()=>this.deleteRow(record)}>
+                    <Icon type="delete"/>
+                </Button>
             ),
           }, ]
         return (
@@ -220,16 +321,31 @@ export default class ModelImport extends React.Component{
                         size="small"
                         pagination={false}
                     />
+                    {/* <DragTable
+                        columns={columns}
+                        dataSource={dataSource}
+                        size="small"
+                    
+                    /> */}
                 </div>
                 {
                     selectWords?<Collapse accordion style={{float:"right"}}>
                                     {selectWords.map((item)=>{
                                         if(item.fields.length>0){
                                             return <Panel header={item.name} key={item.id}>
-                                                    {item.fields.map((it)=>{
-                                                        return <Tag key={it.id}>{it.name}</Tag>
-                                                    })}
+                                                        {item.fields.map((it)=>{
+                                                            return <MyTag 
+                                                                        key={it.name} 
+                                                                        id={it.id}
+                                                                        name={it.name}
+                                                                        checked={it.checked}
+                                                                        getwords={this.getWords}
+                                                                        type={item.type}
+                                                                        totalName={item.name}
+                                                                        >{it.name}</MyTag>
+                                                        })}
                                                     </Panel>
+                                            
                                         }
                                     })}
                                 </Collapse>:""

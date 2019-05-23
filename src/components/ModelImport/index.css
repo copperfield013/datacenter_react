@@ -34,7 +34,7 @@
     width:50%;
     float: left;
     overflow-y:auto;
-    min-height:300px;
+    max-height:300px;
 }
 .ant-collapse{
     width:45%;

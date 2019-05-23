@@ -18,6 +18,7 @@
     "case-sensitive-paths-webpack-plugin": "2.1.2",
     "chalk": "2.4.1",
     "css-loader": "1.0.0",
+    "datacenter_api2_resolver": "1.0.17",
     "dotenv": "6.0.0",
     "dotenv-expand": "4.2.0",
     "draftjs-to-html": "^0.8.4",
@@ -35,6 +36,7 @@
     "fs-extra": "7.0.0",
     "html-webpack-plugin": "4.0.0-alpha.2",
     "identity-obj-proxy": "3.0.0",
+    "immutability-helper": "^3.0.0",
     "jest": "23.6.0",
     "jest-pnp-resolver": "1.0.1",
     "jest-resolve": "23.6.0",
@@ -53,6 +55,8 @@
     "react-app-polyfill": "^0.1.3",
     "react-copy-to-clipboard": "^5.0.1",
     "react-dev-utils": "^6.1.1",
+    "react-dnd": "^7.4.5",
+    "react-dnd-html5-backend": "^7.4.4",
     "react-dom": "^16.6.0",
     "react-draft-wysiwyg": "^1.12.13",
     "react-highlight-words": "^0.16.0",
@@ -70,8 +74,7 @@
     "webpack": "4.19.1",
     "webpack-dev-server": "3.1.9",
     "webpack-manifest-plugin": "2.0.4",
-    "workbox-webpack-plugin": "3.6.3",
-    "datacenter_api2_resolver": "1.0.17"
+    "workbox-webpack-plugin": "3.6.3"
   },
   "scripts": {
     "start": "node scripts/start.js",

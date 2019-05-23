@@ -6,7 +6,6 @@ import Units from '../../units'
 import Super from "../../super"
 import './index.css'
 import moment from 'moment';
-import {HelloWorld} from 'datacenter_api2_resolver';
 import DisableCols from './../../components/DisableCols'
 const confirm = Modal.confirm;
 
@@ -22,7 +21,6 @@ export default class actTable extends React.Component{
         fieldIds:[]
     }
     componentDidMount(){
-        HelloWorld.say()
         const {menuId}=this.props.match.params;
         this.setState({menuId})
         this.requestLtmpl(menuId)

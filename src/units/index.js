@@ -145,4 +145,21 @@ export default {
             }
             return obj;
         },
-}
+        uniq(array,gWord){
+            const res=[]
+            array.map((item)=>{
+                let flag = true;
+                res.map((it)=>{
+                    if(item[gWord]===it[gWord]){
+                        flag = false;
+                    }
+                    return false
+                })
+                if(flag){
+                    res.push(item);
+                }
+                return false
+            })
+            return res 
+            }   
+        }
