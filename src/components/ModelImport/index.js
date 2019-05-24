@@ -24,6 +24,7 @@ export default class ModelImport extends React.Component{
         Super.super({
             url:`api2/entity/import/dict/${menuId}`,        
         }).then((res)=>{
+            console.log(res)
             let selectWords=res.fieldDictionary.composites
             selectWords.map((item)=>{
                 if(item.fields.length>0){
@@ -54,10 +55,11 @@ export default class ModelImport extends React.Component{
         })
     }
     handelModel=(tmplId)=>{
-        const menuId=this.props.menuId;
+        const {menuId}=this.props
         Super.super({
             url:`api2/entity/import/tmpl/${menuId}/${tmplId}`,        
         }).then((res)=>{
+            console.log(res)
             if(res){
                 let data=[]
                 const fields=[]
@@ -69,7 +71,8 @@ export default class ModelImport extends React.Component{
                     }
                     data.push(list)
                     let fieldsList={
-                        fieldId:item.id,
+                        fieldId:item.fieldId,
+                        id:item.id
                     }
                     fields.push(fieldsList)
                     return false
@@ -91,31 +94,23 @@ export default class ModelImport extends React.Component{
     handleSave=()=>{
         const {menuId}=this.props
         const {tmplId,title,fields}=this.state
+        console.log(fields)
         const data=JSON.stringify({
                         tmplId,
                         title,
                         fields,
-                    })
-        const api="http://47.100.187.235:7080/hydrocarbon-api/"
-        const tokenName=Units.getLocalStorge("tokenName")
-        fetch(api+`api2/entity/import/save_tmpl/${menuId}?@token=${tokenName}`, {
-            method: 'PUT', // or 'PUT'
-            body: data,
-            mode: 'cors', 
-            headers:{'Content-Type': 'application/json'}
-        }).then((res)=>console.log(res));
-                    
-        // Super.super({
-        //     url:`api2/entity/import/save_tmpl/${menuId}`, 
-        //     data
-        // },"json").then((res)=>{
-        //     if(res){
-        //         console.log(res)
-        //         this.setState({
-        //             uuid:res.uuid
-        //         })
-        //     }
-        // })
+                    })                   
+        Super.super({
+            url:`api2/entity/import/save_tmpl/${menuId}`, 
+            data
+        },"json").then((res)=>{
+            if(res){
+                console.log(res)
+                this.setState({
+                    tmplId:res.tmplId
+                })
+            }
+        })
     }
     handleDownload=()=>{       
         const { menuId }=this.props
@@ -153,7 +148,8 @@ export default class ModelImport extends React.Component{
         })
     }
     deleteRow=(record)=>{
-        const {dataSource,selectWords}=this.state
+        console.log(record)
+        let {dataSource,selectWords}=this.state
         dataSource.map((item,i)=>{
             if(item.key===record.key){
                 dataSource.splice(i,1)
@@ -173,26 +169,44 @@ export default class ModelImport extends React.Component{
                 return false
             })
         }else{
-            console.log(record)
-            console.log(dataSource)
             let len=[]
-            dataSource.map((item,i)=>{
-                if(item.id===record.id && !item.key.includes("label")){
+            let labelarr=[]
+            let totalList=[]
+            const recTotalName=record.key.split(".")[0]
+            dataSource.map((item)=>{
+                const itemTotalName=item.key.split(".")[0]
+                if(item.id && recTotalName===itemTotalName){
+                    totalList.push(item)
+                }
+                if(item.id===record.id){
                     len.push(item)
                 }
+                if(!item.id){
+                    labelarr.push(item)
+                }
+                return false
             })
             len.map((item,i)=>{
-                console.log(i)
-                const NM=`${record.totalName}[${i}].${record.name.split(".")[1]}`
-                item.id=item.id
+                const NM=`${record.totalname}[${i}].${record.name.split(".")[1]}`
                 item.key=NM
                 item.name=NM
                 item.words=NM
-                item.totalName=item.totalName
-                item.type=item.type
-
+                return false
             })
-        }     
+            if(record.type==="relation"){ 
+                if(totalList.length===0){
+                    labelarr[labelarr.length-1].delete=true
+                }
+                if(len.length>0 && len.length<labelarr.length){
+                    labelarr[labelarr.length-1].delete=true
+                }
+                dataSource.map((item,i)=>{
+                    if(item.delete){
+                        dataSource.splice(i,1)
+                    }
+                })
+            }
+        } 
         this.setState({
             dataSource,
             selectWords
@@ -219,29 +233,28 @@ export default class ModelImport extends React.Component{
                 if(item.id===list.id && !item.key.includes("label")){
                     len.push(item)
                 }
+                return false
             })
-            const NM=`${list.totalName}[${len.length}].${list.name}`
+            const NM=`${list.totalname}[${len.length}].${list.name}`
             const res={
                 id:list.id,
                 key:NM,
                 name:NM,
                 words:NM,
-                totalName:list.totalName,
+                totalname:list.totalname,
                 type:list.type,
             }
             if(type==="relation"){
-                const NLabel=`${list.totalName}[${len.length}].$label$`
+                const NLabel=`${list.totalname}[${len.length}].$label$`
                 const labelRes={
-                    id:list.id,
                     key:NLabel,
                     name:NLabel,
                     words:NLabel,
-                    totalName:list.totalName,
+                    totalname:list.totalname,
                 }   
                 dataSource.push(labelRes)
             }
             dataSource.push(res)
-            console.log(dataSource)
         }
         
         this.setState({
@@ -286,7 +299,7 @@ export default class ModelImport extends React.Component{
             ),
           }, ]
         return (
-            <div style={{height:400}} className="selectModal">
+            <div className="selectModal">
                 <h3>
                     导入模板配置
                     <p className="fr">
@@ -341,12 +354,13 @@ export default class ModelImport extends React.Component{
                                                                         checked={it.checked}
                                                                         getwords={this.getWords}
                                                                         type={item.type}
-                                                                        totalName={item.name}
+                                                                        totalname={item.name}
                                                                         >{it.name}</MyTag>
                                                         })}
                                                     </Panel>
                                             
                                         }
+                                        return false
                                     })}
                                 </Collapse>:""
                 }

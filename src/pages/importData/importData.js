@@ -291,6 +291,7 @@ export default class Import extends React.Component{
                     footer={null}
                     width={950}
                     style={{top:40}}
+                    destroyOnClose
                     >
                     <ModelImport 
                         menuId={menuId}

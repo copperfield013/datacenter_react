@@ -7,13 +7,13 @@ const {CheckableTag}=Tag
 export default class MyTag extends React.Component {
     
     handleChange = (id,name) => {
-      const {type,totalName}=this.props
+      const {type,totalname}=this.props
       const list={
         key:name,
         id:id,
         name:name,
         words:name,
-        totalName,
+        totalname,
         type,
       }
       this.props.getwords(list,type)
