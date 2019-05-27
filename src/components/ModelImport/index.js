@@ -1,12 +1,12 @@
 import React from 'react'
 import Super from "./../../super"
 import Units from "./../../units"
-import {Button,Icon,Popover,Input,Table,Modal, message,Collapse} from 'antd'
-import MyTag from './../MyTag'
+import {Button,Icon,Popover,Input,Table,Modal, message,Collapse,Tag} from 'antd'
 //import DragTable from './../DragTable'
 import './index.css'
 const {confirm} = Modal
 const {Panel}=Collapse
+const {CheckableTag}=Tag
 
 export default class ModelImport extends React.Component{
 
@@ -14,7 +14,8 @@ export default class ModelImport extends React.Component{
         modelList:[],
         title:"",
         visible:false,
-        dataSource:[]
+        dataSource:[],
+        fields:[],
     }
     componentDidMount(){
         const {menuId}=this.props
@@ -24,20 +25,30 @@ export default class ModelImport extends React.Component{
         Super.super({
             url:`api2/entity/import/dict/${menuId}`,        
         }).then((res)=>{
-            console.log(res)
             let selectWords=res.fieldDictionary.composites
+            //console.log(selectWords)
+            const forType=[]
             selectWords.map((item)=>{
                 if(item.fields.length>0){
                     item.fields.map((it)=>{
                         it.checked=false
                         it.key=it.name
+                        if(item.type==="relation"){
+                            it.compositeId=item.id
+                        }
+                        const list={
+                            type:item.type,
+                            fieldId:it.id,
+                        }
+                        forType.push(list)
                         return false
                     })
                 }
                 return false
             })
             this.setState({
-                selectWords
+                selectWords,
+                forType
             })
         })
     }
@@ -56,33 +67,71 @@ export default class ModelImport extends React.Component{
     }
     handelModel=(tmplId)=>{
         const {menuId}=this.props
+        const {forType,selectWords}=this.state
+        const fields=[]
         Super.super({
             url:`api2/entity/import/tmpl/${menuId}/${tmplId}`,        
         }).then((res)=>{
-            console.log(res)
+            console.log(res.tmpl.fields)
             if(res){
+                selectWords.map((item)=>{
+                    if(item.type==="normal"){
+                        item.fields.map((it)=>{
+                            let check=false
+                            res.tmpl.fields.map((i)=>{
+                                if(i.fieldId===it.id){
+                                    check=true
+                                }
+                                return false
+                            })
+                            it.checked=check
+                            return false
+                        })
+                    }
+                    return false
+                })
                 let data=[]
-                const fields=[]
+                let type=""
                 res.tmpl.fields.map((item)=>{
+                    forType.map((it)=>{  //选择模板数据，添加type值
+                        if(item.fieldId===it.fieldId){
+                            type=it.type
+                        }
+                        return false
+                    })
                     let list={
                         key:item.title,
                         name:item.title,
-                        words:item.title
+                        words:item.title,
+                        fieldId:item.fieldId,
+                        type,
                     }
                     data.push(list)
-                    let fieldsList={
-                        fieldId:item.fieldId,
-                        id:item.id
+                    let fieldsList={}
+                    if(item.fieldId){
+                        fieldsList={
+                            fieldId:item.fieldId,
+                            id:item.id,
+                        }
+                    }else{
+                        fieldsList={
+                            compositeId:item.compositeId,
+                        }
+                    }
+                    if(item.fieldIndex!==null){
+                        fieldsList.fieldIndex=item.fieldIndex
                     }
                     fields.push(fieldsList)
                     return false
                 })
+                //console.log(fields)
                 this.setState({
                     tmplId:res.tmpl.id,
                     dataSource:data,
                     title:res.tmpl.title,
                     listLength:res.tmpl.fields.length,
-                    fields
+                    fields,
+                    selectWords
                 })
                 this.handleVisibleChange(false)
             }
@@ -93,8 +142,8 @@ export default class ModelImport extends React.Component{
     }
     handleSave=()=>{
         const {menuId}=this.props
-        const {tmplId,title,fields}=this.state
-        console.log(fields)
+        const {tmplId,title,fields,dataSource}=this.state
+        //console.log(dataSource)
         const data=JSON.stringify({
                         tmplId,
                         title,
@@ -105,16 +154,21 @@ export default class ModelImport extends React.Component{
             data
         },"json").then((res)=>{
             if(res){
-                console.log(res)
+                //console.log(res.tmplId)
                 this.setState({
-                    tmplId:res.tmplId
+                    tmplId:res.tmplId,
+                    listLength:dataSource.length,
                 })
             }
         })
     }
     handleDownload=()=>{       
-        const { menuId }=this.props
-        const { tmplId,title,fields,listLength }=this.state
+        const { tmplId,title,listLength,dataSource }=this.state
+        if(dataSource.length!==listLength){
+            message.info("请保存模板")
+            return
+        }
+        const tokenName=Units.getLocalStorge("tokenName")
         if(tmplId){
             confirm({
                 title: `确认下载`,
@@ -122,20 +176,7 @@ export default class ModelImport extends React.Component{
                 okText: '是的',
                 cancelText: '取消',
                 onOk() {
-                    Super.super({
-                        url:`api2/entity/import/save_tmpl/${menuId}`, 
-                        data:{
-                            tmplId,
-                            title,
-                            fields,
-                        }     
-                    },"json").then((res)=>{
-                        if(res){
-                            const tokenName=Units.getLocalStorge("tokenName")
-                            Units.downloadFile(`api2/entity/import/t/download_tmpl/${res.tmplId}?@token=${tokenName}`)
-                        }
-                    })
-                
+                    return Units.downloadFile(`api2/entity/import/download_tmpl/${tmplId}?@token=${tokenName}`)               
                 },
             }) 
         }else{
@@ -148,11 +189,17 @@ export default class ModelImport extends React.Component{
         })
     }
     deleteRow=(record)=>{
-        console.log(record)
-        let {dataSource,selectWords}=this.state
+        //console.log(record)
+        let {dataSource,selectWords,fields}=this.state
         dataSource.map((item,i)=>{
             if(item.key===record.key){
                 dataSource.splice(i,1)
+            }
+            return false
+        })
+        fields.map((item,i)=>{
+            if(item.fieldId===record.fieldId){
+                fields.splice(i,1)
             }
             return false
         })
@@ -171,18 +218,18 @@ export default class ModelImport extends React.Component{
         }else{
             let len=[]
             let labelarr=[]
-            let totalList=[]
-            const recTotalName=record.key.split(".")[0]
+            let data=[]
+            console.log(record)
+            console.log(dataSource)  
             dataSource.map((item)=>{
-                const itemTotalName=item.key.split(".")[0]
-                if(item.id && recTotalName===itemTotalName){
-                    totalList.push(item)
-                }
-                if(item.id===record.id){
+                if(item.fieldId===record.fieldId && !item.key.includes("label")){ 
                     len.push(item)
                 }
-                if(!item.id){
+                if(item.key.includes("label")){  
                     labelarr.push(item)
+                }
+                if(item.fieldId && !item.key.includes("label")){
+                    data.push(item)
                 }
                 return false
             })
@@ -194,28 +241,43 @@ export default class ModelImport extends React.Component{
                 return false
             })
             if(record.type==="relation"){ 
-                if(totalList.length===0){
+                let dele=true
+                data.map((item)=>{
+                    const dataTotal=item.key.split(".")[0]
+                    const labelLastTotal=labelarr[labelarr.length-1].key.split(".")[0]                    
+                    if(dataTotal===labelLastTotal){
+                        dele=false
+                    }
+                    labelarr[labelarr.length-1].delete=dele
+                    return false
+                }) 
+                if(data.length===0){
                     labelarr[labelarr.length-1].delete=true
-                }
-                if(len.length>0 && len.length<labelarr.length){
-                    labelarr[labelarr.length-1].delete=true
-                }
+                }      
+                console.log(dataSource)      
                 dataSource.map((item,i)=>{
                     if(item.delete){
                         dataSource.splice(i,1)
                     }
+                    return false
                 })
             }
         } 
+        console.log(fields)
         this.setState({
-            dataSource,
-            selectWords
+            dataSource:Units.uniq(dataSource,"key"),
+            selectWords,
+            fields,
         })
     }
     getWords=(list,type)=>{
-        let {dataSource,selectWords}=this.state
+        let {dataSource,selectWords,fields}=this.state      
         if(type==="normal"){
-            dataSource.push(list)
+            const getlist={
+                fieldId:list.fieldId
+            }
+            fields.push(getlist)//添加提交的fieldId
+            dataSource.push(list)        
             selectWords.map((item,i)=>{ //normal改变tag选中状态
                 if(item.fields.length>0){
                     item.fields.map((it)=>{
@@ -228,16 +290,18 @@ export default class ModelImport extends React.Component{
                 return false
             })
         }else{
+            // console.log(list)
+            // console.log(dataSource)
             let len=[]
             dataSource.map((item)=>{
-                if(item.id===list.id && !item.key.includes("label")){
+                if(item.fieldId===list.fieldId && !item.key.includes("label")){
                     len.push(item)
                 }
                 return false
             })
             const NM=`${list.totalname}[${len.length}].${list.name}`
             const res={
-                id:list.id,
+                fieldId:list.fieldId,
                 key:NM,
                 name:NM,
                 words:NM,
@@ -245,7 +309,7 @@ export default class ModelImport extends React.Component{
                 type:list.type,
             }
             if(type==="relation"){
-                const NLabel=`${list.totalname}[${len.length}].$label$`
+                const NLabel=`${list.totalname}[${len.length}].$$label$$`
                 const labelRes={
                     key:NLabel,
                     name:NLabel,
@@ -255,11 +319,16 @@ export default class ModelImport extends React.Component{
                 dataSource.push(labelRes)
             }
             dataSource.push(res)
+            if(dataSource.length===Units.uniq(dataSource,"key").length){  //判断是否新增label
+                fields.push({compositeId:list.compositeId,fieldIndex:len.length})
+            }
+            fields.push({fieldId:list.fieldId,fieldIndex:len.length})
         }
-        
+        //console.log(fields)
         this.setState({
             dataSource:Units.uniq(dataSource,"key"),
-            selectWords
+            selectWords,
+            fields
         })
     }
     render(){
@@ -355,6 +424,7 @@ export default class ModelImport extends React.Component{
                                                                         getwords={this.getWords}
                                                                         type={item.type}
                                                                         totalname={item.name}
+                                                                        compositeid={it.compositeId}
                                                                         >{it.name}</MyTag>
                                                         })}
                                                     </Panel>
@@ -368,4 +438,26 @@ export default class ModelImport extends React.Component{
         )
     }
 }
+
+class MyTag extends React.Component {
     
+    handleChange = (id,name) => {
+      const {type,totalname,compositeid}=this.props
+      const list={
+        key:name,
+        fieldId:id,
+        name:name,
+        words:name,
+        totalname,
+        type,
+        compositeId:compositeid
+      }
+      this.props.getwords(list,type)
+    };
+    render() {
+      const {name,id,checked}=this.props
+      return (
+        <CheckableTag {...this.props} onChange={()=>this.handleChange(id,name)} className={checked?"":"borderTag"}/>
+      );
+    }
+  }
