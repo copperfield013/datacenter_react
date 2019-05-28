@@ -15,7 +15,6 @@ export default class ModelImport extends React.Component{
         title:"",
         visible:false,
         dataSource:[],
-        fields:[],
     }
     componentDidMount(){
         const {menuId}=this.props
@@ -68,7 +67,6 @@ export default class ModelImport extends React.Component{
     handelModel=(tmplId)=>{
         const {menuId}=this.props
         const {forType,selectWords}=this.state
-        const fields=[]
         Super.super({
             url:`api2/entity/import/tmpl/${menuId}/${tmplId}`,        
         }).then((res)=>{
@@ -104,33 +102,22 @@ export default class ModelImport extends React.Component{
                         name:item.title,
                         words:item.title,
                         fieldId:item.fieldId,
+                        compositeId:item.compositeId,
+                        id:item.id,
+                        fieldIndex:item.fieldIndex,
                         type,
                     }
+                    if(item.fieldId!==null){
+                        list.totalname=item.title.split("[")[0]
+                    }
                     data.push(list)
-                    let fieldsList={}
-                    if(item.fieldId){
-                        fieldsList={
-                            fieldId:item.fieldId,
-                            id:item.id,
-                        }
-                    }else{
-                        fieldsList={
-                            compositeId:item.compositeId,
-                        }
-                    }
-                    if(item.fieldIndex!==null){
-                        fieldsList.fieldIndex=item.fieldIndex
-                    }
-                    fields.push(fieldsList)
                     return false
                 })
-                //console.log(fields)
                 this.setState({
                     tmplId:res.tmpl.id,
                     dataSource:data,
                     title:res.tmpl.title,
                     listLength:res.tmpl.fields.length,
-                    fields,
                     selectWords
                 })
                 this.handleVisibleChange(false)
@@ -142,23 +129,28 @@ export default class ModelImport extends React.Component{
     }
     handleSave=()=>{
         const {menuId}=this.props
-        const {tmplId,title,fields,dataSource}=this.state
-        //console.log(dataSource)
-        const data=JSON.stringify({
-                        tmplId,
-                        title,
-                        fields,
-                    })                   
+        const {tmplId,title,dataSource}=this.state
+        const fields=this.getFields(dataSource)  
+        if(!title){
+            message.error("请设置模板名称！")
+            return
+        }         
         Super.super({
             url:`api2/entity/import/save_tmpl/${menuId}`, 
-            data
+            data:JSON.stringify({
+                    tmplId,
+                    title,
+                    fields,
+                })
         },"json").then((res)=>{
-            if(res){
-                //console.log(res.tmplId)
+            if(res && res.status==="suc"){
+                message.success("保存成功！")
                 this.setState({
                     tmplId:res.tmplId,
                     listLength:dataSource.length,
                 })
+            }else{
+                message.error("请选择字段保存！")
             }
         })
     }
@@ -189,22 +181,15 @@ export default class ModelImport extends React.Component{
         })
     }
     deleteRow=(record)=>{
-        //console.log(record)
-        let {dataSource,selectWords,fields}=this.state
+        let {dataSource,selectWords}=this.state
         dataSource.map((item,i)=>{
             if(item.key===record.key){
                 dataSource.splice(i,1)
             }
             return false
         })
-        fields.map((item,i)=>{
-            if(item.fieldId===record.fieldId){
-                fields.splice(i,1)
-            }
-            return false
-        })
         if(record.type==="normal"){           
-            selectWords.map((item,i)=>{
+            selectWords.map((item,i)=>{ //控制模板内tag是否选中
                 if(item.fields.length>0){
                     item.fields.map((it)=>{
                         if(it.key===record.key){
@@ -219,8 +204,6 @@ export default class ModelImport extends React.Component{
             let len=[]
             let labelarr=[]
             let data=[]
-            console.log(record)
-            console.log(dataSource)  
             dataSource.map((item)=>{
                 if(item.fieldId===record.fieldId && !item.key.includes("label")){ 
                     len.push(item)
@@ -238,6 +221,7 @@ export default class ModelImport extends React.Component{
                 item.key=NM
                 item.name=NM
                 item.words=NM
+                item.fieldIndex=i
                 return false
             })
             if(record.type==="relation"){ 
@@ -248,13 +232,12 @@ export default class ModelImport extends React.Component{
                     if(dataTotal===labelLastTotal){
                         dele=false
                     }
-                    labelarr[labelarr.length-1].delete=dele
+                    labelarr[labelarr.length-1].delete=dele                   
                     return false
-                }) 
+                })
                 if(data.length===0){
                     labelarr[labelarr.length-1].delete=true
-                }      
-                console.log(dataSource)      
+                }          
                 dataSource.map((item,i)=>{
                     if(item.delete){
                         dataSource.splice(i,1)
@@ -262,21 +245,15 @@ export default class ModelImport extends React.Component{
                     return false
                 })
             }
-        } 
-        console.log(fields)
+        }
         this.setState({
             dataSource:Units.uniq(dataSource,"key"),
             selectWords,
-            fields,
         })
     }
     getWords=(list,type)=>{
-        let {dataSource,selectWords,fields}=this.state      
+        let {dataSource,selectWords}=this.state     
         if(type==="normal"){
-            const getlist={
-                fieldId:list.fieldId
-            }
-            fields.push(getlist)//添加提交的fieldId
             dataSource.push(list)        
             selectWords.map((item,i)=>{ //normal改变tag选中状态
                 if(item.fields.length>0){
@@ -290,8 +267,6 @@ export default class ModelImport extends React.Component{
                 return false
             })
         }else{
-            // console.log(list)
-            // console.log(dataSource)
             let len=[]
             dataSource.map((item)=>{
                 if(item.fieldId===list.fieldId && !item.key.includes("label")){
@@ -306,6 +281,7 @@ export default class ModelImport extends React.Component{
                 name:NM,
                 words:NM,
                 totalname:list.totalname,
+                fieldIndex:len.length,
                 type:list.type,
             }
             if(type==="relation"){
@@ -314,22 +290,39 @@ export default class ModelImport extends React.Component{
                     key:NLabel,
                     name:NLabel,
                     words:NLabel,
+                    fieldIndex:len.length,
                     totalname:list.totalname,
+                    compositeId:list.compositeId
                 }   
                 dataSource.push(labelRes)
             }
             dataSource.push(res)
-            if(dataSource.length===Units.uniq(dataSource,"key").length){  //判断是否新增label
-                fields.push({compositeId:list.compositeId,fieldIndex:len.length})
-            }
-            fields.push({fieldId:list.fieldId,fieldIndex:len.length})
         }
-        //console.log(fields)
+        //console.log(dataSource)
         this.setState({
             dataSource:Units.uniq(dataSource,"key"),
             selectWords,
-            fields
         })
+    }
+    getFields=(dataSource)=>{
+        const fields=[]
+        dataSource.map((item)=>{
+            const list={}
+            if(item.fieldIndex!==null){
+                list.fieldIndex=item.fieldIndex
+            }
+            if(item.compositeId){
+                list.compositeId=item.compositeId
+            }
+            if(item.fieldId){
+                list.fieldId=item.fieldId
+            }
+            if(item.id){
+                list.id=item.id
+            }
+            fields.push(list)
+        })
+        return fields
     }
     render(){
         const { visible,title,dataSource,selectWords,modelList,tmplId }=this.state

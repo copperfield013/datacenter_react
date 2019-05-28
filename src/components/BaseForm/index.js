@@ -27,7 +27,6 @@ class BaseForm extends React.Component{
         this.props.filterSubmit(fieldsValue,this.props.menuId);
     }
     selectOptions=(id)=>{//下拉框
-        console.log(id)
         const {optionsMap}=this.props
         this.setState({
             list:optionsMap[id]
@@ -94,6 +93,7 @@ class BaseForm extends React.Component{
                                     placeholder={`请输入${label}`} 
                                     notFoundContent="暂无选项"
                                     allowClear={true}
+                                    showSearch
                                     getPopupContainer={trigger => trigger.parentNode}>
                                 {Units.getSelectList(this.state.list)}
                             </Select>

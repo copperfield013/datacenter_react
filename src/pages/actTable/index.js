@@ -44,21 +44,20 @@ export default class actTable extends React.Component{
     handleFilter=(params)=>{
         this.props.searchParams(params)
     }
-    requestLtmpl=(menuId,data)=>{ 
-        const {optionsMap}=this.state
+    requestLtmpl=(menuId,data)=>{
         Super.super({
             url:`api2/entity/curd/start_query/${menuId}`,     
             data           
         }).then((res)=>{
             this.queryList(res.queryKey)
             const fieldIds=[]
-            if(!optionsMap){
-                res.ltmpl.criterias.map((item)=>{
-                    if(item.inputType==="select"){
-                        fieldIds.push(item.fieldId)
-                    }
-                    return false
-                })
+            res.ltmpl.criterias.map((item)=>{
+                if(item.inputType==="select"){
+                    fieldIds.push(item.fieldId)
+                }
+                return false
+            })
+            if(fieldIds.length>0){
                 this.requestSelect(fieldIds)
             }
             const url=decodeURI(this.props.history.location.search)

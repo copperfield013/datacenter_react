@@ -40,7 +40,7 @@ export default class Import extends React.Component{
             },
             data:formData,   
 		},"formdata").then((res)=>{
-            console.log(res)
+            //console.log(res)
             if(res.status==="suc"){
                 this.timerID=setInterval(() =>this.handleStatus(res.uuid),500);
             }else{
@@ -82,7 +82,7 @@ export default class Import extends React.Component{
             totalMSG=MSG
             this.setState({
                 statusMsg:res.message,
-                percent:(res.current/res.totalCount)*100,
+                percent:Math.floor((res.current/res.totalCount)*100),
                 messages:MSG,
             })
             if(res.completed===true){
@@ -134,6 +134,7 @@ export default class Import extends React.Component{
             percent:0,
             messages:[]
         })
+        message.success("刷新成功！")
     }
     downloadFile=(failedRowsFileUUID)=>{
         const tokenName=Units.getLocalStorge("tokenName")
