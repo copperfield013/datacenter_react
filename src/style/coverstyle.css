@@ -38,7 +38,7 @@
 	text-align: center;
 }
 .ant-table-pagination.ant-pagination{
-	margin:0 0 10px;
+	margin:10px 0;
 }
 .ant-table-thead > tr > th.ant-table-selection-column, .ant-table-tbody > tr > td.ant-table-selection-column{
 	min-width: 0;

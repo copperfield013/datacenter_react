@@ -51,8 +51,8 @@ class BaseForm extends React.Component{
                 const value=item.value
                 const dateFormat = 'YYYY-MM-DD';
                 if(item.inputType==="daterange"){
-                    const v1=value.split("~")[0]
-                    const v2=value.split("~")[1]
+                    const v1=value?value.split("~")[0]:null
+                    const v2=value?value.split("~")[1]:null
                     const TIMEPICKER= <FormItem label={label} key={field}>
                         {getFieldDecorator(field,{initialValue:v1?[moment(v1,dateFormat),moment(v2,dateFormat)]:undefined})(
                             <RangePicker locale={locale} style={{width:225}}/>

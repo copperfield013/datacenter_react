@@ -12,7 +12,7 @@ import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 import TemplateList from '../../components/templateList';
 const confirm = Modal.confirm;
 
-const api="http://47.100.187.235:7080/datacenter_api2/"
+const api="http://47.100.187.235:7080/hydrocarbon-api/"
 export default class Detail extends React.Component{
     state={
         visibleDrawer:false,
@@ -25,18 +25,26 @@ export default class Detail extends React.Component{
         visibleTemplateList:false,
         isNew:false,
     }
-    componentDidMount(){
+    componentWillMount(){
         const {menuId,code,type,nodeId}=this.props.match.params
         this.setState({
             menuId,
             type,
             code,
-            nodeId
+            nodeId,//树形视图详情页id
         })
-        //console.log(nodeId)
-        this.loadltmpl(menuId,code,"",nodeId)
+        this.loadltmpl(menuId,code,type,"",nodeId)
     }
-    loadltmpl=(menuId,code,versionCode,nodeId)=>{
+    componentWillReceiveProps(){
+        const path=this.props.history.location.pathname.split("/")
+        this.setState({
+            menuId:path[1],
+            type:path[2],
+            code:path[3],
+        })
+        this.loadltmpl(path[1],path[3],path[2])
+    }
+    loadltmpl=(menuId,code,type,versionCode,nodeId)=>{
         const url=nodeId?`api2/meta/tmpl/dtmpl_config/node/${menuId}/${nodeId}`:`api2/meta/tmpl/dtmpl_config/normal/${menuId}/`
         Super.super({url}).then((res)=>{     
             const formltmpl=[]
@@ -45,8 +53,17 @@ export default class Detail extends React.Component{
             const premises=res.config.premises
             const actions=res.config.actions
             const menuTitle=menuId==="user"?"用户":res.menu.title
+            const requestSelectArr=[] //下拉菜单选项fieldId数组
             res.config.dtmpl.groups.map((item)=>{
                 rightNav.push(item.title)
+                if(type==="edit" || type==="new"){
+                    item.fields.map((it)=>{
+                        if(it.type==="select" || it.type==="label"){
+                            requestSelectArr.push(it.fieldId)
+                        }
+                        return false
+                    })
+                }
                 if(item.composite===null){
                     formltmpl.push(item)
                 }else{
@@ -54,10 +71,13 @@ export default class Detail extends React.Component{
                 }
                 return false
             })
-            //console.log(res)
-            //console.log(rightNav)
-            this.requestSelect(formltmpl,editformltmpl)
-            if(code && code!=='new'){
+            //console.log(code)
+            //console.log(editformltmpl)
+            if(requestSelectArr.length>0){
+                this.requestSelect(requestSelectArr)
+            }
+            this.forDescsFlag(editformltmpl)  //提交时添加flag
+            if(code){
                 this.loadRequest(formltmpl,editformltmpl,versionCode)
             }else{
                 this.setState({
@@ -94,6 +114,16 @@ export default class Detail extends React.Component{
             })
         })  
     }
+    forDescsFlag=(editformltmpl)=>{
+        const descsFlag=[] 
+        editformltmpl.map((item)=>{
+            descsFlag.push(item.composite.name)
+            return false
+        })
+        this.setState({
+            descsFlag
+        })
+    }
     loadRequest=(formltmpl,editformltmpl,versionCode)=>{
         const {menuId,type,code,nodeId}=this.props.match.params
         Super.super({
@@ -104,8 +134,7 @@ export default class Detail extends React.Component{
             }          
         }).then((res)=>{  
             const arrayMap=res.entity.arrayMap
-            const fieldMap=this.forPic(res.entity.fieldMap)
-            const descsFlag=[]           
+            const fieldMap=this.forPic(res.entity.fieldMap)          
             formltmpl.map((item)=>{
                 item.fields.map((item)=>{
                     for(let k in fieldMap){
@@ -123,7 +152,6 @@ export default class Detail extends React.Component{
                 editformltmpl.map((item)=>{
                     if(item.id.toString()===k){
                         totalName=item.composite.name
-                        descsFlag.push(item.composite.name)
                     }
                     return false
                 })
@@ -144,13 +172,12 @@ export default class Detail extends React.Component{
             this.setState({
                 formltmpl,
                 editformltmpl,
-                descsFlag,
                 columns:this.renderColumns(editformltmpl),
                 dataSource:arrayMap,
             })          
         })
     }
-    forPic=(fieldMap)=>{
+    forPic=(fieldMap)=>{ //原始数据的图片url转化为图片
         for(let i in fieldMap){
             if(fieldMap[i] && fieldMap[i].includes("download-files")){
                 const url=api+ fieldMap[i]
@@ -196,10 +223,10 @@ export default class Detail extends React.Component{
         })
     }
     toHistory=(e)=>{
-        const {menuId,code}=this.state
+        const {menuId,code,type}=this.state
         const versionCode=e.target.getAttribute("code");
         this.renderHistoryList(versionCode)
-        this.loadltmpl(menuId,code,versionCode)
+        this.loadltmpl(menuId,code,type,versionCode)
     }
     detailTitle=(dataTitle,type)=>{
         const {menuTitle}=this.state
@@ -214,7 +241,7 @@ export default class Detail extends React.Component{
             menuTitle,
 		});
 	}
-    renderColumns=(editformltmpl)=>{
+    renderColumns=(editformltmpl)=>{ //editTable的表头
         const {type}=this.state 
         const columns=[]
         editformltmpl.map((item)=>{
@@ -222,10 +249,10 @@ export default class Detail extends React.Component{
                 const id=item.id
                 item["dataIndex"]=id               
                 if(type==="detail"){
-                    if(item.type==="decimal"){
+                    if(item.type==="decimal"){ //排序
                         item["sorter"]=(a, b) => a[id] - b[id]; 
                     }else{
-                        item["sorter"]=(a, b) =>{ 
+                        item["sorter"]=(a, b) =>{ //排序
                             if(a[id]&&b[id]){
                                 return a[id].length - b[id].length;
                             }
@@ -241,7 +268,7 @@ export default class Detail extends React.Component{
                     title:"关系",
                     type:"relation",
                     fieldAvailable:true,
-                    id:10000,//随机5位数
+                    id:10000,//关系默认id是10000
                     options:item.composite.relationSubdomain
                 }
                 item.fields.unshift(rela) 
@@ -271,6 +298,7 @@ export default class Detail extends React.Component{
                         <Button 
                             type='danger' 
                             icon="delete" 
+                            title="删除当前行" 
                             size="small" 
                             onClick={()=>this.visibleModal(record,'removeList','确定要删除这条记录吗')}
                             ></Button>
@@ -304,46 +332,22 @@ export default class Detail extends React.Component{
             },
           });
     }
-    requestSelect=(formltmpl,editformltmpl)=>{
-        const { type }=this.state; 
-        const selectId=[]
-        if(type==="edit" || type==="new"){
-            formltmpl.map((item)=>{
-                item.fields.map((it)=>{
-                    if(it.type==="select" || it.type==="label"){
-                        selectId.push(it.fieldId)
-                    }
-                    return false
-                })
-                return false
+    requestSelect=(selectId)=>{ //有下拉菜单时，请求下拉选项操作       
+        let fieldIds = ""
+        selectId.map((item)=>{
+            fieldIds+=item+","
+            return false
+        })
+        Super.super({
+            url:`api2/meta/dict/field_options`,       
+            data:{
+                fieldIds
+            },
+        }).then((res)=>{
+            this.setState({
+                optionsMap:res.optionsMap
             })
-            editformltmpl.map((item)=>{ 
-                item.fields.map((it)=>{
-                    if(it.type==="select"){
-                        selectId.push(it.fieldId)
-                    }
-                    return false
-                })
-                return false
-            })
-        if(selectId.length>0){  //有下拉框时，发送请求
-            let fieldIds = ""
-            selectId.map((item)=>{
-                fieldIds+=item+","
-                return false
-            })
-            Super.super({
-                url:`api2/meta/dict/field_options`,       
-                data:{
-                    fieldIds
-                },
-            }).then((res)=>{
-                this.setState({
-                    optionsMap:res.optionsMap
-                })
-            })
-            }
-        }
+        })
     }
     removeList=(record)=>{
         const deleKey=record.key
@@ -486,7 +490,7 @@ export default class Detail extends React.Component{
         const {menuId,columns}=this.state
         const formTmplGroupId=record.groupId.toString()
         const arr=[]
-        console.log(record)
+        //console.log(record)
         columns.map((item)=>{
             if(item.id.toString()===formTmplGroupId){
                 item.fields.map((it)=>{
@@ -534,7 +538,7 @@ export default class Detail extends React.Component{
                     })   
                  })
             }else{
-                console.log(arr)
+                //console.log(arr)
                 this.setState({
                     getFormTmpl:true,
                     templateDtmpl,
@@ -561,7 +565,7 @@ export default class Detail extends React.Component{
         }else{
             columns=record
         }
-        console.log(columns)
+        //console.log(columns)
         const code=Units.RndNum(9)
         columns.map((item)=>{
             if(item.type){
@@ -600,7 +604,7 @@ export default class Detail extends React.Component{
             }
             return false
         })
-        console.log(editFormList)
+        //console.log(editFormList)
         this.setState({
             editFormList,
             isNew,
@@ -705,8 +709,8 @@ export default class Detail extends React.Component{
                 dfieldIds,
             }                
         }).then((res)=>{
-            console.log(res)
-            console.log(columns)
+            // console.log(res)
+            // console.log(columns)
             let relationSubdomain=[]
             let totalName
             columns.map((item)=>{
@@ -755,15 +759,22 @@ export default class Detail extends React.Component{
                 }
                 return false
             })
-            console.log(dataSource)
+            //console.log(dataSource)
             this.setState({
                 visibleTemplateList:false,
             })
         })
     }
+    fresh=()=>{
+        const {menuId,code,type}=this.state
+        this.baseinfo.reset()
+        this.loadltmpl(menuId,code,type)
+    }
     render(){
-        const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,visibleForm,editFormList,actions,premises,templateDtmpl,rightNav,getFormTmpl,
-            columns,dataSource,visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,dfieldIds,title,options,templateData,formTmplGroupId}=this.state;
+        const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,visibleForm,editFormList,
+            actions,premises,templateDtmpl,rightNav,getFormTmpl,columns,dataSource,
+            visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,
+            dfieldIds,title,options,templateData,formTmplGroupId}=this.state;
         const premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
         let content
         if(actions && actions.length>0){
@@ -786,40 +797,40 @@ export default class Detail extends React.Component{
                     {type==="detail"?
                         <div className="fr pad">
                             <Button className="hoverbig" title="导出" onClick={this.exportDetail}><Icon type="upload" /></Button>
-                            <Button className="hoverbig" title="查看历史" onClick={()=>this.renderHistoryList(null)}><Icon type="schedule" /></Button>                                                      
-                            <Button className="hoverbig" title="刷新" onClick={()=>this.loadltmpl(menuId,code)}><Icon type="sync" /></Button>
+                            <Button className="hoverbig" title="查看历史" onClick={()=>this.renderHistoryList()}><Icon type="schedule" /></Button>                                                      
+                            <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
                         </div>:
                         <div className="fr pad">
                             <div className="buttonGroup">
-                            {actions&&actions.length>0?
-                                <Popover placement="leftTop" content={content} trigger="click">
-                                    <Button>
-                                        <Icon type="swap" />
-                                    </Button>
-                                </Popover>:""}
-                            <Button 
-                                type='primary' 
-                                icon="cloud-upload" 
-                                className="submitBtn" 
-                                key="btn" 
-                                onClick={this.showModal} 
-                                style={{backgroundColor:fuseMode===true?"#001529":""}}
-                                >保存
-                            </Button>
-                            </div>
-                            {code?<Switch 
-                                    checkedChildren="开" 
-                                    unCheckedChildren="关" 
-                                    style={{marginRight:10}} 
-                                    title="融合模式" 
-                                    onChange={this.fuseMode}/>
-                                :""}
-                            <Button 
-                                className="hoverbig" 
-                                title="刷新" 
-                                onClick={()=>this.loadltmpl(menuId,type,code)}
-                                ><Icon type="sync" /></Button>
-                        </div>}                                  
+                                {actions&&actions.length>0?
+                                    <Popover placement="leftTop" content={content} trigger="click">
+                                        <Button>
+                                            <Icon type="swap" />
+                                        </Button>
+                                    </Popover>:""}
+                                <Button 
+                                    type='primary' 
+                                    icon="cloud-upload" 
+                                    className="submitBtn" 
+                                    key="btn" 
+                                    onClick={this.showModal} 
+                                    style={{backgroundColor:fuseMode===true?"#001529":""}}
+                                    >保存
+                                </Button>
+                                </div>
+                                {code?<Switch 
+                                        checkedChildren="开" 
+                                        unCheckedChildren="关" 
+                                        style={{marginRight:10}} 
+                                        title="融合模式" 
+                                        onChange={this.fuseMode}/>
+                                    :""}
+                                <Button 
+                                    className="hoverbig" 
+                                    title="刷新" 
+                                    onClick={this.fresh}
+                                    ><Icon type="sync" /></Button>
+                            </div>}                                  
                 </h3>
                 { premises?<Form layout="inline" autoComplete="off">  
                                 <Card 
@@ -846,7 +857,7 @@ export default class Detail extends React.Component{
                     loading={loading}
                     onRef={this.onRef}
                     getOptions={this.getOptions}
-                    options={this.state.options}
+                    options={options}
                 />
                 <EditTable 
                     type={type}
@@ -876,8 +887,8 @@ export default class Detail extends React.Component{
                     width={400}
                     >
                     {detailHistory?<Timeline mode="alternate">
-                        {detailHistory}
-                    </Timeline>:"暂无历史记录"}
+                                        {detailHistory}
+                                    </Timeline>:"暂无历史记录"}
                 </Drawer>
                 <TemplateList 
                     visibleTemplateList={visibleTemplateList}
@@ -898,7 +909,7 @@ export default class Detail extends React.Component{
                     getOptions={this.getOptions}
                     options={options}
                 />
-                {!rightNav||rightNav.length<=3?"":
+                {!rightNav||rightNav.length<3?"":
                     <RightBar 
                         list={rightNav}
                     />}              

@@ -27,6 +27,9 @@ class FormCard extends React.Component{
                 this.props.baseInfo(result)
             }
         })
+    }   
+    reset=()=>{
+        this.props.form.resetFields()
     }
     initDetailsList=()=>{
         const { formList,type,form,loading }=this.props

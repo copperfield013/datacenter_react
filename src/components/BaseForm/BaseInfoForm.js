@@ -94,6 +94,7 @@ export default class BaseInfoForm extends React.Component{
                                                 disabled={!available}                                              
                                                 notFoundContent="暂无选项"
                                                 allowClear={true}
+                                                showSearch
                                                 >
                                                     {Units.getSelectList(this.props.options)}
                                             </Select>

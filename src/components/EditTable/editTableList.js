@@ -58,7 +58,7 @@ export default class EditTableList extends React.Component {
   }
   tableChange=(pagination)=>{
     this.props.columns.map((item)=>{
-      if(item.key==="order"){
+      if(item.dataIndex==="order"){ //翻页的序号作计数处理
         item["render"]=(text, record,index) => (
               <label>{(pagination.current-1)*pagination.pageSize+index+1}</label>
           )       
@@ -104,14 +104,14 @@ export default class EditTableList extends React.Component {
                               onClick={this.props.handleAdd} 
                               style={{marginBottom:10,marginRight:10}}
                               >新增</Button>}
-              {haveTemplate?<Button 
+              {haveTemplate && type!=="detail"?<Button 
                               type='primary' 
                               icon="snippets" 
                               size="small"
                               onClick={()=>this.props.getTemplate(groupId,excepts,dfieldIds)}
                               style={{marginBottom:10,marginRight:10}}
                               >选择</Button>:""}
-              {rabcTemplatecreatable?<Button 
+              {rabcTemplatecreatable && type!=="detail"?<Button 
                                         type='primary' 
                                         icon="plus-square" 
                                         size="small"

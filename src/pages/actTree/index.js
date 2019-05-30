@@ -198,7 +198,7 @@ export default class ActTree extends React.Component{
           if (item.children) {
             return (
                     <TreeNode 
-                        title={<div class="hoverBtn">
+                        title={<div className="hoverBtn">
                                 {item.title}
                                 {item.title!=="加载更多"&&item.nodeColor?<span>
                                     {hideDetail===null&&templateGroupId?
