@@ -18,7 +18,7 @@ export default class actTable extends React.Component{
         currentPage:1,
         selectedRowKeys: [], 
         actions:[],
-        fieldIds:[]
+        fieldIds:[],
     }
     componentDidMount(){
         const {menuId}=this.props.match.params;
@@ -315,8 +315,19 @@ export default class actTable extends React.Component{
         const {menuId}=this.state
         this.requestLtmpl(menuId,{disabledColIds})
     }
+    handleExport=()=>{
+        const {expotrVisible}=this.state
+        this.setState({
+            expotrVisible:!expotrVisible
+        })
+    }
+    setDownloadTitle=(name)=>{
+        this.setState({
+            downloadTitle:name
+        })
+    }
     render(){
-        let {selectedRowKeys,filterOptions,moduleTitle,list,loading,pageInfo,statView,disabledColIds,plainOptions,
+        let {selectedRowKeys,filterOptions,moduleTitle,list,loading,pageInfo,statView,disabledColIds,plainOptions,downloadTitle,
             formList,tmplGroup,columns,Loading,currentPage,menuId,pageCount,isSeeTotal,optionsMap,queryKey } = this.state;
         if(statView!==null&&columns){
             columns.map((item,index)=>{             
@@ -342,6 +353,8 @@ export default class actTable extends React.Component{
                             pageInfo={pageInfo}
                             filterOptions={filterOptions}
                             queryKey={queryKey}
+                            moduleTitle={moduleTitle}
+                            setDownloadTitle={this.setDownloadTitle}
                             /> 
         
         const rowSelection = {
@@ -388,9 +401,14 @@ export default class actTable extends React.Component{
                             onClick={()=>this.recalc(menuId)}>
                             <Icon type="calculator" />
                         </Button>}
-                        {hideExport?"":<Popover content={content} title="导出" placement="bottomRight" trigger="click">
-                            <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
-                        </Popover> }  
+                        {hideExport?"":<Popover
+                                            content={content} 
+                                            title={downloadTitle&&downloadTitle===moduleTitle?"导出":"导出("+downloadTitle+"正在导出...)"}
+                                            placement="bottomRight" 
+                                            getPopupContainer={trigger => trigger.parentNode}
+                                            trigger="click">
+                                            <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
+                                        </Popover> }  
                         {hideTreeToggle?"":<Button 
                             className="hoverbig" 
                             title="树形视图" 
@@ -405,7 +423,11 @@ export default class actTable extends React.Component{
                         </Button>
                     </p>
                 </h3>
-                <Card className="hoverable" style={{display:formList?"block":"none"}} headStyle={{background:"#f2f4f5"}} loading={loading}>
+                <Card 
+                    className="hoverable" 
+                    style={{display:formList?"block":"none"}}
+                    headStyle={{background:"#f2f4f5"}} 
+                    loading={loading}>
                     <BaseForm 
                         formList={formList} 
                         filterSubmit={this.searchList} 

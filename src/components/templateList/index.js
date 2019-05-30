@@ -14,7 +14,7 @@ export default class TemplateList extends React.Component{
     }
     handleOk=()=>{
         const {selectCodes}=this.state
-        this.props.TemplatehandleOk(selectCodes,null)
+        this.props.TemplatehandleOk(selectCodes,null,true)
         this.setState({selectedRowKeys:[]})     
     }
     seeTotal=()=>{
@@ -48,6 +48,7 @@ export default class TemplateList extends React.Component{
         console.log(result)
         const {menuId,templateDtmpl,formTmplGroupId}=this.props
         const code=templateDtmpl[0].code
+        console.log(code)
         const formData = new FormData(); 
         if(code){ //有code是修改，没有是新增实体模板
             formData.append('唯一编码',code)

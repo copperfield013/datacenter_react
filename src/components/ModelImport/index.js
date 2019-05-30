@@ -321,6 +321,7 @@ export default class ModelImport extends React.Component{
                 list.id=item.id
             }
             fields.push(list)
+            return false
         })
         return fields
     }

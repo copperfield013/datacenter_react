@@ -15,7 +15,11 @@ export default class ExportFrame extends React.Component{
         inputDisabled:false,
         radioDisabled1:false,
         radioDisabled2:false,
-    }    
+    }
+    componentDidMount(){
+        const {moduleTitle }=this.props
+        this.props.setDownloadTitle(moduleTitle)
+    }
     onChangeRadio=(e)=>{
         this.setState({
             radioValue: e.target.value,
@@ -58,6 +62,9 @@ export default class ExportFrame extends React.Component{
             }            
 		}).then((res)=>{
 			if(res.uuid){
+                this.setState({
+                    uuid:res.uuid
+                })
                 this.statusOut(res.uuid)
                 this.timerID=setInterval(
                     () =>this.statusOut(res.uuid),
@@ -66,17 +73,21 @@ export default class ExportFrame extends React.Component{
             }
 		})
     }
-    statusOut=(uuid)=>{
+    statusOut=(uuid,interrupted)=>{
         Super.super({
             url:`api2/entity/export/status`,   
             data:{
-                uuid
+                uuid,
+                interrupted,
             }         
-		}).then((res)=>{
+		},"","none").then((res)=>{
             this.setState({
                 statusMsg:res.statusMsg,
-                percent:(res.current/res.totalCount)*100,
+                percent:Math.floor((res.current/res.totalCount)*100),
             })
+            if(interrupted){
+                clearInterval(this.timerID);               
+            }
             if(res.completed===true){
                 clearInterval(this.timerID);
                 this.setState({
@@ -87,11 +98,15 @@ export default class ExportFrame extends React.Component{
 		})
     }
     download=()=>{
-        let uuid=this.state.uuid;
+        let {uuid}=this.state;
         const tokenName=Units.getLocalStorge("tokenName")
-        Units.downloadFile(`api2/entity/export/download/${uuid}?@token=${tokenName}`)      
+        Units.downloadFile(`api2/entity/export/download/${uuid}?@token=${tokenName}`) 
     }
     handleCancel=()=>{
+        const { moduleTitle }=this.props
+        const {uuid}=this.state
+        this.statusOut(uuid,true) //中断导出
+        this.props.setDownloadTitle(moduleTitle) //恢复原本的导出的名称
         this.setState({
             started:"none",
             isStart:"block",
@@ -102,27 +117,13 @@ export default class ExportFrame extends React.Component{
             isDisabled:true,
         });
     }
-    onChange=(e)=>{
-        this.setState({
-            withDetail:e.target.checked,
-        })
-    }
-    setValue1=(v1)=>{
-        this.setState({
-            v1,
-        })
-    }
-    setValue2=(v2)=>{
-        this.setState({
-            v2,
-        })
-    }
+   
     render(){
         const { radioValue,radioDisabled1,radioDisabled2,inputDisabled,
             isStart,started,isDisabled,percent,statusMsg }=this.state
         return (
             <div className="exportFrame">
-                <RadioGroup onChange={this.onChangeRadio} value={radioValue}>
+                <RadioGroup onChange={this.onChangeRadio} value={radioValue} defaultValue={1}>
                     <Radio value={1} disabled={radioDisabled1} >导出当前页</Radio>
                     <Radio value={2} disabled={radioDisabled2}>导出所有</Radio>
                 </RadioGroup>
@@ -131,21 +132,21 @@ export default class ExportFrame extends React.Component{
                     <div>
                         数据范围：
                         <InputNumber 
-                            min={1} 
-                            max={10} 
+                            min={0} 
                             placeholder="开始序号" 
-                            onChange={this.setValue1} 
+                            onChange={(v1)=>this.setState({v1})} 
                             disabled={inputDisabled}/>-
                         <InputNumber 
-                            min={1} 
-                            max={10} 
+                            min={1}  
                             placeholder="结束序号" 
-                            onChange={this.setValue2} 
+                            onChange={(v2)=>this.setState({v2})} 
                             disabled={inputDisabled}/>
                         <Divider />
                     </div>:"" }
                 <div style={{textAlign:"center",display:isStart}}>
-                    <Checkbox onChange={this.onChange}>
+                    <Checkbox onChange={(e)=>this.setState({
+                                withDetail:e.target.checked,
+                            })}>
                         详情
                     </Checkbox>
                     <Button type="primary" onClick={this.handleStart}>

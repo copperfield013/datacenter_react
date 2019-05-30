@@ -33,7 +33,7 @@ export default class Detail extends React.Component{
             code,
             nodeId
         })
-        console.log(nodeId)
+        //console.log(nodeId)
         this.loadltmpl(menuId,code,"",nodeId)
     }
     loadltmpl=(menuId,code,versionCode,nodeId)=>{
@@ -54,7 +54,7 @@ export default class Detail extends React.Component{
                 }
                 return false
             })
-            console.log(res)
+            //console.log(res)
             //console.log(rightNav)
             this.requestSelect(formltmpl,editformltmpl)
             if(code && code!=='new'){
@@ -482,7 +482,7 @@ export default class Detail extends React.Component{
             }
         }        
     }
-    getFormTmpl=(record)=>{
+    getFormTmpl=(record)=>{ //创建实体（新增实体）
         const {menuId,columns}=this.state
         const formTmplGroupId=record.groupId.toString()
         const arr=[]
@@ -791,7 +791,7 @@ export default class Detail extends React.Component{
                         </div>:
                         <div className="fr pad">
                             <div className="buttonGroup">
-                            {actions?
+                            {actions&&actions.length>0?
                                 <Popover placement="leftTop" content={content} trigger="click">
                                     <Button>
                                         <Icon type="swap" />
@@ -803,7 +803,7 @@ export default class Detail extends React.Component{
                                 className="submitBtn" 
                                 key="btn" 
                                 onClick={this.showModal} 
-                                style={{background:fuseMode===true?"#001529":""}}
+                                style={{backgroundColor:fuseMode===true?"#001529":""}}
                                 >保存
                             </Button>
                             </div>
