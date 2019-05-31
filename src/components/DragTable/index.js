@@ -3,6 +3,7 @@ import { Table } from 'antd';
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import update from 'immutability-helper';
+import Units from './../../units'
 
 let dragingIndex = -1;
 
@@ -41,18 +42,10 @@ const rowTarget = {
     const dragIndex = monitor.getItem().index;
     const hoverIndex = props.index;
 
-    // Don't replace items with themselves
     if (dragIndex === hoverIndex) {
       return;
     }
-
-    // Time to actually perform the action
     props.moveRow(dragIndex, hoverIndex);
-
-    // Note: we're mutating the monitor item here!
-    // Generally it's better to avoid mutations,
-    // but it's good here for the sake of performance
-    // to avoid expensive index searches.
     monitor.getItem().index = hoverIndex;
   },
 };
@@ -67,10 +60,23 @@ const DragableBodyRow = DropTarget('row', rowTarget, (connect, monitor) => ({
 );
 
 class DragSortingTable extends React.Component {
+ 
+  componentDidMount(){
+    this.props.onRef(this)
+  }
   state = {
-    data: this.props.dataSource
-  };
-
+    data:[],
+  }
+  componentWillReceiveProps(){
+    console.log(this.props.dataSource)
+    this.setState({
+      data: Units.uniq(this.props.dataSource,"key"),
+    })
+  }
+  getdata=()=>{
+    const { data } = this.state;
+    this.props.setdatasource(data)
+  }
   components = {
     body: {
       row: DragableBodyRow,
@@ -80,24 +86,24 @@ class DragSortingTable extends React.Component {
   moveRow = (dragIndex, hoverIndex) => {
     const { data } = this.state;
     const dragRow = data[dragIndex];
-    console.log(dragRow)
-
     this.setState(
       update(this.state, {
         data: {
           $splice: [[dragIndex, 1], [hoverIndex, 0, dragRow]],
         },
       }),
-    );
+    )
   };
 
   render() {
+    const {data,}=this.state
     return (
       <Table
         columns={this.props.columns}
-        dataSource={this.state.data}
+        dataSource={data}
         components={this.components}
         pagination={false}
+        bordered
         onRow={(record, index) => ({
           index,
           moveRow: this.moveRow,

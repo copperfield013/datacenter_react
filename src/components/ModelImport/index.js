@@ -2,11 +2,12 @@ import React from 'react'
 import Super from "./../../super"
 import Units from "./../../units"
 import {Button,Icon,Popover,Input,Table,Modal, message,Collapse,Tag} from 'antd'
-//import DragTable from './../DragTable'
+import DragTable from './../DragTable'
 import './index.css'
 const {confirm} = Modal
 const {Panel}=Collapse
 const {CheckableTag}=Tag
+
 
 export default class ModelImport extends React.Component{
 
@@ -70,7 +71,7 @@ export default class ModelImport extends React.Component{
         Super.super({
             url:`api2/entity/import/tmpl/${menuId}/${tmplId}`,        
         }).then((res)=>{
-            console.log(res.tmpl.fields)
+            //console.log(res.tmpl.fields)
             if(res){
                 selectWords.map((item)=>{
                     if(item.type==="normal"){
@@ -127,14 +128,10 @@ export default class ModelImport extends React.Component{
     handleVisibleChange=(value)=>{
         this.setState({ visible:value });
     }
-    handleSave=()=>{
-        const {menuId}=this.props
-        const {tmplId,title,dataSource}=this.state
-        const fields=this.getFields(dataSource)  
-        if(!title){
-            message.error("请设置模板名称！")
-            return
-        }         
+    handleSave=()=>{  
+        const {menuId}=this.props   
+        let {tmplId,title,dataSource}=this.state
+        const fields=this.getFields(dataSource)       
         Super.super({
             url:`api2/entity/import/save_tmpl/${menuId}`, 
             data:JSON.stringify({
@@ -148,11 +145,30 @@ export default class ModelImport extends React.Component{
                 this.setState({
                     tmplId:res.tmplId,
                     listLength:dataSource.length,
+                    dataSource,
                 })
             }else{
                 message.error("请选择字段保存！")
             }
         })
+    }
+    visibleModal=()=>{  
+        const { title }=this.state
+        const _this=this
+        if(!title){
+            message.error("请设置模板名称！")
+            return
+        }  
+        this.getdatasource.getdata()
+        confirm({
+            title: "确定保存导入模板？",
+            okText: '确定',
+            okType: 'danger',
+            cancelText: '取消',
+            onOk() {
+                _this.handleSave()
+            },
+          });
     }
     handleDownload=()=>{       
         const { tmplId,title,listLength,dataSource }=this.state
@@ -298,7 +314,7 @@ export default class ModelImport extends React.Component{
             }
             dataSource.push(res)
         }
-        //console.log(dataSource)
+        console.log(dataSource)
         this.setState({
             dataSource:Units.uniq(dataSource,"key"),
             selectWords,
@@ -325,9 +341,17 @@ export default class ModelImport extends React.Component{
         })
         return fields
     }
+    onRef=(ref)=>{
+		this.getdatasource=ref
+    }
+    setdatasource=(data)=>{
+        this.setState({
+            dataSource:data
+        })
+    }
     render(){
         const { visible,title,dataSource,selectWords,modelList,tmplId }=this.state
-        //console.log(selectWords)
+        console.log(dataSource)
         const content = (
             <div>
                 {modelList.map((item)=>{
@@ -368,7 +392,7 @@ export default class ModelImport extends React.Component{
                     <p className="fr">
                         <Button className="hoverbig" title="新建模板"><Icon type="file-add" /></Button>                                                
                         <Button className="hoverbig" title="下载导入模板" onClick={this.handleDownload}><Icon type="download" /></Button>
-                        <Button className="hoverbig" title="保存模板" onClick={this.handleSave}><Icon type="save" /></Button>
+                        <Button className="hoverbig" title="保存模板" onClick={this.visibleModal}><Icon type="save" /></Button>
                         <Popover 
                             content={content} 
                             placement="bottomRight" 
@@ -390,19 +414,21 @@ export default class ModelImport extends React.Component{
                     <Input placeholder="输入导入模板名称" style={{ width: 200 }} value={title} onChange={this.setModelName}/>
                 </div>
                 <div className="table">                   
-                    <Table
+                    {/* <Table
                         bordered
                         columns={columns}
                         dataSource={dataSource}
                         size="small"
                         pagination={false}
-                    />
-                    {/* <DragTable
+                    /> */}
+                    <DragTable
                         columns={columns}
                         dataSource={dataSource}
+                        onRef={this.onRef}
+                        setdatasource={this.setdatasource}
                         size="small"
                     
-                    /> */}
+                    />
                 </div>
                 {
                     selectWords?<Collapse accordion style={{float:"right"}}>
