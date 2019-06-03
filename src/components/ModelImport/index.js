@@ -349,6 +349,14 @@ export default class ModelImport extends React.Component{
             dataSource:data
         })
     }
+    resetForm=()=>{
+        this.setState({
+            modelList:[],
+            title:"",
+            visible:false,
+            dataSource:[],
+        })
+    }
     render(){
         const { visible,title,dataSource,selectWords,modelList,tmplId }=this.state
         console.log(dataSource)
@@ -390,7 +398,7 @@ export default class ModelImport extends React.Component{
                 <h3>
                     导入模板配置
                     <p className="fr">
-                        <Button className="hoverbig" title="新建模板"><Icon type="file-add" /></Button>                                                
+                        <Button className="hoverbig" title="新建模板" onClick={this.resetForm}><Icon type="file-add" /></Button>                                                
                         <Button className="hoverbig" title="下载导入模板" onClick={this.handleDownload}><Icon type="download" /></Button>
                         <Button className="hoverbig" title="保存模板" onClick={this.visibleModal}><Icon type="save" /></Button>
                         <Popover 

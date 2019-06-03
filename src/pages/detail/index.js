@@ -490,7 +490,7 @@ export default class Detail extends React.Component{
         const {menuId,columns}=this.state
         const formTmplGroupId=record.groupId.toString()
         const arr=[]
-        //console.log(record)
+        console.log(record)
         columns.map((item)=>{
             if(item.id.toString()===formTmplGroupId){
                 item.fields.map((it)=>{
@@ -508,35 +508,39 @@ export default class Detail extends React.Component{
             let templateDtmpl=res.config.dtmpl.groups
             const moduleTitle=res.config.module.title
             if(record.code){
-                Super.super({
-                    url:`api2/entity/curd/detail/${menuId}/${record.code}`, 
-                    data:{
-                        fieldGroupId: formTmplGroupId
-                    }         
-                }).then((resi)=>{ 
-                    const entityTitle=resi.entity.title
-                    const fieldMap=this.forPic(resi.entity.fieldMap)
-                    templateDtmpl.map((item)=>{
-                        item.code=resi.entity.code
-                        item.fields.map((it)=>{
-                            for(let k in fieldMap){
-                                if(k===it.id.toString()){
-                                    it.value=fieldMap[k]
+                if(record.code.length>9){
+                    Super.super({
+                        url:`api2/entity/curd/detail/${menuId}/${record.code}`, 
+                        data:{
+                            fieldGroupId: formTmplGroupId
+                        }         
+                    }).then((resi)=>{
+                        const entityTitle=resi.entity.title
+                        const fieldMap=this.forPic(resi.entity.fieldMap)
+                        templateDtmpl.map((item)=>{
+                            item.code=resi.entity.code
+                            item.fields.map((it)=>{
+                                for(let k in fieldMap){
+                                    if(k===it.id.toString()){
+                                        it.value=fieldMap[k]
+                                    }
                                 }
-                            }
+                                return false
+                            })
                             return false
-                        })
-                        return false
-                    })           
-                    this.setState({
-                        getFormTmpl:true,
-                        templateDtmpl,
-                        title:moduleTitle+"-"+entityTitle+"-修改",
-                        visibleTemplateList:true,
-                        formTmplGroupId, //修改实体模板groupId
-                        dfieldIds:arr.join(',')
-                    })   
-                 })
+                        })           
+                        this.setState({
+                            getFormTmpl:true,
+                            templateDtmpl,
+                            title:moduleTitle+"-"+entityTitle+"-修改",
+                            visibleTemplateList:true,
+                            formTmplGroupId, //修改实体模板groupId
+                            dfieldIds:arr.join(',')
+                        })   
+                     })
+                }else{
+                    message.error("没有找到实体！")
+                }
             }else{
                 //console.log(arr)
                 this.setState({
@@ -631,6 +635,7 @@ export default class Detail extends React.Component{
         dataSource=data
         if(isNew){ //新增记录
             const list={
+                isEditTmpl:false,
                 fieldMap:fieldsValue
             }
             dataSource[groupId].unshift(list)
@@ -649,7 +654,7 @@ export default class Detail extends React.Component{
                 }
             }
         }
-        //console.log(dataSource)
+        console.log(dataSource)
         this.setState({
             dataSource,
             visibleForm:false

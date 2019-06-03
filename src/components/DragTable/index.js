@@ -68,7 +68,6 @@ class DragSortingTable extends React.Component {
     data:[],
   }
   componentWillReceiveProps(){
-    console.log(this.props.dataSource)
     this.setState({
       data: Units.uniq(this.props.dataSource,"key"),
     })

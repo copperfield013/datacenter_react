@@ -1,6 +1,9 @@
 .tree .ant-tree li .ant-tree-node-content-wrapper.ant-tree-node-selected{
     background-color: #fff;
 }
+.tree .ant-tree{
+    font-size: 15px;
+}
 .hoverBtn{
     display: inline;
 }
@@ -22,4 +25,9 @@
 }
 .ant-tree li .ant-tree-node-content-wrapper:hover .hoverBtn span{
     display: block
+}
+.tree .ant-tree li .ant-tree-node-content-wrapper{
+    border-bottom:1px solid #333;
+    height:31px;
+    line-height:31px;
 }

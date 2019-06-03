@@ -1,6 +1,7 @@
 import React from 'react'
-import {Button,Upload,Icon} from 'antd'
+import {Button,Upload,Icon,message} from 'antd'
 
+const api="http://47.100.187.235:7080/hydrocarbon-api/"
 export default class NewUpload extends React.Component{
 
     state={
@@ -9,7 +10,7 @@ export default class NewUpload extends React.Component{
     componentDidMount(){
         const {fieldValue,fieldName}=this.props
         if(fieldValue){
-            const url="http://47.100.187.235:7080/datacenter_api2/"+fieldValue
+            const url=api+fieldValue
             this.setState({
                 fileList:[{
                     uid:"-1",
@@ -23,7 +24,7 @@ export default class NewUpload extends React.Component{
     handleChange=(info)=>{
         let fileList = info.fileList;
         fileList = fileList.slice(-1);
-        this.setState({fileList})
+        //this.setState({fileList})
         if(fileList.length>=1){
             fileList.map((item)=>{
                 this.triggerChange(item);
@@ -38,14 +39,30 @@ export default class NewUpload extends React.Component{
         }
       }
     beforeUpload=(file)=>{
-        this.setState(state => ({
-            fileList: [file],
-        }));
-        return false;
+        console.log(file)
+        const isJPG = file.type === 'image/jpeg';
+        const isPNG = file.type === 'image/png';
+        let isChecked=true
+        if (!(isJPG || isPNG)) {
+            message.error('只能上传JPG 、JPEG 、PNG格式的图片~')
+            isChecked=false
+        }
+        const isLt5M = file.size / 1024 / 1024 < 1;
+        if (!isLt5M) {
+            message.error('超过5M限制 不允许上传~')
+            isChecked=false
+        }
+        console.log(isChecked)
+        if(isChecked){
+            console.log(isChecked)
+            this.setState(state => ({
+                //fileList: [file],
+            }));
+        }
     }
     render(){
         const {fieldValue,width}=this.props
-        const url="http://47.100.187.235:7080/hydrocarbon-api/"+fieldValue
+        const url=api+fieldValue
         return (
             <div>                                           
                 <Upload
