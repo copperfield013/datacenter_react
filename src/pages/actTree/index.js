@@ -22,7 +22,6 @@ export default class ActTree extends React.Component{
             url:`/api2/entity/curd/tree/${menuId}`, 
             data,
         }).then((res)=>{
-            console.log(res)
             const fieldIds=[]
             if(res){
                 res.ltmpl.criterias.map((item)=>{
@@ -142,6 +141,7 @@ export default class ActTree extends React.Component{
                 resolve();
                 return;
             }
+            console.log(treeNode)
             Super.super({
                 url:`api2/entity/curd/start_query_rel/${this.state.menuId}/${treeNode.props.code}/${treeNode.props.id}`,        
             }).then((res)=>{

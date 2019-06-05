@@ -266,7 +266,9 @@ export default class Import extends React.Component{
                                                     trigger="click" 
                                                     placement="top" 
                                                     visible={newsChangeVisible}
+                                                    overlayStyle={{width:350}}
                                                     onVisibleChange={this.handleVisibleChange}
+                                                    getPopupContainer={trigger => trigger.parentNode}
                                                     >
                                                     <Button title="导入日志设置" type="primary" size="small">
                                                         <Icon type="setting"/>

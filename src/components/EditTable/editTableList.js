@@ -115,7 +115,7 @@ export default class EditTableList extends React.Component {
                                         type='primary' 
                                         icon="plus-square" 
                                         size="small"
-                                        onClick={()=>this.props.getFormTmpl({groupId})} 
+                                        onClick={()=>this.props.getFormTmpl({groupId},true)} 
                                         style={{marginBottom:10,marginRight:10}}
                                         >新增</Button>:""}
               <Table

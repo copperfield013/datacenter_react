@@ -10,6 +10,7 @@ import ModelForm from './../../components/ModelForm/modelForm'
 import RightBar from './../../components/RightBar'
 import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 import TemplateList from '../../components/templateList';
+import EditAddTemplate from '../../components/editAddTemplate';
 const confirm = Modal.confirm;
 
 const api="http://47.100.187.235:7080/hydrocarbon-api/"
@@ -26,17 +27,20 @@ export default class Detail extends React.Component{
         isNew:false,
     }
     componentWillMount(){
-        const {menuId,code,type,nodeId}=this.props.match.params
+        const {menuId,code,type}=this.props.match?this.props.match.params:this.props
+        const nodeId=this.props.match?this.props.match.params.nodeId:null
+        const fieldGroupId=this.props.match?null:this.props.fieldGroupId
         this.setState({
             menuId,
             type,
             code,
-            nodeId,//树形视图详情页id
+            nodeId,
+            fieldGroupId,
         })
-        this.loadltmpl(menuId,code,type,"",nodeId)
+        this.loadltmpl(menuId,code,type,"",nodeId?nodeId:fieldGroupId)        
     }
-    componentWillReceiveProps(){
-        const path=this.props.history.location.pathname.split("/")
+    componentWillReceiveProps(nextProps){
+        const path=nextProps.location.pathname.split("/")
         this.setState({
             menuId:path[1],
             type:path[2],
@@ -45,8 +49,13 @@ export default class Detail extends React.Component{
         this.loadltmpl(path[1],path[3],path[2])
     }
     loadltmpl=(menuId,code,type,versionCode,nodeId)=>{
-        const url=nodeId?`api2/meta/tmpl/dtmpl_config/node/${menuId}/${nodeId}`:`api2/meta/tmpl/dtmpl_config/normal/${menuId}/`
-        Super.super({url}).then((res)=>{     
+        let url
+        if(this.props.match){
+            url=nodeId?`api2/meta/tmpl/dtmpl_config/node/${menuId}/${nodeId}`:`api2/meta/tmpl/dtmpl_config/normal/${menuId}/`
+        }else{
+            url=`api2/meta/tmpl/dtmpl_config/rabc/${menuId}/${nodeId}`
+        }
+        Super.super({url}).then((res)=>{ 
             const formltmpl=[]
             const editformltmpl=[]
             const rightNav=[]
@@ -125,12 +134,13 @@ export default class Detail extends React.Component{
         })
     }
     loadRequest=(formltmpl,editformltmpl,versionCode)=>{
-        const {menuId,type,code,nodeId}=this.props.match.params
+        const {menuId,type,code,nodeId,fieldGroupId}=this.props.match?this.props.match.params:this.props 
         Super.super({
             url:`api2/entity/curd/detail/${menuId}/${code}`, 
             data:{
                 versionCode,
-                nodeId
+                nodeId,
+                fieldGroupId,
             }          
         }).then((res)=>{  
             const arrayMap=res.entity.arrayMap
@@ -318,6 +328,7 @@ export default class Detail extends React.Component{
             columns.push(item)
             return false
         })   
+        console.log(columns)
         return columns
     }
     visibleModal=(record,name,string)=>{
@@ -451,6 +462,7 @@ export default class Detail extends React.Component{
             visibleForm: false,
             visibleTemplateList:false,
             visibleDrawer: false,
+            visibleEditAddTemplate:false,
         });
     }
     showModal = () => {
@@ -486,73 +498,14 @@ export default class Detail extends React.Component{
             }
         }        
     }
-    getFormTmpl=(record)=>{ //创建实体（新增实体）
-        const {menuId,columns}=this.state
-        const formTmplGroupId=record.groupId.toString()
-        const arr=[]
-        console.log(record)
-        columns.map((item)=>{
-            if(item.id.toString()===formTmplGroupId){
-                item.fields.map((it)=>{
-                    if(it.groupId){
-                        arr.push(it.id)
-                    }
-                    return false
-                })
-            }
-            return false
-        })
-        Super.super({
-            url:`api2/meta/tmpl/dtmpl_config/rabc/${menuId}/${formTmplGroupId}`,                 
-        }).then((res)=>{
-            let templateDtmpl=res.config.dtmpl.groups
-            const moduleTitle=res.config.module.title
-            if(record.code){
-                if(record.code.length>9){
-                    Super.super({
-                        url:`api2/entity/curd/detail/${menuId}/${record.code}`, 
-                        data:{
-                            fieldGroupId: formTmplGroupId
-                        }         
-                    }).then((resi)=>{
-                        const entityTitle=resi.entity.title
-                        const fieldMap=this.forPic(resi.entity.fieldMap)
-                        templateDtmpl.map((item)=>{
-                            item.code=resi.entity.code
-                            item.fields.map((it)=>{
-                                for(let k in fieldMap){
-                                    if(k===it.id.toString()){
-                                        it.value=fieldMap[k]
-                                    }
-                                }
-                                return false
-                            })
-                            return false
-                        })           
-                        this.setState({
-                            getFormTmpl:true,
-                            templateDtmpl,
-                            title:moduleTitle+"-"+entityTitle+"-修改",
-                            visibleTemplateList:true,
-                            formTmplGroupId, //修改实体模板groupId
-                            dfieldIds:arr.join(',')
-                        })   
-                     })
-                }else{
-                    message.error("没有找到实体！")
-                }
-            }else{
-                //console.log(arr)
-                this.setState({
-                    getFormTmpl:true,
-                    templateDtmpl,
-                    title:"创建实体",
-                    visibleTemplateList:true,
-                    formTmplGroupId, //修改实体模板groupId
-                    dfieldIds:arr.join(',')
-                })   
-            }
-            
+    getFormTmpl=(record,isCreate)=>{ //创建实体（新增实体）
+        const editAddGroupId=record.groupId.toString()       
+        this.setState({
+            editAddGroupId,
+            visibleEditAddTemplate:true,
+            title:"创建实体",
+            type:isCreate?"new":"edit",
+            code:record.code,
         })
     }
     getForm=(record,isNew)=>{
@@ -665,12 +618,13 @@ export default class Detail extends React.Component{
         Super.super({
             url:`api2/meta/tmpl/select_config/${menuId}/${templateGroupId}`,               
         }).then((res)=>{
+            //console.log(res)
             this.setState({
                 templateDtmpl:res,
                 templateGroupId, //选择模板groupId
                 dfieldIds,
-                getFormTmpl:false,
                 excepts,
+                fileType:res.config.type//ltmlp/ttmpl
             })
         })
         Super.super({
@@ -776,10 +730,11 @@ export default class Detail extends React.Component{
         this.loadltmpl(menuId,code,type)
     }
     render(){
-        const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,visibleForm,editFormList,
-            actions,premises,templateDtmpl,rightNav,getFormTmpl,columns,dataSource,
-            visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,
+        const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,visibleForm,editFormList,visibleEditAddTemplate,
+            actions,premises,templateDtmpl,rightNav,columns,dataSource,editAddGroupId,
+            visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fileType,
             dfieldIds,title,options,templateData,formTmplGroupId}=this.state;
+            console.log(type)
         const premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
         let content
         if(actions && actions.length>0){
@@ -900,9 +855,7 @@ export default class Detail extends React.Component{
                     handleCancel={this.handleCancel}
                     templateDtmpl={templateDtmpl}
                     templateData={templateData}
-                    width={900}
                     menuId={menuId}
-                    getFormTmpl={getFormTmpl}
                     formTmplGroupId={formTmplGroupId}
                     type="edit"
                     getTemplate={this.getTemplate}
@@ -913,6 +866,16 @@ export default class Detail extends React.Component{
                     title={title}
                     getOptions={this.getOptions}
                     options={options}
+                    fileType={fileType}
+                />
+                <EditAddTemplate 
+                    visibleEditAddTemplate={visibleEditAddTemplate}
+                    handleCancel={this.handleCancel}
+                    menuId={menuId}
+                    editAddGroupId={editAddGroupId}
+                    type={type}
+                    title={title}
+                    code={code}
                 />
                 {!rightNav||rightNav.length<3?"":
                     <RightBar 

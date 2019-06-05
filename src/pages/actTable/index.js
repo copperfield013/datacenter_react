@@ -32,10 +32,10 @@ export default class actTable extends React.Component{
             this.searchList(Units.urlToObj(url),menuId)//更新筛选列表
         }
     }
-    componentWillReceiveProps(){
-        const menuId=this.props.history.location.pathname.replace(/[^0-9]/ig,"");
+    componentWillReceiveProps(nextProps){
+        const menuId=nextProps.match.params.menuId
         this.setState({menuId,isSeeTotal:false})
-        const url=decodeURI(this.props.history.location.search)//前进后退获取url参数
+        const url=decodeURI(nextProps.location.search)//前进后退获取url参数
         if(!url){
             this.requestLtmpl(menuId)
         }else{
@@ -404,7 +404,7 @@ export default class actTable extends React.Component{
                         </Button>}
                         {hideExport?"":<Popover
                                             content={content} 
-                                            title={downloadTitle&&downloadTitle===moduleTitle?"导出":"导出("+downloadTitle+"正在导出...)"}
+                                            title={downloadTitle&&downloadTitle===moduleTitle?"导出":"导出("+downloadTitle+"有导出进程...)"}
                                             placement="bottomRight" 
                                             getPopupContainer={trigger => trigger.parentNode}
                                             trigger="click">

@@ -6,6 +6,7 @@ export default class EditTable extends React.Component{
     initDetailsList=()=>{
         const { type,dataSource,columns,getTemplate,getFormTmpl }=this.props
         const detailsItemList=[];
+        //console.log(dataSource)  
         if(columns){
             columns.map((item)=>{
                 const selectionTemplateId=item.selectionTemplateId
@@ -38,7 +39,7 @@ export default class EditTable extends React.Component{
                                             getFormTmpl={getFormTmpl}
                                             rabcTemplatecreatable={rabcTemplatecreatable}
                                         />
-                            detailsItemList.push(RANGE)         
+                            detailsItemList.push(RANGE)       
                             return false
                         }                      
                     }
