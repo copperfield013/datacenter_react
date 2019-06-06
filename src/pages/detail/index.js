@@ -26,6 +26,11 @@ export default class Detail extends React.Component{
         visibleTemplateList:false,
         isNew:false,
     }
+    componentDidMount(){
+        if(!this.props.match){
+            this.props.onRef3(this)
+        }
+    }
     componentWillMount(){
         const {menuId,code,type}=this.props.match?this.props.match.params:this.props
         const nodeId=this.props.match?this.props.match.params.nodeId:null
@@ -40,7 +45,7 @@ export default class Detail extends React.Component{
         this.loadltmpl(menuId,code,type,"",nodeId?nodeId:fieldGroupId)        
     }
     componentWillReceiveProps(nextProps){
-        const path=nextProps.location.pathname.split("/")
+        const path=nextProps.location?nextProps.location.pathname.split("/"):null
         this.setState({
             menuId:path[1],
             type:path[2],
@@ -312,7 +317,7 @@ export default class Detail extends React.Component{
                             size="small" 
                             onClick={()=>this.visibleModal(record,'removeList','确定要删除这条记录吗')}
                             ></Button>
-                        {item.rabcTemplateGroupId && item.rabcUnupdatable===null?
+                        {this.props.match && item.rabcTemplateGroupId && item.rabcUnupdatable===null?
                             <Button 
                                 title="编辑当前实体" 
                                 type='primary' 
@@ -328,7 +333,7 @@ export default class Detail extends React.Component{
             columns.push(item)
             return false
         })   
-        console.log(columns)
+        //console.log(columns)
         return columns
     }
     visibleModal=(record,name,string)=>{
@@ -349,16 +354,18 @@ export default class Detail extends React.Component{
             fieldIds+=item+","
             return false
         })
-        Super.super({
-            url:`api2/meta/dict/field_options`,       
-            data:{
-                fieldIds
-            },
-        }).then((res)=>{
-            this.setState({
-                optionsMap:res.optionsMap
+        if(selectId.length>0){
+            Super.super({
+                url:`api2/meta/dict/field_options`,       
+                data:{
+                    fieldIds
+                },
+            }).then((res)=>{
+                this.setState({
+                    optionsMap:res.optionsMap
+                })
             })
-        })
+        }
     }
     removeList=(record)=>{
         const deleKey=record.key
@@ -378,7 +385,7 @@ export default class Detail extends React.Component{
         })
     }
     handleOk = (actionId) => {
-        const { menuId,code,type,baseValue,fuseMode,dataSource,descsFlag }=this.state       
+        const { menuId,code,type,baseValue,fuseMode,dataSource,descsFlag,fieldGroupId }=this.state       
         const formData = new FormData(); 
         if(actionId){
             formData.append("%actionId%", actionId)
@@ -390,7 +397,7 @@ export default class Detail extends React.Component{
             formData.append(`${item}.$$flag$$`, true);
             return false
         })
-        console.log(dataSource)
+        //console.log(baseValue)
         if(dataSource.constructor===Object){
             for(let k in dataSource){
                 dataSource[k].map((item)=>{
@@ -424,14 +431,21 @@ export default class Detail extends React.Component{
             formData.append('唯一编码', type==="new"?"":code);
             formData.append('%fuseMode%',fuseMode);
         }
+        const url=this.props.match?`api2/entity/curd/save/normal/${menuId}`:`api2/entity/curd/save/rabc/${menuId}/${fieldGroupId}`
         Super.super({
-            url:`api2/entity/curd/save/normal/${menuId}`, 
+            url:url, 
             data:formData
         },'formdata').then((res)=>{
             if(res && res.status==="suc"){
                 message.success("保存成功!")
                 sessionStorage.setItem(menuId,"")
-                window.history.back(-1);
+                if(this.props.match){
+                    window.history.back(-1);
+                }else{
+                    console.log(9)
+                    this.props.handleCancel()
+                    this.props.fresh()
+                }
             }else{
                 message.error("保存失败!")
             }
@@ -469,7 +483,7 @@ export default class Detail extends React.Component{
         this.baseinfo.handleBaseInfoSubmit() //获取BaseInfo数据
     }
     baseInfo=(baseValue)=>{  
-        this.visibleModal(null,'handleOk','确定要保存修改吗')//弹出确认框    
+        this.visibleModal(null,'handleOk','确定要保存修改吗')//弹出确认框 
         this.setState({
             baseValue,
         });
@@ -655,11 +669,14 @@ export default class Detail extends React.Component{
         let {templateGroupId,excepts,dfieldIds}=this.state;
         this.getTemplate(templateGroupId,excepts,dfieldIds,params)
     }
-    TemplatehandleOk=(codes,formTmplGroupId,isPush)=>{
-        console.log(isPush)
+    TemplatehandleOk=(codes,formTmplGroupId,isPush,ddfieldIds)=>{
+        //console.log(isPush)
         let {menuId,dfieldIds,templateGroupId,dataSource,columns}=this.state
         if(formTmplGroupId){
             templateGroupId=formTmplGroupId
+        }
+        if(ddfieldIds){
+            dfieldIds=ddfieldIds
         }
         Super.super({
             url:`api2/entity/curd/load_entities/${menuId}/${templateGroupId}`,  
@@ -733,8 +750,7 @@ export default class Detail extends React.Component{
         const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,visibleForm,editFormList,visibleEditAddTemplate,
             actions,premises,templateDtmpl,rightNav,columns,dataSource,editAddGroupId,
             visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fileType,
-            dfieldIds,title,options,templateData,formTmplGroupId}=this.state;
-            console.log(type)
+            title,options,templateData,formTmplGroupId}=this.state
         const premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
         let content
         if(actions && actions.length>0){
@@ -768,28 +784,31 @@ export default class Detail extends React.Component{
                                             <Icon type="swap" />
                                         </Button>
                                     </Popover>:""}
-                                <Button 
-                                    type='primary' 
-                                    icon="cloud-upload" 
-                                    className="submitBtn" 
-                                    key="btn" 
-                                    onClick={this.showModal} 
-                                    style={{backgroundColor:fuseMode===true?"#001529":""}}
-                                    >保存
-                                </Button>
+                                {this.props.match?
+                                    <Button 
+                                        type='primary' 
+                                        icon="cloud-upload" 
+                                        className="submitBtn" 
+                                        key="btn" 
+                                        onClick={this.showModal} 
+                                        style={{backgroundColor:fuseMode===true?"#001529":""}}
+                                        >保存
+                                    </Button>:""}
                                 </div>
-                                {code?<Switch 
+                                {code?
+                                    <Switch 
                                         checkedChildren="开" 
                                         unCheckedChildren="关" 
                                         style={{marginRight:10}} 
                                         title="融合模式" 
                                         onChange={this.fuseMode}/>
                                     :""}
-                                <Button 
-                                    className="hoverbig" 
-                                    title="刷新" 
-                                    onClick={this.fresh}
-                                    ><Icon type="sync" /></Button>
+                                {this.props.match?
+                                    <Button 
+                                        className="hoverbig" 
+                                        title="刷新" 
+                                        onClick={this.fresh}
+                                        ><Icon type="sync" /></Button>:""}
                             </div>}                                  
                 </h3>
                 { premises?<Form layout="inline" autoComplete="off">  
@@ -808,8 +827,7 @@ export default class Detail extends React.Component{
                                         width={220}
                                         />
                                 </Card>
-                            </Form>
-                                :"" }
+                            </Form>:"" }
                 <FormCard
                     formList={formltmpl}
                     type={type}
@@ -824,9 +842,9 @@ export default class Detail extends React.Component{
                     columns={columns}
                     dataSource={dataSource}
                     handleAdd={this.getForm}
-                    onRef3={this.onRef3}
                     getTemplate={this.getTemplate} //新增选择实体模板
                     getFormTmpl={this.getFormTmpl}//新增修改实体模板
+                    isModal={this.props.match?false:true}
                 />               
                 <ModelForm
                     handleCancel={this.handleCancel}
@@ -858,14 +876,10 @@ export default class Detail extends React.Component{
                     menuId={menuId}
                     formTmplGroupId={formTmplGroupId}
                     type="edit"
-                    getTemplate={this.getTemplate}
                     templateSearch={this.templateSearch}
-                    dfieldIds={dfieldIds}
                     TemplatehandleOk={this.TemplatehandleOk}
                     templatePageTo={this.templatePageTo}
                     title={title}
-                    getOptions={this.getOptions}
-                    options={options}
                     fileType={fileType}
                 />
                 <EditAddTemplate 
@@ -876,11 +890,14 @@ export default class Detail extends React.Component{
                     type={type}
                     title={title}
                     code={code}
+                    TemplatehandleOk={this.TemplatehandleOk}
+                    columns={columns}
+                    fresh={this.fresh}
                 />
                 {!rightNav||rightNav.length<3?"":
-                    <RightBar 
+                    this.props.match?<RightBar 
                         list={rightNav}
-                    />}              
+                    />:""}              
             </div>
         )
     }

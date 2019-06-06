@@ -4,7 +4,7 @@ import EditTableList from './editTableList'
 export default class EditTable extends React.Component{
     
     initDetailsList=()=>{
-        const { type,dataSource,columns,getTemplate,getFormTmpl }=this.props
+        const { type,dataSource,columns,getTemplate,getFormTmpl,isModal }=this.props
         const detailsItemList=[];
         //console.log(dataSource)  
         if(columns){
@@ -38,6 +38,7 @@ export default class EditTable extends React.Component{
                                             getTemplate={getTemplate}
                                             getFormTmpl={getFormTmpl}
                                             rabcTemplatecreatable={rabcTemplatecreatable}
+                                            isModal={isModal}
                                         />
                             detailsItemList.push(RANGE)       
                             return false
@@ -55,6 +56,7 @@ export default class EditTable extends React.Component{
                                     getTemplate={getTemplate}
                                     getFormTmpl={getFormTmpl}
                                     rabcTemplatecreatable={rabcTemplatecreatable}
+                                    isModal={isModal}
                                 />
                     detailsItemList.push(RANGE)
 

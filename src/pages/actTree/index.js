@@ -30,14 +30,16 @@ export default class ActTree extends React.Component{
                     }
                     return false
                 })
-                this.requestSelect(fieldIds)
+                if(fieldIds.length>0){
+                    this.requestSelect(fieldIds)
+                }
                 this.bulidTree(res)
                 this.setState({
                     menuId,
                     treeTitle:res.menu.title+"-树形视图",
                     formList:res.ltmpl.criterias,
                     queryKey:res.queryKey,
-                    nodeTmpl:res.nodeTmpl
+                    nodeTmpl:res.nodeTmpl,
                 })
             }
             
@@ -219,7 +221,7 @@ export default class ActTree extends React.Component{
           }
           return <TreeNode 
                     {...item}
-                    title={<div class="hoverBtn">
+                    title={<div className="hoverBtn">
                             {item.title}
                             {item.title!=="加载更多"&&item.nodeColor?<span>
                                 {hideDetail===null&&templateGroupId?

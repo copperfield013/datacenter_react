@@ -2,8 +2,6 @@ import React from 'react'
 import { Modal,Table,Pagination, message,Tree,Icon } from 'antd';
 import Super from './../../super'
 import BaseForm from './../BaseForm'
-import FormCard from './../FormCard'
-import EditTable from './../EditTable/editTable'
 const { TreeNode } = Tree;
 
 export default class TemplateList extends React.Component{
@@ -20,8 +18,8 @@ export default class TemplateList extends React.Component{
             nextProps.templateData.entities.map((item)=>{
                 item.key=item.code
                 item.id=id
+                return false
             })
-            console.log(nextProps)
             this.setState({
                 menuId:nextProps.menuId,
                 treeData:nextProps.templateData.entities,
@@ -169,8 +167,7 @@ export default class TemplateList extends React.Component{
         })
     };
     handleTreeOk=()=>{
-        const {selectedTreeCodes}=this.state
-        
+        const {selectedTreeCodes}=this.state       
         this.props.TemplatehandleOk(selectedTreeCodes,null,true)
         console.log(selectedTreeCodes)
     }
@@ -193,111 +190,109 @@ export default class TemplateList extends React.Component{
                 this.setState({selectCodes,selectedRowKeys})
             },
         }
-        let dataSource=[]
-        //if(!getFormTmpl){                     
-            if(templateDtmpl && templateData &&columns){
-                formList=templateDtmpl.config?templateDtmpl.config.criterias:null
-                pageCount=templateData.pageInfo.virtualEndPageNo*templateData.pageInfo.pageSize           
-                columns.map((item)=>{
-                    item["dataIndex"]=item.id;
-                    if(item.title==="序号"){
-                        item["dataIndex"]="order";
-                    }
-                    return false
-                })
-                templateData.entities.map((item,index)=>{
-                    const list={}
-                    list['key']=index;
-                    list['order']=index+1;
-                    list['code']=item.code;
-                    for(let k in item.cellMap){
-                        list[k]=item.cellMap[k]
-                    }
-                    dataSource.push(list)
-                    return false
-                })
-            }
-        //}
+        let dataSource=[]                  
+        if(templateDtmpl && templateData &&columns){
+            formList=templateDtmpl.config?templateDtmpl.config.criterias:null
+            pageCount=templateData.pageInfo.virtualEndPageNo*templateData.pageInfo.pageSize           
+            columns.map((item)=>{
+                item["dataIndex"]=item.id;
+                if(item.title==="序号"){
+                    item["dataIndex"]="order";
+                }
+                return false
+            })
+            templateData.entities.map((item,index)=>{
+                const list={}
+                list['key']=index;
+                list['order']=index+1;
+                list['code']=item.code;
+                for(let k in item.cellMap){
+                    list[k]=item.cellMap[k]
+                }
+                dataSource.push(list)
+                return false
+            })
+        }
         
         return (
             <div>
                 {templateDtmpl&&templateDtmpl.config&&templateDtmpl.config.type==="ttmpl"?// 弹出树的模态框
-                                <Modal
-                                    title={title}
-                                    visible={visibleTemplateList}
-                                    okText={"确认"}
-                                    cancelText="取消"
-                                    centered
-                                    onOk={this.handleTreeOk}
-                                    onCancel={handleCancel}
-                                    width={900}
-                                    destroyOnClose={true}>
-                                        {treeData&&treeData.length!==0?<Tree 
-                                            checkable
-                                            showLine
-                                            checkStrictly
-                                            showIcon={true}
-                                            loadData={this.onLoadData} 
-                                            onSelect={this.onSelect}
-                                            onCheck={this.handleTreeCodes}
-                                            >
-                                            {this.renderTreeNodes(treeData)}
-                                        </Tree>:<p>暂无实体</p>}
-                                </Modal>
-                                :
-                                <Modal
-                                    title={title}
-                                    visible={visibleTemplateList}
-                                    okText={"保存"}
-                                    cancelText="取消"
-                                    centered
-                                    onOk={this.handleOk}
-                                    onCancel={handleCancel}
-                                    destroyOnClose
-                                    width={900}
-                                    >
-                                        <div> 
-                                            <BaseForm 
-                                                formList={formList} 
-                                                filterSubmit={this.props.templateSearch} 
-                                                handleOperate={this.handleOperate}
-                                                handleActions={this.handleActions}
-                                                menuId={menuId}
-                                                hideDelete='true'
-                                                onRef={this.onRef}
-                                                />    
-                                            <Table
-                                                rowSelection={rowSelection}
-                                                columns={columns}
-                                                dataSource={dataSource}
-                                                bordered
-                                                pagination={false}
-                                            >
-                                            </Table>
-                                            <div className='Pagination'>
-                                                <span 
-                                                    className={isSeeTotal?'sewTotal':'seeTotal'} 
-                                                    onClick={this.seeTotal}
-                                                    >
-                                                    {isSeeTotal?`共${isSeeTotal}条`:'点击查看总数'}
-                                                </span>
-                                                <Pagination 
-                                                    style={{display:'inline-block'}}
-                                                    showQuickJumper 
-                                                    showSizeChanger 
-                                                    pageSizeOptions={['5','10','15','20']}
-                                                    defaultCurrent={1} 
-                                                    current={currentPage}
-                                                    onChange={(page, pageSize)=>this.pageTo(page, pageSize)} 
-                                                    onShowSizeChange={(current, size)=>this.pageTo(current, size)}
-                                                    hideOnSinglePage={true}
-                                                    total={pageCount}
-                                                    />
-                                            </div>
-                                        </div>                                     
-                                </Modal>
-                            }
-                </div>
+                    <Modal
+                        title={title}
+                        visible={visibleTemplateList}
+                        okText={"确认"}
+                        cancelText="取消"
+                        centered
+                        onOk={this.handleTreeOk}
+                        onCancel={handleCancel}
+                        width={900}
+                        destroyOnClose={true}>
+                            {treeData&&treeData.length!==0?<Tree 
+                                checkable
+                                showLine
+                                checkStrictly
+                                showIcon={true}
+                                loadData={this.onLoadData} 
+                                onSelect={this.onSelect}
+                                onCheck={this.handleTreeCodes}
+                                >
+                                {this.renderTreeNodes(treeData)}
+                            </Tree>:<p>暂无实体</p>}
+                    </Modal>
+                    :
+                    <Modal
+                        title={title}
+                        visible={visibleTemplateList}
+                        okText={"保存"}
+                        cancelText="取消"
+                        centered
+                        onOk={this.handleOk}
+                        onCancel={handleCancel}
+                        destroyOnClose
+                        width={900}
+                        >
+                            <div> 
+                                <BaseForm 
+                                    formList={formList} 
+                                    filterSubmit={this.props.templateSearch} 
+                                    handleOperate={this.handleOperate}
+                                    handleActions={this.handleActions}
+                                    menuId={menuId}
+                                    hideDelete='true'
+                                    onRef={this.onRef}
+                                    />    
+                                <Table
+                                    rowSelection={rowSelection}
+                                    columns={columns}
+                                    dataSource={dataSource}
+                                    bordered
+                                    pagination={false}
+                                >
+                                </Table>
+                                <div className='Pagination'>
+                                    <span 
+                                        className={isSeeTotal?'sewTotal':'seeTotal'} 
+                                        onClick={this.seeTotal}
+                                        >
+                                        {isSeeTotal?`共${isSeeTotal}条`:'点击查看总数'}
+                                    </span>
+                                    <Pagination 
+                                        style={{display:'inline-block'}}
+                                        showQuickJumper 
+                                        showSizeChanger 
+                                        pageSizeOptions={['5','10','15','20']}
+                                        defaultCurrent={1} 
+                                        current={currentPage}
+                                        onChange={(page, pageSize)=>this.pageTo(page, pageSize)} 
+                                        onShowSizeChange={(current, size)=>this.pageTo(current, size)}
+                                        hideOnSinglePage={true}
+                                        total={pageCount}
+                                        />
+                                </div>
+                            </div>                                     
+                    </Modal>
+                }
+        </div>
         )
     }
 }

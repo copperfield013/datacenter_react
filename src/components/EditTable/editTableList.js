@@ -67,7 +67,7 @@ export default class EditTableList extends React.Component {
     })
   }
   render() {
-    let { cardTitle,columns,type,dataSource,haveTemplate,rabcTemplatecreatable }=this.props
+    let { cardTitle,columns,type,dataSource,haveTemplate,rabcTemplatecreatable,isModal }=this.props
     const page={pageSize:5,hideOnSinglePage:true}
     let groupId
     const arr1=[]
@@ -104,14 +104,14 @@ export default class EditTableList extends React.Component {
                               onClick={this.props.handleAdd} 
                               style={{marginBottom:10,marginRight:10}}
                               >新增</Button>}
-              {haveTemplate && type!=="detail"?<Button 
+              {!isModal&&haveTemplate && type!=="detail"?<Button 
                               type='primary' 
                               icon="snippets" 
                               size="small"
                               onClick={()=>this.props.getTemplate(groupId,excepts,dfieldIds)}
                               style={{marginBottom:10,marginRight:10}}
                               >选择</Button>:""}
-              {rabcTemplatecreatable && type!=="detail"?<Button 
+              {!isModal&&rabcTemplatecreatable && type!=="detail"?<Button 
                                         type='primary' 
                                         icon="plus-square" 
                                         size="small"

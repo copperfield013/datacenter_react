@@ -1,7 +1,7 @@
 import React from 'react'
 import Super from "./../../super"
 import Units from "./../../units"
-import {Button,Icon,Popover,Input,Table,Modal, message,Collapse,Tag} from 'antd'
+import {Button,Icon,Popover,Input,Modal, message,Collapse,Tag} from 'antd'
 import DragTable from './../DragTable'
 import './index.css'
 const {confirm} = Modal

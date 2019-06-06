@@ -1,20 +1,34 @@
 import React from 'react'
-import { Modal, message } from 'antd';
-import Super from './../../super'
+import { Modal} from 'antd';
 import Detail from './../../pages/detail'
 
 export default class EditAddTemplate extends React.Component{
     state={
 
     }
-    onRef=(ref)=>{
-		this.child=ref
-    }
     handleOk=()=>{
-
+        const {code,editAddGroupId,columns}=this.props
+        console.log(columns)
+        const arr=[]
+        columns.map((item)=>{
+            if(item.id.toString()===editAddGroupId){
+                item.fields.map((it)=>{
+                    if(it.additionAccess){
+                        arr.push(it.id)
+                    }
+                })
+            }
+        })
+        console.log(arr)
+        let dfieldIds=arr.join(',')
+        this.detail.showModal()
+        this.detail.TemplatehandleOk(code,editAddGroupId,false,dfieldIds)
+    }
+    onRef3=(ref)=>{
+		this.detail=ref
     }
     render(){
-        const {visibleEditAddTemplate,handleCancel,type,title,menuId,editAddGroupId,code}=this.props
+        const {visibleEditAddTemplate,handleCancel,type,title,menuId,editAddGroupId,code,fresh}=this.props
         return (
             <div>               
                 <Modal
@@ -23,16 +37,19 @@ export default class EditAddTemplate extends React.Component{
                     okText={"保存"}
                     cancelText="取消"
                     centered
-                    onOk={()=>this.templatehandleSave()}
+                    onOk={this.handleOk}
                     onCancel={handleCancel}
                     destroyOnClose
-                    width={900}
+                    width={930}
                     >
                     <Detail
                         menuId={menuId}
                         fieldGroupId={editAddGroupId}
                         type={type}
                         code={code}
+                        onRef3={this.onRef3}
+                        handleCancel={handleCancel}
+                        fresh={fresh}
                     />                                  
                 </Modal>
                             
