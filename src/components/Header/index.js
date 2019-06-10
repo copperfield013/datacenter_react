@@ -1,16 +1,68 @@
 import React from 'react'
 import {Row,Col,Dropdown,Menu,Icon} from 'antd'
-import { withRouter } from 'react-router-dom'
+import { withRouter,NavLink } from 'react-router-dom'
 import Units from './../../units'
 import Super from "./../../super"
 import "./index.css"
+const { SubMenu } = Menu
 
 class Header extends React.Component{
+
 	componentWillMount(){
 		this.setState({
 			userName:Units.getLocalStorge("name")
 		})
 		this.getUser()
+	}
+	componentDidMount(){
+		let usedBlockId
+		const query = window.location.href.split("?")[1];
+		if(query){
+			const vars =query.split("&")
+			for (let i=0;i<vars.length;i++) {
+				const pair = vars[i].split("=");
+				if(pair[0] === "blockId"){
+					usedBlockId=parseInt(pair[1])
+				}
+			}
+		}
+		Super.super({
+			url:'/api2/meta/menu/get_blocks',                   
+		}).then((res)=>{
+			const currentBlockId=usedBlockId?usedBlockId:res.currentBlockId //判断url里有blockid
+			res.blocks.map((item)=>{
+				if(item.id===currentBlockId){
+					this.props.setCurrentList(item)
+				}
+				item.l1Menus.map((it)=>{
+					it.blockId=item.id
+					it.l2Menus.map((i)=>{
+						i.blockId=item.id
+						return false
+					})
+					return false
+				})
+				item.menus=<Menu>
+								{this.renderBlockMenu(item.l1Menus)}
+							</Menu>
+				return false
+			})
+			this.setState({
+				blocks:res.blocks,
+			})
+		})
+	}
+	renderBlockMenu=(data)=>{
+		return data.map((item)=>{
+			if(item.l2Menus){
+				return <SubMenu title={item.title} key={item.id}>
+							{ this.renderBlockMenu(item.l2Menus) }
+						</SubMenu>				
+			}
+			return  <Menu.Item key={item.id} >
+						<NavLink to={`/${item.id}?blockId=${item.blockId}`} target="_blank">{item.title}</NavLink>
+					</Menu.Item>
+		})		
 	}
 	loginout=()=>{
 		window.location.href="/#/login";
@@ -29,10 +81,20 @@ class Header extends React.Component{
 		const {id}=this.state
 		this.props.history.push(`/user/${type}/${id}`)
 	}
+	setCurrentListId=(id)=>{
+		const {blocks}=this.state
+		blocks.map((item)=>{
+			if(item.id===id){
+				this.props.setCurrentList(item)
+			}
+			return false
+		})
+	}
 	render(){
 		const style={
 			marginRight:"8px"
 		}
+		const {blocks}=this.state
 		const menu = (
 			<Menu>
 				<Menu.Item>
@@ -49,7 +111,16 @@ class Header extends React.Component{
 		return (
 			<div className="header">
 				<Row className="header-top">	
-					<Col span={24}>
+					<Col span={4}>
+						{blocks && blocks.map((item,index)=>{
+							return <Dropdown overlay={item.menus} key={index}>
+										<a className="dropdown-link" href={`#/home?blockId=${item.id}`} target="_blank" onClick={()=>this.setCurrentListId(item.id)}>
+											{item.title}<Icon type="caret-down" />
+										</a>
+									</Dropdown>
+						})}
+					</Col>					
+					<Col span={20}>
 						<Dropdown overlay={menu} placement="bottomCenter" trigger={['click']}>
 							<div className="userLogin">
 								<Icon type="user" />

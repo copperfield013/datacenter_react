@@ -42,6 +42,7 @@ export default class Detail extends React.Component{
             nodeId,
             fieldGroupId,
         })
+        console.log(code)
         this.loadltmpl(menuId,code,type,"",nodeId?nodeId:fieldGroupId)        
     }
     componentWillReceiveProps(nextProps){
@@ -385,7 +386,20 @@ export default class Detail extends React.Component{
         })
     }
     handleOk = (actionId) => {
-        const { menuId,code,type,baseValue,fuseMode,dataSource,descsFlag,fieldGroupId }=this.state       
+        const { menuId,code,type,baseValue,fuseMode,dataSource,descsFlag,fieldGroupId,columns }=this.state    
+        const arr=[]
+        columns.map((item)=>{
+            if(item.id.toString()===fieldGroupId){
+                item.fields.map((it)=>{
+                    if(it.additionAccess){
+                        arr.push(it.id)
+                    }
+                    return false
+                })
+            }
+            return false
+        })   
+        let dfieldIds=arr.join(',')
         const formData = new FormData(); 
         if(actionId){
             formData.append("%actionId%", actionId)
@@ -442,7 +456,8 @@ export default class Detail extends React.Component{
                 if(this.props.match){
                     window.history.back(-1);
                 }else{
-                    console.log(9)
+                    console.log(res.code)
+                    this.props.TemplatehandleOk(res.code,fieldGroupId,true,dfieldIds)
                     this.props.handleCancel()
                     this.props.fresh()
                 }
@@ -613,15 +628,13 @@ export default class Detail extends React.Component{
                         const fildcode=item.fieldMap.code.toString()
                         if(fildcode===Code){
                             item.fieldMap=fieldsValue
-                        }else{
-                            
                         }
                         return false
                     })
                 }
             }
         }
-        console.log(dataSource)
+        //console.log(dataSource)
         this.setState({
             dataSource,
             visibleForm:false
@@ -669,9 +682,8 @@ export default class Detail extends React.Component{
         let {templateGroupId,excepts,dfieldIds}=this.state;
         this.getTemplate(templateGroupId,excepts,dfieldIds,params)
     }
-    TemplatehandleOk=(codes,formTmplGroupId,isPush,ddfieldIds)=>{
-        //console.log(isPush)
-        let {menuId,dfieldIds,templateGroupId,dataSource,columns}=this.state
+    TemplatehandleOk=(codes,formTmplGroupId,isUnshift,ddfieldIds)=>{
+        let {menuId,dfieldIds,templateGroupId,dataSource,columns,formltmpl}=this.state
         if(formTmplGroupId){
             templateGroupId=formTmplGroupId
         }
@@ -720,7 +732,7 @@ export default class Detail extends React.Component{
                 }               
                 for(let k in dataSource){
                     if(k===templateGroupId.toString()){
-                        if(!isPush){
+                        if(!isUnshift){
                             dataSource[k].map((it,index)=>{
                                 if(it.code===item['唯一编码']){
                                     dataSource[k].splice(index,1,list); 
@@ -728,7 +740,7 @@ export default class Detail extends React.Component{
                                 return false
                             })
                         }else{
-                            dataSource[k].push(list)
+                            dataSource[k].unshift(list)
                         }
                         
                     }
@@ -738,6 +750,8 @@ export default class Detail extends React.Component{
             //console.log(dataSource)
             this.setState({
                 visibleTemplateList:false,
+                dataSource,
+                formltmpl
             })
         })
     }
@@ -890,9 +904,9 @@ export default class Detail extends React.Component{
                     type={type}
                     title={title}
                     code={code}
-                    TemplatehandleOk={this.TemplatehandleOk}
                     columns={columns}
                     fresh={this.fresh}
+                    TemplatehandleOk={this.TemplatehandleOk}
                 />
                 {!rightNav||rightNav.length<3?"":
                     this.props.match?<RightBar 

@@ -158,7 +158,7 @@ export default class ActTree extends React.Component{
                             item.title=item.text
                             item.key=treeNode.props.dataRef.key+"-"+index
                             item.nodeId=treeNode.props.id
-                            item.isLeaf=true
+                            item.id=treeNode.props.id
                             return false
                         })
                         if(!resq.isEndList){

@@ -30,3 +30,7 @@
 .ant-dropdown-menu-item:hover, .ant-dropdown-menu-submenu-title:hover{
     color:#000;
 }
+.dropdown-link{
+    display: inline-block;
+    margin:0 10px;
+}

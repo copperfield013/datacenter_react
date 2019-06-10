@@ -41,14 +41,20 @@ export default class Admin extends React.Component{
 			}
         }
 	}
+	setCurrentList=(list)=>{
+		this.navLeft.setMenuTreeNode(list)
+	}
+	onRef=(ref)=>{
+		this.navLeft=ref
+    }
 	render(){
 		return(
 			<Row className="container">
 				<Col span={4} className="nav-left">
-					<NavLeft/>
+					<NavLeft onRef={this.onRef}/>
 				</Col>
 				<Col span={20} className="main" onScroll={this.handleNav}>
-					<Header/>
+					<Header setCurrentList={this.setCurrentList}/>
 					<Row className="content" style={{padding:20}}>
 						{this.props.children}
 					</Row>					

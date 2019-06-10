@@ -8,7 +8,7 @@ export default class EditAddTemplate extends React.Component{
     }
     handleOk=()=>{
         const {code,editAddGroupId,columns}=this.props
-        console.log(columns)
+        //console.log(columns)
         const arr=[]
         columns.map((item)=>{
             if(item.id.toString()===editAddGroupId){
@@ -16,19 +16,23 @@ export default class EditAddTemplate extends React.Component{
                     if(it.additionAccess){
                         arr.push(it.id)
                     }
+                    return false
                 })
             }
+            return false
         })
-        console.log(arr)
+        //console.log(arr)
         let dfieldIds=arr.join(',')
         this.detail.showModal()
-        this.detail.TemplatehandleOk(code,editAddGroupId,false,dfieldIds)
+        if(code){
+            this.detail.TemplatehandleOk(code,editAddGroupId,false,dfieldIds)
+        }
     }
     onRef3=(ref)=>{
 		this.detail=ref
     }
     render(){
-        const {visibleEditAddTemplate,handleCancel,type,title,menuId,editAddGroupId,code,fresh}=this.props
+        const {visibleEditAddTemplate,handleCancel,type,title,menuId,editAddGroupId,code,fresh,TemplatehandleOk}=this.props
         return (
             <div>               
                 <Modal
@@ -50,6 +54,7 @@ export default class EditAddTemplate extends React.Component{
                         onRef3={this.onRef3}
                         handleCancel={handleCancel}
                         fresh={fresh}
+                        TemplatehandleOk={TemplatehandleOk}
                     />                                  
                 </Modal>
                             

@@ -87,7 +87,7 @@ export default class actTable extends React.Component{
                 return false
             })
             this.setState({
-                moduleTitle:res.ltmpl.title,
+                moduleTitle:res.menu.title,
                 columns:this.renderColumns(res.ltmpl.columns),
                 queryKey:res.queryKey,
                 formList:res.ltmpl.criterias,
@@ -322,11 +322,6 @@ export default class actTable extends React.Component{
             expotrVisible:!expotrVisible
         })
     }
-    setDownloadTitle=(name)=>{
-        this.setState({
-            downloadTitle:name
-        })
-    }
     render(){
         let {selectedRowKeys,filterOptions,moduleTitle,list,loading,pageInfo,statView,disabledColIds,plainOptions,downloadTitle,
             formList,tmplGroup,columns,Loading,currentPage,menuId,pageCount,isSeeTotal,optionsMap,queryKey } = this.state;
@@ -355,7 +350,12 @@ export default class actTable extends React.Component{
                             filterOptions={filterOptions}
                             queryKey={queryKey}
                             moduleTitle={moduleTitle}
-                            setDownloadTitle={this.setDownloadTitle}
+                            setDownloadTitle={(name)=>{
+                                console.log(name)
+                                this.setState({
+                                    downloadTitle:name
+                                })
+                            }}
                             /> 
         
         const rowSelection = {
@@ -379,7 +379,7 @@ export default class actTable extends React.Component{
         return(
             <div className="actTable">
                 <h3>
-                    {moduleTitle}
+                    {moduleTitle+"-列表"}
                     <p className="fr">
                         {hideCreate?"":<Button 
                             className="hoverbig" 
@@ -402,14 +402,19 @@ export default class actTable extends React.Component{
                             onClick={()=>this.recalc(menuId)}>
                             <Icon type="calculator" />
                         </Button>}
-                        {hideExport?"":<Popover
-                                            content={content} 
-                                            title={downloadTitle&&downloadTitle===moduleTitle?"导出":"导出("+downloadTitle+"有导出进程...)"}
-                                            placement="bottomRight" 
-                                            getPopupContainer={trigger => trigger.parentNode}
-                                            trigger="click">
-                                            <Button className="hoverbig" title="导出"><Icon type="upload" /></Button>
-                                        </Popover> }  
+                        <Popover                                            
+                            content={content} 
+                            title={downloadTitle && moduleTitle!==downloadTitle?"导出("+downloadTitle+"有导出进程...)":"导出"}
+                            placement="bottomRight" 
+                            getPopupContainer={trigger => trigger.parentNode}
+                            trigger="click">
+                            <Button 
+                                style={{display:hideExport?"none":"inline"}} //为了点击到没有导出模块，使组件不致销毁，丢失导出数据
+                                className="hoverbig" 
+                                title="导出">
+                                <Icon type="upload" />
+                            </Button>
+                        </Popover>  
                         {hideTreeToggle?"":<Button 
                             className="hoverbig" 
                             title="树形视图" 

@@ -16,9 +16,8 @@ export default class ExportFrame extends React.Component{
         radioDisabled1:false,
         radioDisabled2:false,
     }
-    componentDidMount(){
-        const {moduleTitle }=this.props
-        this.props.setDownloadTitle(moduleTitle)
+    componentWillUnmount(){
+        console.log("销毁")
     }
     onChangeRadio=(e)=>{
         this.setState({
@@ -28,7 +27,7 @@ export default class ExportFrame extends React.Component{
         });
     }
     handleStart=()=>{
-        const { menuId,filterOptions,queryKey,pageInfo }=this.props
+        const { menuId,filterOptions,queryKey,pageInfo,moduleTitle }=this.props
         const { radioValue,withDetail,v1,v2 }=this.state
         this.setState({
             started:"block",
@@ -61,6 +60,8 @@ export default class ExportFrame extends React.Component{
                 rangeEnd:v2,
             }            
 		}).then((res)=>{
+            console.log(moduleTitle)
+            this.props.setDownloadTitle(moduleTitle)
 			if(res.uuid){
                 this.setState({
                     uuid:res.uuid
@@ -103,10 +104,9 @@ export default class ExportFrame extends React.Component{
         Units.downloadFile(`api2/entity/export/download/${uuid}?@token=${tokenName}`) 
     }
     handleCancel=()=>{
-        const { moduleTitle }=this.props
         const {uuid}=this.state
         this.statusOut(uuid,true) //中断导出
-        this.props.setDownloadTitle(moduleTitle) //恢复原本的导出的名称
+        this.props.setDownloadTitle(null) //恢复原本的导出的名称
         this.setState({
             started:"none",
             isStart:"block",
