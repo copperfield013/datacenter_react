@@ -2,6 +2,7 @@ import React from 'react'
 import Super from './../../super'
 import {Tree,Card,Icon,Button,message } from 'antd'
 import BaseForm from './../../components/BaseForm'
+import {NavLink } from 'react-router-dom'
 import moment from 'moment';
 import './index.css'
 import Units from './../../units'
@@ -27,6 +28,12 @@ export default class ActTree extends React.Component{
                 res.ltmpl.criterias.map((item)=>{
                     if(item.inputType==="select"){
                         fieldIds.push(item.fieldId)
+                    }
+                    const criteriaValueMap=res.criteriaValueMap
+                    for(let k in criteriaValueMap){
+                        if(k===item.id.toString()){
+                            item.value=criteriaValueMap[k]
+                        }
                     }
                     return false
                 })
@@ -57,7 +64,6 @@ export default class ActTree extends React.Component{
                 pageNo
             }       
 		}).then((res)=>{
-            console.log(res)
             if(code){ //最里面列表的加载更多
                 res.entities.map((item)=>{
                     item.title=item.text
@@ -87,7 +93,7 @@ export default class ActTree extends React.Component{
                 res.entities.map((item,index)=>{
                     item.title=item.text
                     item.key=(pageNo-1)*10+index
-                    item.nodeId=nodeTmpl.id
+                    item.nodeId = nodeTmpl.id;
                     item.children=[];
                     nodeTmpl.relations.map((it,i)=>{
                         const copyRel = Object.assign({}, it);
@@ -130,9 +136,8 @@ export default class ActTree extends React.Component{
 		})
     }
     onSelect = (selectedKeys, info) => {
-        console.log('selected', selectedKeys, info)
-        this.bulidTree(info)
-        
+        //console.log('selected', selectedKeys, info)
+        this.bulidTree(info)        
     };
     onRef=(ref)=>{
 		this.child=ref
@@ -143,7 +148,7 @@ export default class ActTree extends React.Component{
                 resolve();
                 return;
             }
-            console.log(treeNode)
+            //console.log(treeNode)
             Super.super({
                 url:`api2/entity/curd/start_query_rel/${this.state.menuId}/${treeNode.props.code}/${treeNode.props.id}`,        
             }).then((res)=>{
@@ -157,7 +162,7 @@ export default class ActTree extends React.Component{
                         resq.entities.map((item,index)=>{
                             item.title=item.text
                             item.key=treeNode.props.dataRef.key+"-"+index
-                            item.nodeId=treeNode.props.id
+                            item.nodeId=res.nodeTmpl.id
                             item.id=treeNode.props.id
                             return false
                         })
@@ -192,7 +197,7 @@ export default class ActTree extends React.Component{
         this.props.history.push(`/${menuId}/${type}/${code}/${nodeId}`)
     }
     renderTreeNodes = (data) =>{
-        const {nodeTmpl}=this.state
+        const {nodeTmpl,menuId}=this.state
         const hideDetail=nodeTmpl?nodeTmpl.hideDetailButton:""
         const hideUpdate=nodeTmpl?nodeTmpl.hideUpdateButton:""
         const templateGroupId=nodeTmpl?nodeTmpl.templateGroupId:""
@@ -204,10 +209,13 @@ export default class ActTree extends React.Component{
                                 {item.title}
                                 {item.title!=="加载更多"&&item.nodeColor?<span>
                                     {hideDetail===null&&templateGroupId?
-                                    <Icon type="read" onClick={()=>this.toDetail('detail',item.code,item.nodeId)} title="打开详情页"/>:""
-                                    }&nbsp;
+                                    <NavLink to={`/${menuId}/detail/${item.code}/${item.nodeId}`} target="_blank">
+                                        <Icon type="read" title="打开详情页"/>
+                                    </NavLink>:""}&nbsp;
                                     {hideUpdate===null&&templateGroupId?
-                                    <Icon type="edit" onClick={()=>this.toDetail('edit',item.code,item.nodeId)} title="打开修改页"/>:""}
+                                    <NavLink to={`/${menuId}/edit/${item.code}/${item.nodeId}`} target="_blank">
+                                        <Icon type="edit" title="打开修改页"/>
+                                    </NavLink>:""}
                                 </span>:""}
                                 </div>} 
                         key={item.key} 
@@ -225,10 +233,14 @@ export default class ActTree extends React.Component{
                             {item.title}
                             {item.title!=="加载更多"&&item.nodeColor?<span>
                                 {hideDetail===null&&templateGroupId?
-                                <Icon type="read" onClick={()=>this.toDetail('detail',item.code,item.nodeId)} title="打开详情页"/>:""
+                                <NavLink to={`/${menuId}/detail/${item.code}/${item.nodeId}`} target="_blank">
+                                    <Icon type="read" title="打开详情页"/>
+                                </NavLink>:""
                                 }&nbsp;
                                 {hideUpdate===null&&templateGroupId?
-                                <Icon type="edit" onClick={()=>this.toDetail('edit',item.code,item.nodeId)} title="打开修改页"/>:""}
+                                <NavLink to={`/${menuId}/edit/${item.code}/${item.nodeId}`} target="_blank">
+                                    <Icon type="edit" title="打开修改页"/>
+                                </NavLink>:""}
                             </span>:""}
                             </div>}  
                     dataRef={item} 
@@ -300,17 +312,11 @@ export default class ActTree extends React.Component{
                 <Card className="hoverable" style={{display:formList?"block":"none"}} headStyle={{background:"#f2f4f5"}}>
                     <BaseForm 
                         formList={formList} 
-                        filterSubmit={this.searchList} 
-                        // handleOperate={this.handleOperate}
-                        // actions={tmplGroup?tmplGroup.actions:""}
-                        // handleActions={this.handleActions}
-                        // disabled={selectedRowKeys.length>0?false:true}
+                        filterSubmit={this.searchList}
                         menuId={menuId}
                         hideDelete={true}
-                        // hideQuery={hideQuery}
                         onRef={this.onRef}
                         optionsMap={optionsMap}
-                        // //reset={this.reset}
                         />
                     </Card>
                 {treeData&&treeData.length!==0?<Tree 

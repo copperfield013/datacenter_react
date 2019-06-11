@@ -42,7 +42,6 @@ export default class Detail extends React.Component{
             nodeId,
             fieldGroupId,
         })
-        console.log(code)
         this.loadltmpl(menuId,code,type,"",nodeId?nodeId:fieldGroupId)        
     }
     componentWillReceiveProps(nextProps){
@@ -190,7 +189,7 @@ export default class Detail extends React.Component{
                 editformltmpl,
                 columns:this.renderColumns(editformltmpl),
                 dataSource:arrayMap,
-            })          
+            })       
         })
     }
     forPic=(fieldMap)=>{ //原始数据的图片url转化为图片
@@ -318,7 +317,7 @@ export default class Detail extends React.Component{
                             size="small" 
                             onClick={()=>this.visibleModal(record,'removeList','确定要删除这条记录吗')}
                             ></Button>
-                        {this.props.match && item.rabcTemplateGroupId && item.rabcUnupdatable===null?
+                        {this.props.match && item.rabcTemplateGroupId && item.rabcUnupdatable===null && record.code.length>9?
                             <Button 
                                 title="编辑当前实体" 
                                 type='primary' 
@@ -386,7 +385,8 @@ export default class Detail extends React.Component{
         })
     }
     handleOk = (actionId) => {
-        const { menuId,code,type,baseValue,fuseMode,dataSource,descsFlag,fieldGroupId,columns }=this.state    
+        const { baseValue,fuseMode,dataSource,descsFlag,fieldGroupId,columns }=this.state 
+        const {menuId,code,type}=this.props.match?this.props.match.params:this.props
         const arr=[]
         columns.map((item)=>{
             if(item.id.toString()===fieldGroupId){
@@ -411,7 +411,6 @@ export default class Detail extends React.Component{
             formData.append(`${item}.$$flag$$`, true);
             return false
         })
-        //console.log(baseValue)
         if(dataSource.constructor===Object){
             for(let k in dataSource){
                 dataSource[k].map((item)=>{
@@ -453,10 +452,7 @@ export default class Detail extends React.Component{
             if(res && res.status==="suc"){
                 message.success("保存成功!")
                 sessionStorage.setItem(menuId,"")
-                if(this.props.match){
-                    window.history.back(-1);
-                }else{
-                    console.log(res.code)
+                if(!this.props.match){
                     this.props.TemplatehandleOk(res.code,fieldGroupId,true,dfieldIds)
                     this.props.handleCancel()
                     this.props.fresh()
@@ -527,15 +523,16 @@ export default class Detail extends React.Component{
             }
         }        
     }
-    getFormTmpl=(record,isCreate)=>{ //创建实体（新增实体）
-        const editAddGroupId=record.groupId.toString()       
+    getFormTmpl=(record,isCreate)=>{ //创建实体（修改实体）
+        const editAddGroupId=record.groupId.toString()           
         this.setState({
             editAddGroupId,
             visibleEditAddTemplate:true,
-            title:"创建实体",
+            title:isCreate?"创建实体":"修改实体",
             type:isCreate?"new":"edit",
             code:record.code,
         })
+        
     }
     getForm=(record,isNew)=>{
         let {columns}=this.state
@@ -634,7 +631,7 @@ export default class Detail extends React.Component{
                 }
             }
         }
-        //console.log(dataSource)
+        console.log(dataSource)
         this.setState({
             dataSource,
             visibleForm:false

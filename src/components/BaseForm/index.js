@@ -18,12 +18,6 @@ class BaseForm extends React.Component{
     }
     handleFilterSubmit=()=>{
         const fieldsValue=this.props.form.getFieldsValue();
-        console.log(fieldsValue)
-        for(let k in fieldsValue){
-            if(!fieldsValue[k]){
-                delete fieldsValue[k]
-            }
-        }
         this.props.filterSubmit(fieldsValue,this.props.menuId);
     }
     selectOptions=(id)=>{//下拉框

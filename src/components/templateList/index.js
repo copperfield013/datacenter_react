@@ -20,9 +20,23 @@ export default class TemplateList extends React.Component{
                 item.id=id
                 return false
             })
+            if(!nextProps.templateData.isEndList){
+                const More={
+                    key:"more",
+                    text:"加载更多",
+                    nodeColor:"#CCC",
+                    selectable:true,
+                    queryKey:nextProps.templateData.queryKey,
+                    pageNo:nextProps.templateData.pageInfo.pageNo+1,
+                    isLeaf:true,
+                }
+                nextProps.templateData.entities.push(More)
+            }
+            console.log(nextProps.templateData.entities)
             this.setState({
                 menuId:nextProps.menuId,
                 treeData:nextProps.templateData.entities,
+                nodeTmpl:nextProps.templateDtmpl.config.nodeTmpl,
             })
         }
     }
@@ -110,6 +124,7 @@ export default class TemplateList extends React.Component{
                 resolve();
                 return;
             }
+            const nodeId=treeNode.props.dataRef.nodeId
             Super.super({
                 url:`api2/entity/curd/start_query_rel/${this.state.menuId}/${treeNode.props.code}/${treeNode.props.id}`,        
             }).then((res)=>{
@@ -124,12 +139,13 @@ export default class TemplateList extends React.Component{
                             item.title=item.text
                             item.key=item.code
                             item.id=treeNode.props.id
+                            item.nodeId=nodeId
                             return false
                         })
                         if(!resq.isEndList){
                             const More={
                                 key:"more"+treeNode.props.id,
-                                title:"加载更多",
+                                text:"加载更多",
                                 nodeColor:"#CCC",
                                 queryKey:resq.queryKey,
                                 pageNo:resq.pageInfo.pageNo+1,
@@ -156,9 +172,83 @@ export default class TemplateList extends React.Component{
         const {menuId}=this.state
         this.props.history.push(`/${menuId}/${type}/${code}/${nodeId}`)
     }
+    bulidTree=(info)=>{
+        const queryKey=info.node?info.node.props.queryKey:info.queryKey
+        const pageNo=info.node?info.node.props.pageNo:1
+        const code=info.node?info.node.props.code:null
+        const id=info.node?info.node.props.id:null
+        const {treeData}=this.state
+        Super.super({
+            url:`/api2/entity/curd/ask_for/${queryKey}`,
+            data:{
+                pageNo
+            }       
+		}).then((res)=>{
+            console.log(res)
+            if(code){ //最里面列表的加载更多
+                res.entities.map((item)=>{
+                    item.title=item.text
+                    item.isLeaf=true
+                    item.selectable=false
+                    return false
+                })
+                treeData.map((item)=>{
+                    if(item.code===code){
+                        item.children.map((it)=>{
+                            if(it.id===id){
+                                it.children.splice(it.children.length-1,1)
+                                it.children.push(...res.entities)
+                                it.children.map((i,index)=>{
+                                    i.key=it.key+"-"+index
+                                    return false
+                                })
+                            }
+                            return false
+                        })
+                    }
+                    return false
+                })
+                this.setState(treeData)
+            }else{//最外面列表的加载更多
+                const {nodeTmpl}=this.state
+                res.entities.map((item,index)=>{
+                    item.title=item.text
+                    item.key=(pageNo-1)*10+index
+                    item.nodeId=nodeTmpl.id
+                    item.children=[];
+                    nodeTmpl.relations.map((it,i)=>{
+                        const copyRel = Object.assign({}, it);
+                        copyRel.code = item.code;
+                        copyRel.key = index+"-"+i
+                        item.children.push(copyRel);
+                        return false
+                    });
+                    return false
+                })
+                if(!res.isEndList){
+                    const More={
+                        key:"more",
+                        text:"加载更多",
+                        nodeColor:"#CCC",
+                        selectable:true,
+                        queryKey:res.queryKey,
+                        pageNo:res.pageInfo.pageNo+1,
+                        isLeaf:true,
+                    }
+                    res.entities.push(More)
+                }
+                if(treeData){
+                    treeData.splice(treeData.length-1,1)
+                }
+                this.setState({
+                    treeData:[...treeData,...res.entities]
+                })
+            }            
+		})
+    }
     onSelect = (selectedKeys, info) => {
         console.log('selected', selectedKeys, info)
-        //this.bulidTree(info)       
+        this.bulidTree(info)        
     };
     handleTreeCodes = (checkedKeys, info) => {
         console.log(checkedKeys,info)
@@ -226,18 +316,20 @@ export default class TemplateList extends React.Component{
                         onOk={this.handleTreeOk}
                         onCancel={handleCancel}
                         width={900}
+                        bodyStyle={{height:400,overflow:'auto'}}
                         destroyOnClose={true}>
-                            {treeData&&treeData.length!==0?<Tree 
-                                checkable
-                                showLine
-                                checkStrictly
-                                showIcon={true}
-                                loadData={this.onLoadData} 
-                                onSelect={this.onSelect}
-                                onCheck={this.handleTreeCodes}
-                                >
-                                {this.renderTreeNodes(treeData)}
-                            </Tree>:<p>暂无实体</p>}
+                            {treeData&&treeData.length!==0?
+                                <Tree 
+                                    checkable
+                                    showLine
+                                    checkStrictly
+                                    showIcon={true}
+                                    loadData={this.onLoadData} 
+                                    onSelect={this.onSelect}
+                                    onCheck={this.handleTreeCodes}
+                                    >
+                                    {this.renderTreeNodes(treeData)}
+                                </Tree>:<p>暂无实体</p>}
                     </Modal>
                     :
                     <Modal

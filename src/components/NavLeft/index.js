@@ -70,7 +70,6 @@ class NavLeft extends React.Component{
 	// 	})	
 	// }
 	setMenuTreeNode=(list)=>{
-		console.log(list)
 		const menuId=this.props.location.pathname.split("/")[1]
 		const open={}
 		list.l1Menus.map((item)=>{

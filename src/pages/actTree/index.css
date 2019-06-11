@@ -27,7 +27,7 @@
     display: block
 }
 .tree .ant-tree li .ant-tree-node-content-wrapper{
-    border-bottom:1px solid #333;
+    border-bottom:1px solid #D9D9D9;
     height:31px;
     line-height:31px;
 }

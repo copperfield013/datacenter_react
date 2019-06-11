@@ -22,7 +22,7 @@ class ModelForm extends React.Component{
             }
             return false
         })      
-        let fieldsValue=form.getFieldsValue()[totalName]     
+        let fieldsValue=form.getFieldsValue()[totalName]
         for(let k in fieldsValue){
             if(fieldsValue[k]){
                 fieldsValue[k+"*"]=fieldsValue[k].constructor!==Object?fieldsValue[k]:<img 
@@ -31,7 +31,7 @@ class ModelForm extends React.Component{
                                                                                         owlner={fieldsValue[k].originFileObj} 
                                                                                         alt="" />
                 formList.map((item)=>{
-                    if(k===item.title){
+                    if(k===item.name.split(".")[1]){
                         if(fieldsValue[k].constructor!==Object){
                             fieldsValue[item.id]=fieldsValue[k]
                         }else{
@@ -60,7 +60,7 @@ class ModelForm extends React.Component{
             fieldsValue["10000"]=relation
         }
         // console.log(formList)
-         //console.log(fieldsValue)
+        // console.log(fieldsValue)
         this.props.handleOk(fieldsValue);
     } 
     onRef=(ref)=>{

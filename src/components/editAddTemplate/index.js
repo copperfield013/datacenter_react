@@ -45,6 +45,7 @@ export default class EditAddTemplate extends React.Component{
                     onCancel={handleCancel}
                     destroyOnClose
                     width={930}
+                    bodyStyle={{height:430,overflow:'auto'}}
                     >
                     <Detail
                         menuId={menuId}
