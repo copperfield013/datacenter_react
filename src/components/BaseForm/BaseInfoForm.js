@@ -88,7 +88,7 @@ export default class BaseInfoForm extends React.Component{
                                         })(
                                             <Select 
                                                 style={{width:width}} 
-                                                onMouseEnter={()=>this.props.getOptions(field)}
+                                                onFocus={()=>this.props.getOptions(field)}
                                                 placeholder={`请选择${title}`}
                                                 getPopupContainer={trigger => trigger.parentNode}
                                                 disabled={!available}                                              

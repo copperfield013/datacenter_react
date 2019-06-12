@@ -94,14 +94,17 @@ export default class ActTree extends React.Component{
                     item.title=item.text
                     item.key=(pageNo-1)*10+index
                     item.nodeId = nodeTmpl.id;
-                    item.children=[];
-                    nodeTmpl.relations.map((it,i)=>{
-                        const copyRel = Object.assign({}, it);
-                        copyRel.code = item.code;
-                        copyRel.key = index+"-"+i
-                        item.children.push(copyRel);
-                        return false
-                    });
+                    item.id= nodeTmpl.relations.length===1?nodeTmpl.relations[0].id:null
+                    if(nodeTmpl.relations.length>1){  
+                        item.children=[]                   
+                        nodeTmpl.relations.map((it,i)=>{
+                            const copyRel = Object.assign({}, it);
+                            copyRel.code = item.code;
+                            copyRel.key = index+"-"+i
+                            item.children.push(copyRel);
+                            return false
+                        });
+                    }
                     return false
                 })
                 if(!res.isEndList){
@@ -148,7 +151,7 @@ export default class ActTree extends React.Component{
                 resolve();
                 return;
             }
-            //console.log(treeNode)
+            console.log(treeNode)
             Super.super({
                 url:`api2/entity/curd/start_query_rel/${this.state.menuId}/${treeNode.props.code}/${treeNode.props.id}`,        
             }).then((res)=>{
@@ -289,7 +292,7 @@ export default class ActTree extends React.Component{
     }
     render(){
         const {treeTitle,formList,menuId,optionsMap,treeData}=this.state
-        console.log(treeData)
+        //console.log(treeData)
         return (
             <div className="detailPage tree">
                  <h3>

@@ -83,7 +83,7 @@ class BaseForm extends React.Component{
                     const SELECT= <FormItem label={label} key={field}>
                         {getFieldDecorator(field,{initialValue:value?value:undefined})(
                             <Select style={{width:120}} 
-                                    onMouseEnter={()=>this.selectOptions(item.fieldId)}
+                                    onFocus={()=>this.selectOptions(item.fieldId)}
                                     placeholder={`请输入${label}`} 
                                     notFoundContent="暂无选项"
                                     allowClear={true}

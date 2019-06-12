@@ -17,6 +17,7 @@ export default class actTable extends React.Component{
         Loading:false,
         radioValue:1,
         currentPage:1,
+        pageSize:10,
         selectedRowKeys: [], 
         actions:[],
         fieldIds:[],
@@ -24,7 +25,6 @@ export default class actTable extends React.Component{
     componentDidMount(){
         const {menuId}=this.props.match.params;
         this.setState({menuId})
-        this.requestLtmpl(menuId)
         const url=decodeURI(this.props.history.location.search)//获取url参数，并解码
         if(!url){
             this.requestLtmpl(menuId)
@@ -55,6 +55,12 @@ export default class actTable extends React.Component{
             res.ltmpl.criterias.map((item)=>{
                 if(item.inputType==="select"){
                     fieldIds.push(item.fieldId)
+                }
+                const criteriaValueMap=res.criteriaValueMap
+                for(let k in criteriaValueMap){
+                    if(k===item.id.toString()){
+                        item.value=criteriaValueMap[k]
+                    }
                 }
                 return false
             })
@@ -142,27 +148,37 @@ export default class actTable extends React.Component{
 		})
     }
     queryList=(queryKey,data)=>{
+        const {menuId}=this.state
+        if(sessionStorage.getItem(menuId) && !data){
+            const res= JSON.parse(sessionStorage.getItem(menuId))
+            this.sessionTodo(res)
+        }else{
+            Super.super({
+                url:`api2/entity/curd/ask_for/${queryKey}`,     
+                data           
+            }).then((res)=>{
+                sessionStorage.setItem(menuId,JSON.stringify(res))
+                this.sessionTodo(res)
+            })
+        }      
+    }
+    sessionTodo=(data)=>{
         const {isSeeTotal}=this.state
         const dataSource=[]
-        Super.super({
-            url:`api2/entity/curd/ask_for/${queryKey}`,     
-            data           
-        }).then((res)=>{
-            sessionStorage.setItem(queryKey,JSON.stringify(res))
-            res.entities.map((item,index)=>{
-                item.cellMap.key=index
-                item.cellMap.code=item.code //增加code,为了删除操作
-                dataSource.push(item.cellMap)
-                return false
-            })
-            const noSeeTotal=res.pageInfo.pageSize*res.pageInfo.virtualEndPageNo
-            this.setState({
-                list:dataSource,
-                pageInfo:res.pageInfo,
-                currentPage:res.pageInfo.pageNo,      
-                pageCount:isSeeTotal?isSeeTotal:noSeeTotal,
-                Loading:false,
-            })
+        data.entities.map((item,index)=>{
+            item.cellMap.key=index
+            item.cellMap.code=item.code //增加code,为了删除操作
+            dataSource.push(item.cellMap)
+            return false
+        })
+        const noSeeTotal=data.pageInfo.pageSize*data.pageInfo.virtualEndPageNo
+        this.setState({
+            list:dataSource,
+            pageInfo:data.pageInfo,
+            currentPage:data.pageInfo.pageNo,      
+            pageCount:isSeeTotal?isSeeTotal:noSeeTotal,
+            Loading:false,
+            pageSize:data.pageInfo.pageSize,
         })
     }
     handleOperate=(type,record)=>{
@@ -172,7 +188,7 @@ export default class actTable extends React.Component{
         if(type==="delete"){
             Modal.confirm({
 				title:"删除提示",
-				content:`您确定删除这些数据吗？`,
+				content:"您确定删除这些数据吗？",
 				okText:"确认",
 				cancelText:"取消",
 				onOk:()=>{
@@ -252,7 +268,7 @@ export default class actTable extends React.Component{
         this.props.history.push(`/${menuId}/ActTree`)
     }
     handleActions=(actionId)=>{
-        const {menuId,selectCodes}=this.state;     
+        const {menuId,selectCodes}=this.state;    
         this.setState({Loading:true})
         Super.super({
             url:`api2/entity/curd/do_action/${menuId}/${actionId}`, 
@@ -260,6 +276,7 @@ export default class actTable extends React.Component{
                 codes:selectCodes
             }                 
         }).then((res)=>{
+            console.log(res) 
             this.setState({
                 Loading:false,
                 selectedRowKeys:[],
@@ -323,8 +340,9 @@ export default class actTable extends React.Component{
         })
     }
     render(){
-        let {selectedRowKeys,filterOptions,moduleTitle,list,loading,pageInfo,statView,disabledColIds,plainOptions,downloadTitle,
-            formList,tmplGroup,columns,Loading,currentPage,menuId,pageCount,isSeeTotal,optionsMap,queryKey } = this.state;
+        let {selectedRowKeys,filterOptions,moduleTitle,list,loading,pageInfo,statView,
+            disabledColIds,plainOptions,downloadTitle,pageSize,formList,tmplGroup,columns,
+            Loading,currentPage,menuId,pageCount,isSeeTotal,optionsMap,queryKey } = this.state;
         if(statView!==null&&columns){
             columns.map((item,index)=>{             
                 if(disabledColIds){
@@ -361,7 +379,7 @@ export default class actTable extends React.Component{
         const rowSelection = {
             selectedRowKeys,
             onChange: (selectedRowKeys, selectedRows) => {
-                console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+                //console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
                 let selectCodes=""
                 selectedRows.map((item)=>{
                     selectCodes+=item.code+","
@@ -446,7 +464,6 @@ export default class actTable extends React.Component{
                         hideQuery={hideQuery}
                         onRef={this.onRef}
                         optionsMap={optionsMap}
-                        //reset={this.reset}
                         />          
                 </Card>
                 <Table
@@ -468,6 +485,7 @@ export default class actTable extends React.Component{
                         pageSizeOptions={['5','10','15','20']}
                         defaultCurrent={1} 
                         current={currentPage}
+                        pageSize={pageSize}
                         onChange={(page, pageSize)=>this.pageTo(page, pageSize)} 
                         onShowSizeChange={(current, size)=>this.pageTo(current, size)}
                         hideOnSinglePage={true}

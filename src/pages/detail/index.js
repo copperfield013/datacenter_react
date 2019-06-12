@@ -42,7 +42,7 @@ export default class Detail extends React.Component{
             nodeId,
             fieldGroupId,
         })
-        this.loadltmpl(menuId,code,type,"",nodeId?nodeId:fieldGroupId)        
+        this.loadltmpl(menuId,code,type,"",nodeId,fieldGroupId)        
     }
     componentWillReceiveProps(nextProps){
         const path=nextProps.location?nextProps.location.pathname.split("/"):null
@@ -53,12 +53,14 @@ export default class Detail extends React.Component{
         })
         this.loadltmpl(path[1],path[3],path[2])
     }
-    loadltmpl=(menuId,code,type,versionCode,nodeId)=>{
+    loadltmpl=(menuId,code,type,versionCode,nodeId,fieldGroupId)=>{
         let url
-        if(this.props.match){
-            url=nodeId?`api2/meta/tmpl/dtmpl_config/node/${menuId}/${nodeId}`:`api2/meta/tmpl/dtmpl_config/normal/${menuId}/`
+        if(nodeId){
+            url=`api2/meta/tmpl/dtmpl_config/node/${menuId}/${nodeId}`
+        }else if(fieldGroupId){
+            url=`api2/meta/tmpl/dtmpl_config/rabc/${menuId}/${fieldGroupId}`
         }else{
-            url=`api2/meta/tmpl/dtmpl_config/rabc/${menuId}/${nodeId}`
+            url=`api2/meta/tmpl/dtmpl_config/normal/${menuId}/`
         }
         Super.super({url}).then((res)=>{ 
             const formltmpl=[]
@@ -385,7 +387,7 @@ export default class Detail extends React.Component{
         })
     }
     handleOk = (actionId) => {
-        const { baseValue,fuseMode,dataSource,descsFlag,fieldGroupId,columns }=this.state 
+        const { baseValue,fuseMode,dataSource,descsFlag,fieldGroupId,columns,nodeId }=this.state 
         const {menuId,code,type}=this.props.match?this.props.match.params:this.props
         const arr=[]
         columns.map((item)=>{
@@ -444,7 +446,14 @@ export default class Detail extends React.Component{
             formData.append('唯一编码', type==="new"?"":code);
             formData.append('%fuseMode%',fuseMode);
         }
-        const url=this.props.match?`api2/entity/curd/save/normal/${menuId}`:`api2/entity/curd/save/rabc/${menuId}/${fieldGroupId}`
+        let url
+        if(nodeId){
+            url=`api2/entity/curd/save/node/${menuId}/${nodeId}`
+        }else if(fieldGroupId){
+            url=`api2/entity/curd/save/rabc/${menuId}/${fieldGroupId}`
+        }else{
+            url=`api2/entity/curd/save/normal/${menuId}`
+        }
         Super.super({
             url:url, 
             data:formData

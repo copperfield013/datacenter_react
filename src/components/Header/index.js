@@ -114,7 +114,12 @@ class Header extends React.Component{
 					<Col span={4}>
 						{blocks && blocks.map((item,index)=>{
 							return <Dropdown overlay={item.menus} key={index}>
-										<a className="dropdown-link" href={`#/home?blockId=${item.id}`} target="_blank" onClick={()=>this.setCurrentListId(item.id)}>
+										<a className="dropdown-link" 
+											href={`#/home?blockId=${item.id}`} 
+											target="_blank" 
+											rel="noopener noreferrer"
+											onClick={()=>this.setCurrentListId(item.id)}
+											>
 											{item.title}<Icon type="caret-down" />
 										</a>
 									</Dropdown>
