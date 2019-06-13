@@ -397,7 +397,7 @@ export default class actTable extends React.Component{
         return(
             <div className="actTable">
                 <h3>
-                    {moduleTitle+"-列表"}
+                    {moduleTitle?moduleTitle+"-列表":null}
                     <p className="fr">
                         {hideCreate?"":<Button 
                             className="hoverbig" 

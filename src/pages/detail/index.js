@@ -13,7 +13,6 @@ import TemplateList from '../../components/templateList';
 import EditAddTemplate from '../../components/editAddTemplate';
 const confirm = Modal.confirm;
 
-const api="http://47.100.187.235:7080/three-service-api/"
 export default class Detail extends React.Component{
     state={
         visibleDrawer:false,
@@ -103,30 +102,15 @@ export default class Detail extends React.Component{
                 })
             }
             if(premises && premises.length>0){
-                const result=[]
-                rightNav.unshift("默认字段")
-                premises.map((item)=>{
-                    let list={}
-                    for(let k in item){
-                        list[k]=item[k]
-                    }
-                    list["title"]=item["fieldTitle"]
-                    list["type"]="text"                    
-                    list["value"]=item["fieldValue"]         
-                    list["available"]=false
-                    result.push(list)
-                    return false
-                })
-                this.setState({
-                    premises:result
-                })  
+                rightNav.unshift("默认字段") 
             }
             Units.setLocalStorge("rightNav",rightNav)
             this.setState({
                 menuTitle,
                 actions,
                 formltmpl,
-                rightNav
+                rightNav,
+                premises,
             })
         })  
     }
@@ -710,7 +694,7 @@ export default class Detail extends React.Component{
                 byDfieldIds.totalName=totalName
                 for(let k in byDfieldIds){
                     if(byDfieldIds[k]&&byDfieldIds[k].includes("download-files")){
-                        const url=api+byDfieldIds[k]
+                        const url=Units.api()+byDfieldIds[k]
                         byDfieldIds[k]=<img 
                                             style={{width:55}} 
                                             src={url} 
@@ -759,7 +743,6 @@ export default class Detail extends React.Component{
             actions,premises,templateDtmpl,rightNav,columns,dataSource,editAddGroupId,
             visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fileType,
             title,options,templateData,formTmplGroupId}=this.state
-        const premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
         let content
         if(actions && actions.length>0){
             content = (
@@ -773,6 +756,27 @@ export default class Detail extends React.Component{
                         })}
                 </div>
             );
+        }
+        let premisestitle
+        if(premises && premises.length>0 && formltmpl){
+            premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
+            formltmpl.map((item)=>{
+                item.fields.map((it)=>{
+                    premises.map((i)=>{
+                        i.title=i.fieldTitle
+                        i.type="text"                    
+                        i.value=i.fieldValue        
+                        i.available=false
+                        if(i.fieldId===it.fieldId){
+                            it.fieldAvailable=false
+                            it["value"]= i["value"]
+                        }
+                        return false
+                    })
+                    return false
+                })
+                return false
+            })
         }
         return(
             <div className="detailPage">

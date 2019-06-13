@@ -1,7 +1,7 @@
 import React from 'react'
+import Units from './../../units'
 import {Button,Upload,Icon,message} from 'antd'
 
-const api="http://47.100.187.235:7080/three-service-api/"
 export default class NewUpload extends React.Component{
 
     state={
@@ -10,7 +10,7 @@ export default class NewUpload extends React.Component{
     componentDidMount(){
         const {fieldValue,fieldName}=this.props
         if(fieldValue){
-            const url=api+fieldValue
+            const url=Units.api()+fieldValue
             this.setState({
                 fileList:[{
                     uid:"-1",
@@ -62,7 +62,7 @@ export default class NewUpload extends React.Component{
     }
     render(){
         const {fieldValue,width}=this.props
-        const url=api+fieldValue
+        const url=Units.api()+fieldValue
         return (
             <div>                                           
                 <Upload

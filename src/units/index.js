@@ -4,6 +4,9 @@ const Option = Select.Option;
 
 const api="http://47.100.187.235:7080/three-service-api/"
 export default {
+    api(){
+        return api
+    },
     formateDate(time){
         if(!time) return '';
         const date=new Date(time);

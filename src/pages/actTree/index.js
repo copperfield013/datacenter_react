@@ -296,7 +296,7 @@ export default class ActTree extends React.Component{
         return (
             <div className="detailPage tree">
                  <h3>
-                    {treeTitle}
+                    {treeTitle?treeTitle:null}
                     <p className="fr pad">
                         <Button 
                             className="hoverbig" 
