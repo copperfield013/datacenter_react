@@ -175,5 +175,17 @@ export default {
             }
             return result;
         },
+        forPic(fieldMap){ //原始数据的图片url转化为图片
+            for(let i in fieldMap){
+                if(fieldMap[i] && fieldMap[i].includes("download-files")){
+                    const url=api+ fieldMap[i]
+                    fieldMap[i]=<img 
+                                    style={{width:55}} 
+                                    src={url} 
+                                    alt="" />
+                }
+            }
+            return fieldMap
+        }
 
     }

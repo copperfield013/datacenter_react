@@ -113,8 +113,8 @@ class Header extends React.Component{
 				<Row className="header-top">
 					<Col span={18}>
 						{blocks && blocks.map((item,index)=>{
-							return <div style={{float:'left',paddingLeft:10}}>
-										<Dropdown overlay={item.menus} key={index}>
+							return <div style={{float:'left',paddingLeft:10}} key={index}>
+										<Dropdown overlay={item.menus}>
 											<a className="dropdown-link" 
 												href={`#/home?blockId=${item.id}`} 
 												target="_blank" 

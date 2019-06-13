@@ -149,9 +149,9 @@ export default class Detail extends React.Component{
                 nodeId,
                 fieldGroupId,
             }          
-        }).then((res)=>{  
+        }).then((res)=>{
             const arrayMap=res.entity.arrayMap
-            const fieldMap=this.forPic(res.entity.fieldMap)          
+            const fieldMap=Units.forPic(res.entity.fieldMap)          
             formltmpl.map((item)=>{
                 item.fields.map((item)=>{
                     for(let k in fieldMap){
@@ -173,7 +173,7 @@ export default class Detail extends React.Component{
                     return false
                 })
                 arrayMap[k].map((item)=>{
-                    const fieldMap=this.forPic(item.fieldMap) //有图片，转化为图片
+                    const fieldMap=Units.forPic(item.fieldMap) //有图片，转化为图片
                     fieldMap["code"]=item.code //为了后面操作修改
                     fieldMap["key"]=item.code
                     fieldMap["groupId"]=k
@@ -193,19 +193,7 @@ export default class Detail extends React.Component{
                 dataSource:arrayMap,
             })       
         })
-    }
-    forPic=(fieldMap)=>{ //原始数据的图片url转化为图片
-        for(let i in fieldMap){
-            if(fieldMap[i] && fieldMap[i].includes("download-files")){
-                const url=api+ fieldMap[i]
-                fieldMap[i]=<img 
-                                style={{width:55}} 
-                                src={url} 
-                                alt="" />
-            }
-        }
-        return fieldMap
-    }
+    }  
     renderHistoryList=(versionCode)=>{
         const {menuId,code,nodeId}=this.state
         Super.super({
