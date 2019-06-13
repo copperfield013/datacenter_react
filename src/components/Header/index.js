@@ -27,7 +27,7 @@ class Header extends React.Component{
 			}
 		}
 		Super.super({
-			url:'/api2/meta/menu/get_blocks',                   
+			url:'api2/meta/menu/get_blocks',                   
 		}).then((res)=>{
 			const currentBlockId=usedBlockId?usedBlockId:res.currentBlockId //判断url里有blockid
 			res.blocks.map((item)=>{
@@ -110,22 +110,24 @@ class Header extends React.Component{
 		  );
 		return (
 			<div className="header">
-				<Row className="header-top">	
-					<Col span={4}>
+				<Row className="header-top">
+					<Col span={18}>
 						{blocks && blocks.map((item,index)=>{
-							return <Dropdown overlay={item.menus} key={index}>
-										<a className="dropdown-link" 
-											href={`#/home?blockId=${item.id}`} 
-											target="_blank" 
-											rel="noopener noreferrer"
-											onClick={()=>this.setCurrentListId(item.id)}
-											>
-											{item.title}<Icon type="caret-down" />
-										</a>
-									</Dropdown>
+							return <div style={{float:'left',paddingLeft:10}}>
+										<Dropdown overlay={item.menus} key={index}>
+											<a className="dropdown-link" 
+												href={`#/home?blockId=${item.id}`} 
+												target="_blank" 
+												rel="noopener noreferrer"
+												onClick={()=>this.setCurrentListId(item.id)}
+												>
+												{item.title}<Icon type="caret-down" />
+											</a>
+										</Dropdown>
+									</div>
 						})}
 					</Col>					
-					<Col span={20}>
+					<Col span={6}>
 						<Dropdown overlay={menu} placement="bottomCenter" trigger={['click']}>
 							<div className="userLogin">
 								<Icon type="user" />

@@ -13,7 +13,7 @@ import TemplateList from '../../components/templateList';
 import EditAddTemplate from '../../components/editAddTemplate';
 const confirm = Modal.confirm;
 
-const api="http://47.100.187.235:7080/hydrocarbon-api/"
+const api="http://47.100.187.235:7080/three-service-api/"
 export default class Detail extends React.Component{
     state={
         visibleDrawer:false,

@@ -2,6 +2,7 @@ import React from 'react'
 import {Select,Radio,message} from 'antd'
 const Option = Select.Option;
 
+const api="http://47.100.187.235:7080/three-service-api/"
 export default {
     formateDate(time){
         if(!time) return '';
@@ -45,8 +46,7 @@ export default {
         })
         return options
     },
-    downloadFile(url) {
-        const api="http://47.100.187.235:7080/hydrocarbon-api/" 
+    downloadFile(url) { 
         try{ 
             let elemIF = document.createElement("iframe");   
             elemIF.src = api+url;   

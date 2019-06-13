@@ -1,7 +1,7 @@
 import React from 'react'
 import {Button,Upload,Icon,message} from 'antd'
 
-const api="http://47.100.187.235:7080/hydrocarbon-api/"
+const api="http://47.100.187.235:7080/three-service-api/"
 export default class NewUpload extends React.Component{
 
     state={

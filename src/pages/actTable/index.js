@@ -276,12 +276,12 @@ export default class actTable extends React.Component{
                 codes:selectCodes
             }                 
         }).then((res)=>{
-            console.log(res) 
             this.setState({
                 Loading:false,
                 selectedRowKeys:[],
             })
             if(res && res.status==="suc"){
+                sessionStorage.removeItem(menuId) //为了刷新缓存
                 this.fresh('操作成功!')
             }else{
                 message.error(res.status)
