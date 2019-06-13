@@ -758,6 +758,7 @@ export default class Detail extends React.Component{
             );
         }
         let premisestitle
+        console.log(premises)
         if(premises && premises.length>0 && formltmpl){
             premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
             formltmpl.map((item)=>{
@@ -823,7 +824,7 @@ export default class Detail extends React.Component{
                                         ><Icon type="sync" /></Button>:""}
                             </div>}                                  
                 </h3>
-                { premises?<Form layout="inline" autoComplete="off">  
+                { premises && premises.length>0?<Form layout="inline" autoComplete="off">  
                                 <Card 
                                     title={premisestitle} 
                                     key={premisestitle} 
