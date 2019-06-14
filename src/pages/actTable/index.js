@@ -37,6 +37,7 @@ export default class actTable extends React.Component{
         this.setState({menuId,isSeeTotal:false})
         const url=decodeURI(nextProps.location.search)//前进后退获取url参数
         if(!url){
+            sessionStorage.removeItem(menuId) //刷新列表数据
             this.requestLtmpl(menuId)
         }else{
             this.searchList(Units.urlToObj(url),menuId)//更新筛选列表
@@ -47,10 +48,15 @@ export default class actTable extends React.Component{
     }
     requestLtmpl=(menuId,data)=>{
         Super.super({
-            url:`api2/entity/curd/start_query/${menuId}`,     
+            url:`api2/entity/curd/start_query/${menuId}`, 
             data           
         }).then((res)=>{
-            this.queryList(res.queryKey,data)
+            if(sessionStorage.getItem(menuId) && !data){
+                const res= JSON.parse(sessionStorage.getItem(menuId))
+                this.sessionTodo(res)
+            }else{
+                this.queryList(res.queryKey,data)
+            }
             const fieldIds=[]
             res.ltmpl.criterias.map((item)=>{
                 if(item.inputType==="select"){
@@ -104,6 +110,36 @@ export default class actTable extends React.Component{
             })
         })
     }
+    queryList=(queryKey,data)=>{
+        const {menuId}=this.state
+        Super.super({
+            url:`api2/entity/curd/ask_for/${queryKey}`,     
+            data           
+        }).then((res)=>{
+            sessionStorage.setItem(menuId,JSON.stringify(res))
+            this.sessionTodo(res)
+        })
+             
+    }
+    sessionTodo=(data)=>{
+        const {isSeeTotal}=this.state
+        const dataSource=[]
+        data.entities.map((item,index)=>{
+            item.cellMap.key=index
+            item.cellMap.code=item.code //增加code,为了删除操作
+            dataSource.push(item.cellMap)
+            return false
+        })
+        const noSeeTotal=data.pageInfo.pageSize*data.pageInfo.virtualEndPageNo
+        this.setState({
+            list:dataSource,
+            pageInfo:data.pageInfo,
+            currentPage:data.pageInfo.pageNo,      
+            pageCount:isSeeTotal?isSeeTotal:noSeeTotal,
+            Loading:false,
+            pageSize:data.pageInfo.pageSize,
+        })
+    }
     renderColumns=(columns)=>{
         columns.map((item)=>{
             if(item.title==="序号"){
@@ -147,40 +183,7 @@ export default class actTable extends React.Component{
             })
 		})
     }
-    queryList=(queryKey,data)=>{
-        const {menuId}=this.state
-        if(sessionStorage.getItem(menuId) && !data){
-            const res= JSON.parse(sessionStorage.getItem(menuId))
-            this.sessionTodo(res)
-        }else{
-            Super.super({
-                url:`api2/entity/curd/ask_for/${queryKey}`,     
-                data           
-            }).then((res)=>{
-                sessionStorage.setItem(menuId,JSON.stringify(res))
-                this.sessionTodo(res)
-            })
-        }      
-    }
-    sessionTodo=(data)=>{
-        const {isSeeTotal}=this.state
-        const dataSource=[]
-        data.entities.map((item,index)=>{
-            item.cellMap.key=index
-            item.cellMap.code=item.code //增加code,为了删除操作
-            dataSource.push(item.cellMap)
-            return false
-        })
-        const noSeeTotal=data.pageInfo.pageSize*data.pageInfo.virtualEndPageNo
-        this.setState({
-            list:dataSource,
-            pageInfo:data.pageInfo,
-            currentPage:data.pageInfo.pageNo,      
-            pageCount:isSeeTotal?isSeeTotal:noSeeTotal,
-            Loading:false,
-            pageSize:data.pageInfo.pageSize,
-        })
-    }
+    
     handleOperate=(type,record)=>{
         const { menuId,selectCodes }=this.state
         const code=record.code
