@@ -49,6 +49,7 @@ class Header extends React.Component{
 			})
 			this.setState({
 				blocks:res.blocks,
+				currentBlockId,
 			})
 		})
 	}
@@ -94,7 +95,8 @@ class Header extends React.Component{
 		const style={
 			marginRight:"8px"
 		}
-		const {blocks}=this.state
+		const {blocks,currentBlockId}=this.state
+		console.log(blocks)
 		const menu = (
 			<Menu>
 				<Menu.Item>
@@ -113,7 +115,7 @@ class Header extends React.Component{
 				<Row className="header-top">
 					<Col span={18}>
 						{blocks && blocks.map((item,index)=>{
-							return <div style={{float:'left',paddingLeft:10}} key={index}>
+							return <div style={{float:'left',paddingLeft:10}} key={index} className={item.id===currentBlockId?"active":""}>
 										<Dropdown overlay={item.menus}>
 											<a className="dropdown-link" 
 												href={`#/home?blockId=${item.id}`} 
