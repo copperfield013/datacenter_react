@@ -50,7 +50,7 @@ export default class actTable extends React.Component{
             url:`api2/entity/curd/start_query/${menuId}`,     
             data           
         }).then((res)=>{
-            this.queryList(res.queryKey)
+            this.queryList(res.queryKey,data)
             const fieldIds=[]
             res.ltmpl.criterias.map((item)=>{
                 if(item.inputType==="select"){
@@ -477,7 +477,9 @@ export default class actTable extends React.Component{
                 >
                 </Table>
                 <div className='Pagination'>
-                    <span className={isSeeTotal?'sewTotal':'seeTotal'} onClick={this.seeTotal}>{isSeeTotal?`共${isSeeTotal}条`:'点击查看总数'}</span>
+                    <span className={isSeeTotal?'sewTotal':'seeTotal'} onClick={this.seeTotal}>
+                        {isSeeTotal?`共${isSeeTotal}条`:'点击查看总数'}
+                    </span>
                     <Pagination 
                         style={{display:'inline-block'}}
                         showQuickJumper 
