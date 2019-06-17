@@ -2,8 +2,7 @@ import superagent from 'superagent'
 import { message } from 'antd';
 import Units from './../units'
 
-const api=Units.api()
-export default class Superagent{
+const api=Units.api()export default class Superagent{
     static super(options,type,load){
         const tokenName=Units.getLocalStorge("tokenName")
         let loading;

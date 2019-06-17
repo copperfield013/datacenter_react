@@ -65,7 +65,7 @@ class Loginit extends React.Component{
                                 password:"",
                             })
                         }
-                        window.location.href="/#/home";
+                        window.location.hash="#/home";
                         Units.setLocalStorge("tokenName",res.token)
                     }else if(res.errorMsg){
                         message.info(res.errorMsg);

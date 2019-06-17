@@ -20,7 +20,7 @@ export default class iRouter extends React.Component{
                         <Route path='/' render={()=>
                             <Admin>
                                 <Switch>
-                                    <Route path='/home' component={Home} />
+                                    <Route path='/home' component={Home} exact/>
                                     <Route path="/:menuId" component={ActTable} exact />
                                     <Route path="/:menuId/search" component={ActTable} exact />
                                     <Route path="/:menuId/import" component={Import} exact />
@@ -29,7 +29,7 @@ export default class iRouter extends React.Component{
                                     <Route path="/:menuId/:type/:code" component={Detail} exact/>
                                     <Route path="/:menuId/:type/:code/:nodeId" component={Detail} exact/>
                                     <Route path="/user/:type/:code" component={Detail}/>
-                                    <Redirect to="/login" />
+                                    <Route component={Missing} />
                                 </Switch>
                                 
                             </Admin>
@@ -38,5 +38,12 @@ export default class iRouter extends React.Component{
                 </App>
             </HashRouter>
         )
+    }
+}
+
+class Missing extends React.Component{
+    render(){
+        window.location.hash = '#/login';
+        return null;
     }
 }

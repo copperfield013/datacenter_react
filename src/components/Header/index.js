@@ -65,7 +65,7 @@ class Header extends React.Component{
 		})		
 	}
 	loginout=()=>{
-		window.location.href="/#/login";
+		window.location.hash = "#/login";
 	}
 	getUser=()=>{
 		Super.super({
