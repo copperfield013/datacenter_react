@@ -24,9 +24,6 @@
     background: #4a5f74;
     color:#fff;
 }
-.ant-dropdown-menu-item, .ant-dropdown-menu-submenu-title{
-    color:#fff;
-}
 .ant-dropdown-menu-item:hover, .ant-dropdown-menu-submenu-title:hover{
     color:#000;
 }
