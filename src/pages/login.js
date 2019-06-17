@@ -85,7 +85,7 @@ class Loginit extends React.Component{
         const { getFieldDecorator } = this.props.form;
 		return(
 			<Row className="container login">
-				<Col>
+				<Col style={{position: 'unset'}}>
 					<Form style={{width:350}}>
 					    <h3>欢迎登录</h3>
                         <FormItem>
