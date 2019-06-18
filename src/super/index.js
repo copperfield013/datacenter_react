@@ -34,7 +34,7 @@ export default class Superagent{
                         resolve(res.body)
                     }else if(res.status===403){
                         message.info("请求权限不足,可能是token已经超时")
-                        window.location.hash="/#/login";
+                        window.location.hash="/login";
                     }else if(res.status===404||res.status===504){
                         message.info("服务器连接失败!")
                     }else if(res.status===500){

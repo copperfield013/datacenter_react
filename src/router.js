@@ -10,8 +10,8 @@ import Import from "./pages/importData/importData"
 import ActTree from "./pages/actTree"
 
 export default class iRouter extends React.Component{
-   
     render(){
+        console.log(process.env);
         return (
             <HashRouter>
                 <App>                  
@@ -29,7 +29,7 @@ export default class iRouter extends React.Component{
                                     <Route path="/:menuId/:type/:code" component={Detail} exact/>
                                     <Route path="/:menuId/:type/:code/:nodeId" component={Detail} exact/>
                                     <Route path="/user/:type/:code" component={Detail}/>
-                                    <Route component={Missing} />
+                                    <Redirect to="/login"/>
                                 </Switch>
                                 
                             </Admin>
@@ -38,12 +38,5 @@ export default class iRouter extends React.Component{
                 </App>
             </HashRouter>
         )
-    }
-}
-
-class Missing extends React.Component{
-    render(){
-        window.location.hash = '#/login';
-        return null;
     }
 }
