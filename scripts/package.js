@@ -15,5 +15,31 @@ for(let i in args) {
     }
 }*/
 const argv = require('yargs').argv;
-console.log(argv);
-console.log('Key是', argv.key);
+const { spawn } = require('child_process');
+
+if(argv.nginx) {
+    require('./build').then(()=>{
+        const targetFolder = `D://Server/nginx-1.17.0/html/${argv.nginx}`;
+        console.log(`开始部署文件到nginx目录${targetFolder}`);
+        spawn('rmdir', [targetFolder]);
+        spawn('mkdir', [targetFolder]);
+        spawn('robocopy', ['build', targetFolder, '/e', '/s'], );
+        console.log('文件复制成功');
+    });
+
+}
+
+//spawn('rmdir', [targetFolder]);
+
+/*
+require('./build');
+let nodeCmd = require('node-cmd');
+if(argv.nginx){
+    let targetFolder = `D://Server/nginx-1.17.0/html/${argv.nginx}/`;
+    console.log(`开始部署文件到nginx目录${targetFolder}`);
+    nodeCmd.run(`rm ${targetFolder}`);
+    nodeCmd.run(`mkdir ${targetFolder}`);
+    nodeCmd.run(`cp /build/!* d:/server/nginx/html/${argv.nginx}`);
+    console.log('文件复制成功，启动nginx服务');
+    nodeCmd.run(`D://Server/nginx-1.17.0/nginx.exe`);
+}*/

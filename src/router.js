@@ -29,7 +29,7 @@ export default class iRouter extends React.Component{
                                     <Route path="/:menuId/:type/:code" component={Detail} exact/>
                                     <Route path="/:menuId/:type/:code/:nodeId" component={Detail} exact/>
                                     <Route path="/user/:type/:code" component={Detail}/>
-                                    <Redirect to="/login"/>
+                                    <Redirect to="/home"/>
                                 </Switch>
                                 
                             </Admin>
