@@ -1,15 +1,15 @@
 import React from 'react'
 import {Row,Col} from 'antd'
-import Units from './../units'
 import Header from './../components/Header'
 import Footer from './../components/Footer'
 import NavLeft from './../components/NavLeft'
+import Storage from './../units/storage'
 
 export default class Admin extends React.Component{
 	handleNav=(e)=>{	
 		e.preventDefault()
 		e.stopPropagation()	
-		let scrollIds=Units.getLocalStorge("rightNav")
+		const scrollIds=Storage.rightNav
 		const obj=document.getElementsByClassName("main")[0]		
 		const scrollTop  = obj.scrollTop;  //页面滚动高度
 		const clientHeight=obj.clientHeight;
@@ -53,7 +53,7 @@ export default class Admin extends React.Component{
 				<Col span={4} className="nav-left">
 					<NavLeft onRef={this.onRef}/>
 				</Col>
-				<Col span={20} className="main" onScroll={this.handleNav}>
+				<Col span={20} className="main" id="main" onScroll={this.handleNav}>
 					<Header setCurrentList={this.setCurrentList}/>
 					<Row className="content" style={{padding:20}}>
 						{this.props.children}

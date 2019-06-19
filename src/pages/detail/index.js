@@ -11,6 +11,7 @@ import RightBar from './../../components/RightBar'
 import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 import TemplateList from '../../components/templateList';
 import EditAddTemplate from '../../components/editAddTemplate';
+import Storage from './../../units/storage'
 const confirm = Modal.confirm;
 
 export default class Detail extends React.Component{
@@ -69,6 +70,7 @@ export default class Detail extends React.Component{
             const actions=res.config.actions
             const menuTitle=menuId==="user"?"用户":res.menu.title
             const requestSelectArr=[] //下拉菜单选项fieldId数组
+            console.log(res.config.dtmpl.groups)
             res.config.dtmpl.groups.map((item)=>{
                 rightNav.push(item.title)
                 if(type==="edit" || type==="new"){
@@ -87,7 +89,7 @@ export default class Detail extends React.Component{
                 return false
             })
             //console.log(code)
-            //console.log(editformltmpl)
+            console.log(editformltmpl)
             if(requestSelectArr.length>0){
                 this.requestSelect(requestSelectArr)
             }
@@ -104,7 +106,7 @@ export default class Detail extends React.Component{
             if(premises && premises.length>0){
                 rightNav.unshift("默认字段") 
             }
-            Units.setLocalStorge("rightNav",rightNav)
+            Storage.rightNav=rightNav //存储
             this.setState({
                 menuTitle,
                 actions,

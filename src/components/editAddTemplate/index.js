@@ -3,9 +3,7 @@ import { Modal} from 'antd';
 import Detail from './../../pages/detail'
 
 export default class EditAddTemplate extends React.Component{
-    state={
-
-    }
+    
     handleOk=()=>{
         const {code,editAddGroupId,columns}=this.props
         //console.log(columns)

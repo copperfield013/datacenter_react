@@ -8,11 +8,6 @@ class Loginit extends React.Component{
     state={
         username:"",
         password:"",
-        remember:true,
-    }
-    componentDidMount() {//组件渲染完成之后触发此函数
-        this.loadAccountInfo();
-        window.addEventListener('keydown', this.handleKeyDown)
     }
     componentWillUnmount(){
         window.removeEventListener('keydown', this.handleKeyDown)
@@ -25,26 +20,8 @@ class Loginit extends React.Component{
             default:
             break;
         }
-    };
-    loadAccountInfo = () => {
-        const accountInfo = Units.getCookie('accountInfo');
-        if(Boolean(accountInfo) === false){
-            return false;
-        }else{
-            let username = "";
-            let password = "";
-            let index = accountInfo.indexOf("&");
-            username = accountInfo.substring(0,index);
-            password = accountInfo.substring(index+1);
-            this.setState({
-                username,
-                password,
-                remember:true,
-            })
-        }
-    };
-	handleSubmit =()=>{       
-        const {username,password,remember}=this.state
+    }
+	handleSubmit =()=>{
         this.props.form.validateFields((err,values)=>{            
             if(!err){
                 Super.super({
@@ -54,17 +31,7 @@ class Loginit extends React.Component{
                         password:values.password
                     }                  
                 }).then((res)=>{
-                    if(res.status === 'suc'){ 
-                        if(remember){
-                            const accountInfo = username+ '&' +password;
-                            Units.setCookie('accountInfo',accountInfo,30);
-                        }else {
-                            Units.delCookie('accountInfo');
-                            this.setState({
-                                username:"",
-                                password:"",
-                            })
-                        }
+                    if(res.status === 'suc'){
                         window.location.hash="#/home";
                         Units.setLocalStorge("tokenName",res.token)
                     }else if(res.errorMsg){
@@ -120,13 +87,6 @@ class Loginit extends React.Component{
                                 )}                             
                         </FormItem>
                         <FormItem>
-                            {getFieldDecorator('remember', {
-                                    valuePropName: 'checked',
-                                    initialValue: true
-                                })(
-                                    <Checkbox onChange={this.handleChecked}>记住密码</Checkbox>
-                            )}
-                            {/* <span style={{float:"right",cursor:"pointer"}}>忘记密码</span> */}
                             <Button 
                                 style={{width:'100%'}} 
                                 type="primary" 

@@ -82,21 +82,11 @@ class Header extends React.Component{
 		const {id}=this.state
 		this.props.history.push(`/user/${type}/${id}`)
 	}
-	setCurrentListId=(id)=>{
-		const {blocks}=this.state
-		blocks.map((item)=>{
-			if(item.id===id){
-				this.props.setCurrentList(item)
-			}
-			return false
-		})
-	}
 	render(){
 		const style={
 			marginRight:"8px"
 		}
 		const {blocks,currentBlockId}=this.state
-		console.log(blocks)
 		const menu = (
 			<Menu>
 				<Menu.Item>
@@ -121,7 +111,6 @@ class Header extends React.Component{
 												href={`#/home?blockId=${item.id}`} 
 												target="_blank" 
 												rel="noopener noreferrer"
-												onClick={()=>this.setCurrentListId(item.id)}
 												>
 												{item.title}<Icon type="caret-down" />
 											</a>
