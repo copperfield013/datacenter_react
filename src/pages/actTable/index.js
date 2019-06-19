@@ -4,13 +4,12 @@ import BaseForm from "../../components/BaseForm"
 import ExportFrame from '../../components/exportFrame'
 import Units from '../../units'
 import Super from "../../super"
-//import {HelloWorld} from 'datacenter_api2_resolver';
+import Storage from './../../units/storage';
 import './index.css'
 import moment from 'moment';
 import DisableCols from './../../components/DisableCols'
 const confirm = Modal.confirm;
 
-const sessionStorage=window.sessionStorage
 export default class actTable extends React.Component{
     state={
         loading: false,
@@ -37,9 +36,9 @@ export default class actTable extends React.Component{
         this.setState({menuId,isSeeTotal:false})
         const url=decodeURI(nextProps.location.search)//前进后退获取url参数
         if(!url){
-            sessionStorage.removeItem(menuId) //刷新列表数据
             this.requestLtmpl(menuId)
         }else{
+            Storage[`${menuId}`]=null //刷新列表数据
             this.searchList(Units.urlToObj(url),menuId)//更新筛选列表
         }
     }
@@ -51,8 +50,8 @@ export default class actTable extends React.Component{
             url:`api2/entity/curd/start_query/${menuId}`, 
             data           
         }).then((res)=>{
-            if(sessionStorage.getItem(menuId) && !data){
-                const res= JSON.parse(sessionStorage.getItem(menuId))
+            if(Storage[`${menuId}`] && !data){
+                const res= Storage[`${menuId}`]
                 this.sessionTodo(res)
             }else{
                 this.queryList(res.queryKey,data)
@@ -116,7 +115,7 @@ export default class actTable extends React.Component{
             url:`api2/entity/curd/ask_for/${queryKey}`,     
             data           
         }).then((res)=>{
-            sessionStorage.setItem(menuId,JSON.stringify(res))
+            Storage[`${menuId}`]=res
             this.sessionTodo(res)
         })
              
@@ -284,7 +283,7 @@ export default class actTable extends React.Component{
                 selectedRowKeys:[],
             })
             if(res && res.status==="suc"){
-                sessionStorage.removeItem(menuId) //为了刷新缓存
+                Storage[`${menuId}`]=null //为了刷新缓存
                 this.fresh('操作成功!')
             }else{
                 message.error(res.status)
@@ -312,8 +311,13 @@ export default class actTable extends React.Component{
     }
     reset=()=>{
         const {menuId}=this.state
-        this.child.reset()//搜索栏重置
-        this.props.history.push(`/${menuId}`)
+        const url=decodeURI(this.props.history.location.search)
+        if(url){
+            this.searchList(Units.urlToObj(url),menuId)
+        }else{
+            this.child.reset()//搜索栏重置
+            this.props.history.push(`/${menuId}`)
+        }
     }
     recalc=(menuId)=>{
         const _this=this
@@ -493,7 +497,6 @@ export default class actTable extends React.Component{
                         pageSize={pageSize}
                         onChange={(page, pageSize)=>this.pageTo(page, pageSize)} 
                         onShowSizeChange={(current, size)=>this.pageTo(current, size)}
-                        hideOnSinglePage={true}
                         total={pageCount}
                         />
                 </div>
