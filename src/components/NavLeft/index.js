@@ -31,44 +31,6 @@ class NavLeft extends React.Component{
 	componentDidMount(){
         this.props.onRef(this)
     }
-	//componentWillMount(){
-		//this.request()
-	//}
-	// request=()=>{
-	// 	Super.super({
-	// 		url:'api2/meta/menu/get_menu',                 
-	// 	}).then((res)=>{
-	// 		const menuTreeNode = this.renderMenu(res.menus)
-	// 		const menuId=this.props.history.location.pathname.split("/")[1]
-	// 		const open={}
-	// 		res.menus.map((item)=>{
-	// 			if(item.level2s){
-	// 				const ids=[]
-	// 				item.level2s.map((it)=>{
-	// 					ids.push(it.id)
-	// 					return false
-	// 				})
-	// 				open[item.id]=ids
-	// 			}
-	// 			return false
-	// 		})
-	// 		const key=[]
-	// 		for(let k in open){
-	// 			open[k].map((it)=>{
-	// 				if(it.toString()===menuId){
-	// 					key.push(k)
-	// 				}
-	// 				return false
-	// 			})
-	// 		}
-	// 		this.setState({
-	// 			selectedKeys:[menuId],//刷新或打开新页面，展示导航位置
-	// 			openKeys:key,//刷新或打开新页面，展示导航位置
-	// 			menuTreeNode,
-	// 			open
-	// 		})
-	// 	})	
-	// }
 	setMenuTreeNode=(list)=>{
 		const menuId=this.props.location.pathname.split("/")[1]
 		const open={}

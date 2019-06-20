@@ -67,7 +67,7 @@ class ModelForm extends React.Component{
 		this.child=ref
     }
     render(){
-        const { formList,type,form,title,visibleForm,handleCancel,getOptions,options }=this.props;
+        const { formList,type,form,title,visibleForm,handleCancel,getOptions,options,maskClosable }=this.props;
         return(
             <Modal
                 title={title}
@@ -78,6 +78,7 @@ class ModelForm extends React.Component{
                 cancelText="取消"
                 destroyOnClose
                 width={900}
+                maskClosable={maskClosable}
                 >
                 <Form layout="inline" autoComplete="off"> 
                     <BaseInfoForm

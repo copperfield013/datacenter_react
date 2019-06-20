@@ -30,7 +30,8 @@ export default class EditAddTemplate extends React.Component{
 		this.detail=ref
     }
     render(){
-        const {visibleEditAddTemplate,handleCancel,type,title,menuId,editAddGroupId,code,fresh,TemplatehandleOk}=this.props
+        const {visibleEditAddTemplate,handleCancel,type,title,menuId,editAddGroupId,code,fresh,maskClosable,
+            TemplatehandleOk}=this.props
         return (
             <div>               
                 <Modal
@@ -43,6 +44,7 @@ export default class EditAddTemplate extends React.Component{
                     onCancel={handleCancel}
                     destroyOnClose
                     width={930}
+                    maskClosable={maskClosable}
                     bodyStyle={{height:430,overflow:'auto'}}
                     >
                     <Detail

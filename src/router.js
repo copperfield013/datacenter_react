@@ -11,7 +11,7 @@ import ActTree from "./pages/actTree"
 
 export default class iRouter extends React.Component{
     render(){
-        console.log(process.env);
+        //console.log(process.env);
         return (
             <HashRouter>
                 <App>                  

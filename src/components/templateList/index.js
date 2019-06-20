@@ -262,7 +262,7 @@ export default class TemplateList extends React.Component{
         console.log(selectedTreeCodes)
     }
     render(){
-        const {templateDtmpl,visibleTemplateList,handleCancel,templateData,menuId,title}=this.props
+        const {templateDtmpl,visibleTemplateList,handleCancel,templateData,menuId,title,maskClosable}=this.props
         let {selectedRowKeys,isSeeTotal,currentPage,pageCount,formList,treeData}=this.state
         let columns=templateDtmpl&&templateDtmpl.config?templateDtmpl.config.columns:[] 
         //console.log(templateDtmpl)
@@ -316,6 +316,7 @@ export default class TemplateList extends React.Component{
                         onOk={this.handleTreeOk}
                         onCancel={handleCancel}
                         width={900}
+                        maskClosable={maskClosable}
                         bodyStyle={{height:400,overflow:'auto'}}
                         destroyOnClose={true}>
                             {treeData&&treeData.length!==0?
@@ -342,6 +343,7 @@ export default class TemplateList extends React.Component{
                         onCancel={handleCancel}
                         destroyOnClose
                         width={900}
+                        maskClosable={maskClosable}
                         >
                             <div> 
                                 <BaseForm 

@@ -295,6 +295,7 @@ export default class Import extends React.Component{
                     width={950}
                     style={{top:40}}
                     destroyOnClose
+                    maskClosable={false}
                     >
                     <ModelImport 
                         menuId={menuId}
