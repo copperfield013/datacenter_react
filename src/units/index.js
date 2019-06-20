@@ -96,7 +96,7 @@ export default {
      * @returns {undefined}
      */
     getStorageKeyPrefix(){
-        if(storageKeyPrefix == undefined){
+        if(storageKeyPrefix === undefined){
             storageKeyPrefix = window.location.pathname || '';
         }
         return storageKeyPrefix;
@@ -109,7 +109,6 @@ export default {
         if (!value) {
           localStorage.removeItem(key)
         } else {
-          const Min = min || 30; // 默认保留30分钟
           const exp = new Date();
           const expireAddTime =  (min || 30) * 60 * 1000;
           localStorage.setItem(key, JSON.stringify({
