@@ -205,7 +205,7 @@ export default class actTable extends React.Component{
                             selectedRowKeys:[],
                         })
 						if(res.status==="suc"){ 
-							this.fresh("删除成功！")     //刷新列表       
+                            this.fresh("删除成功！")     //刷新列表    
 						}else{
 							message.info('删除失败！')  
 						}
@@ -238,13 +238,9 @@ export default class actTable extends React.Component{
         this.setState({filterOptions:params})
         const oldfliter=this.props.history.location.search.slice(1)
         const newfliter=Units.queryParams(params)
-        const url=decodeURI(this.props.history.location.search)
-        let flag=false
-        if(oldfliter!==newfliter){ //查询条件更新时
-            flag=true
-        }
-        if(!url){ //没有查询条件时
-            flag=true
+        let flag=true
+        if(oldfliter===newfliter){ //查询条件更新时
+            flag=false
         }
         if(flag){
             const str=Units.queryParams(params)
@@ -283,7 +279,6 @@ export default class actTable extends React.Component{
                 selectedRowKeys:[],
             })
             if(res && res.status==="suc"){
-                Storage[`${menuId}`]=null //为了刷新缓存
                 this.fresh('操作成功!')
             }else{
                 message.error(res.status)
@@ -291,8 +286,10 @@ export default class actTable extends React.Component{
         })
     }
     fresh=(msg)=>{
+        const {menuId}=this.state
         this.reset()
-        message.success(msg)
+        message.success(msg)         
+        Storage[`${menuId}`]=null 
     }
     seeTotal=()=>{
         const {queryKey,isSeeTotal}=this.state
@@ -485,7 +482,7 @@ export default class actTable extends React.Component{
                 </Table>
                 <div className='Pagination'>
                     <span className={isSeeTotal?'sewTotal':'seeTotal'} onClick={this.seeTotal}>
-                        {isSeeTotal?`共${isSeeTotal}条`:'点击查看总数'}
+                        {isSeeTotal?`共${isSeeTotal}条`:list&&list.length===0?null:'点击查看总数'}
                     </span>
                     <Pagination 
                         style={{display:'inline-block'}}
@@ -497,6 +494,7 @@ export default class actTable extends React.Component{
                         pageSize={pageSize}
                         onChange={(page, pageSize)=>this.pageTo(page, pageSize)} 
                         onShowSizeChange={(current, size)=>this.pageTo(current, size)}
+                        hideOnSinglePage={list&&list.length===0?true:false}
                         total={pageCount}
                         />
                 </div>

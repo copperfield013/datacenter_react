@@ -5,11 +5,8 @@ export default class RightBar extends React.Component{
     
     scrollToAnchor = (anchorName) => {
         if (anchorName) {
-            console.log(anchorName)
             let anchorElement = document.getElementById(anchorName);
-            let main = document.getElementById("main");
-            console.log(main)
-            if(anchorElement) { anchorElement.scrollIntoView({behavior: "instant", block: "center", inline: "nearest"})}
+            if(anchorElement) { anchorElement.scrollIntoView({behavior: "smooth", block: "center"})}
         }
       }
     scroll=(e)=>{

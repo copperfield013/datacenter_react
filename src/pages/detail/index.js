@@ -12,6 +12,8 @@ import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 import TemplateList from '../../components/templateList';
 import EditAddTemplate from '../../components/editAddTemplate';
 import Storage from './../../units/storage'
+import Formi from './../../components/FormCard/formi'
+import moment from 'moment';
 const confirm = Modal.confirm;
 
 export default class Detail extends React.Component{
@@ -70,8 +72,8 @@ export default class Detail extends React.Component{
             const actions=res.config.actions
             const menuTitle=menuId==="user"?"用户":res.menu.title
             const requestSelectArr=[] //下拉菜单选项fieldId数组
-            console.log(res.config.dtmpl.groups)
-            res.config.dtmpl.groups.map((item)=>{
+            const dtmplGroup=res.config.dtmpl.groups
+            dtmplGroup.map((item)=>{
                 rightNav.push(item.title)
                 if(type==="edit" || type==="new"){
                     item.fields.map((it)=>{
@@ -81,25 +83,22 @@ export default class Detail extends React.Component{
                         return false
                     })
                 }
-                if(item.composite===null){
+                if(!item.composite){
                     formltmpl.push(item)
                 }else{
                     editformltmpl.push(item)
                 }
                 return false
             })
-            //console.log(code)
-            console.log(editformltmpl)
             if(requestSelectArr.length>0){
                 this.requestSelect(requestSelectArr)
             }
-            this.forDescsFlag(editformltmpl)  //提交时添加flag
+            this.forDescsFlag(dtmplGroup)  //提交时添加flag
             if(code){
-                this.loadRequest(formltmpl,editformltmpl,versionCode)
+                this.loadRequest(dtmplGroup,versionCode)
             }else{
                 this.setState({
-                    editformltmpl,
-                    columns:this.renderColumns(editformltmpl),
+                    columns:this.renderColumns(dtmplGroup),
                     dataSource:[],
                 })
             }
@@ -108,25 +107,27 @@ export default class Detail extends React.Component{
             }
             Storage.rightNav=rightNav //存储
             this.setState({
+                dtmplGroup,
                 menuTitle,
                 actions,
-                formltmpl,
                 rightNav,
                 premises,
             })
         })  
     }
-    forDescsFlag=(editformltmpl)=>{
+    forDescsFlag=(dtmplGroup)=>{
         const descsFlag=[] 
-        editformltmpl.map((item)=>{
-            descsFlag.push(item.composite.name)
+        dtmplGroup.map((item)=>{
+            if(item.composite){
+                descsFlag.push(item.composite.name)
+            }
             return false
         })
         this.setState({
             descsFlag
         })
     }
-    loadRequest=(formltmpl,editformltmpl,versionCode)=>{
+    loadRequest=(dtmplGroup,versionCode)=>{
         const {menuId,type,code,nodeId,fieldGroupId}=this.props.match?this.props.match.params:this.props 
         Super.super({
             url:`api2/entity/curd/detail/${menuId}/${code}`, 
@@ -136,48 +137,51 @@ export default class Detail extends React.Component{
                 fieldGroupId,
             }          
         }).then((res)=>{
-            const arrayMap=res.entity.arrayMap
-            const fieldMap=Units.forPic(res.entity.fieldMap)          
-            formltmpl.map((item)=>{
-                item.fields.map((item)=>{
-                    for(let k in fieldMap){
-                        if(item.id.toString()===k){
-                            item.value=fieldMap[k]
+            if(res.status==="suc"){
+                const arrayMap=res.entity.arrayMap
+                const fieldMap=Units.forPic(res.entity.fieldMap)          
+                dtmplGroup.map((item)=>{
+                    if(!item.composite){
+                        item.fields.map((item)=>{
+                            for(let k in fieldMap){
+                                if(item.id.toString()===k){
+                                    item.value=fieldMap[k]
+                                }
+                            }
+                            return false
+                        })
+                    }           
+                    return false
+                })
+                this.detailTitle(res.entity.title,type)
+                for(let k in arrayMap){
+                    let totalName
+                    dtmplGroup.map((item)=>{
+                        if(item.composite && item.id.toString()===k){
+                            totalName=item.composite.name
                         }
-                    }
-                    return false
-                })
-                return false
-            })
-            this.detailTitle(res.entity.title,type)
-            for(let k in arrayMap){
-                let totalName
-                editformltmpl.map((item)=>{
-                    if(item.id.toString()===k){
-                        totalName=item.composite.name
-                    }
-                    return false
-                })
-                arrayMap[k].map((item)=>{
-                    const fieldMap=Units.forPic(item.fieldMap) //有图片，转化为图片
-                    fieldMap["code"]=item.code //为了后面操作修改
-                    fieldMap["key"]=item.code
-                    fieldMap["groupId"]=k
-                    fieldMap["totalName"]=totalName
-                    if(item.relationLabel){
-                        fieldMap["10000"]=item.relationLabel
-                    }
-                    return false
-                })
-            }
-            //console.log(editformltmpl)
-            //console.log(arrayMap)
-            this.setState({
-                formltmpl,
-                editformltmpl,
-                columns:this.renderColumns(editformltmpl),
-                dataSource:arrayMap,
-            })       
+                        return false
+                    })
+                    arrayMap[k].map((item)=>{
+                        const fieldMap=Units.forPic(item.fieldMap) //有图片，转化为图片
+                        fieldMap["code"]=item.code //为了后面操作修改
+                        fieldMap["key"]=item.code
+                        fieldMap["groupId"]=k
+                        fieldMap["totalName"]=totalName
+                        if(item.relationLabel){
+                            fieldMap["10000"]=item.relationLabel
+                        }
+                        return false
+                    })
+                }
+                this.setState({
+                    dtmplGroup,
+                    columns:this.renderColumns(dtmplGroup),
+                    dataSource:arrayMap,
+                })     
+           }else{
+               message.error("实体不存在！")
+           }             
         })
     }  
     renderHistoryList=(versionCode)=>{
@@ -232,82 +236,84 @@ export default class Detail extends React.Component{
             menuTitle,
 		});
 	}
-    renderColumns=(editformltmpl)=>{ //editTable的表头
+    renderColumns=(dtmplGroup)=>{ //editTable的表头
         const {type}=this.state 
         const columns=[]
-        editformltmpl.map((item)=>{
-			item.fields.map((item,index)=>{
-                const id=item.id
-                item["dataIndex"]=id               
-                if(type==="detail"){
-                    if(item.type==="decimal"){ //排序
-                        item["sorter"]=(a, b) => a[id] - b[id]; 
-                    }else{
-                        item["sorter"]=(a, b) =>{ //排序
-                            if(a[id]&&b[id]){
-                                return a[id].length - b[id].length;
+        dtmplGroup.map((item)=>{
+            if(item.composite){
+                item.fields.map((item)=>{
+                    const id=item.id
+                    item["dataIndex"]=id               
+                    if(type==="detail"){
+                        if(item.type==="decimal"){ //排序
+                            item["sorter"]=(a, b) => a[id] - b[id]; 
+                        }else{
+                            item["sorter"]=(a, b) =>{ //排序
+                                if(a[id]&&b[id]){
+                                    return a[id].length - b[id].length;
+                                }
                             }
                         }
+                    }           
+                    return false      					
+                })			
+                if(item.composite.addType===5){//判断是否有关系属性
+                    let rela={
+                        dataIndex:"10000",
+                        name:"relation",
+                        title:"关系",
+                        type:"relation",
+                        fieldAvailable:true,
+                        id:10000,//关系默认id是10000
+                        options:item.composite.relationSubdomain
                     }
-                }           
-                return false      					
-            })  
-            if(item.composite && item.composite.addType===5){//判断是否有关系属性
-                let rela={
-                    dataIndex:"10000",
-                    name:"relation",
-                    title:"关系",
-                    type:"relation",
-                    fieldAvailable:true,
-                    id:10000,//关系默认id是10000
-                    options:item.composite.relationSubdomain
-                }
-                item.fields.unshift(rela) 
-            }      
-            const order={
-                title: '序号',
-                width:65,
-                dataIndex:'order',
-                render: (text, record,index) => (
-                    <label>{index+1}</label>
-                    ),
-            } 
-            item.fields.unshift(order)
-            if(type!=="detail"){
-                const act={
-                    title: '操作',
-                    key: 'action',
-                    render: (record) => (
-                    <div className="editbtn">
-                        <Button 
-                            type='primary' 
-                            title="编辑当前行" 
-                            icon="edit" 
-                            size="small"  
-                            onClick={()=>this.getForm(record)}
-                            ></Button>
-                        <Button 
-                            type='danger' 
-                            icon="delete" 
-                            title="删除当前行" 
-                            size="small" 
-                            onClick={()=>this.visibleModal(record,'removeList','确定要删除这条记录吗')}
-                            ></Button>
-                        {this.props.match && item.rabcTemplateGroupId && item.rabcUnupdatable===null && record.code.length>9?
+                    item.fields.unshift(rela) 
+                }      
+                const order={
+                    title: '序号',
+                    width:65,
+                    dataIndex:'order',
+                    render: (text, record,index) => (
+                        <label>{index+1}</label>
+                        ),
+                } 
+                item.fields.unshift(order)
+                if(type!=="detail"){
+                    const act={
+                        title: '操作',
+                        key: 'action',
+                        render: (record) => (
+                        <div className="editbtn">
                             <Button 
-                                title="编辑当前实体" 
                                 type='primary' 
-                                icon="form" 
+                                title="编辑当前行" 
+                                icon="edit" 
                                 size="small"  
-                                onClick={()=>this.getFormTmpl(record)}
-                                ></Button>:""}
-                    </div>
-                    ),
-                }  
-                item.fields.push(act) 
+                                onClick={()=>this.getForm(record)}
+                                ></Button>
+                            <Button 
+                                type='danger' 
+                                icon="delete" 
+                                title="删除当前行" 
+                                size="small" 
+                                onClick={()=>this.visibleModal(record,'removeList','确定要删除这条记录吗')}
+                                ></Button>
+                            {this.props.match && item.rabcTemplateGroupId && item.rabcUnupdatable===null && record.code.length>9?
+                                <Button 
+                                    title="编辑当前实体" 
+                                    type='primary' 
+                                    icon="form" 
+                                    size="small"  
+                                    onClick={()=>this.getFormTmpl(record)}
+                                    ></Button>:""}
+                        </div>
+                        ),
+                    }  
+                    item.fields.push(act) 
+                }
+                columns.push(item)
+                return false
             }
-            columns.push(item)
-            return false
         })   
         //console.log(columns)
         return columns
@@ -380,6 +386,7 @@ export default class Detail extends React.Component{
         if(actionId){
             formData.append("%actionId%", actionId)
         }
+        console.log(baseValue)
         for(let k in baseValue){
             formData.append(k, baseValue[k]);
         }       
@@ -434,7 +441,7 @@ export default class Detail extends React.Component{
         },'formdata').then((res)=>{
             if(res && res.status==="suc"){
                 message.success("保存成功!")
-                sessionStorage.setItem(menuId,"")
+                Storage[`${menuId}`]=null
                 if(!this.props.match){
                     this.props.TemplatehandleOk(res.code,fieldGroupId,true,dfieldIds)
                     this.props.handleCancel()
@@ -531,7 +538,6 @@ export default class Detail extends React.Component{
         }else{
             columns=record
         }
-        //console.log(columns)
         const code=Units.RndNum(9)
         columns.map((item)=>{
             if(item.type){
@@ -545,14 +551,14 @@ export default class Detail extends React.Component{
                     code:isNew?code:record.code,
                     key:item.key
                 }
-                if(record){
+                if(!isNew){
                     for(let k in record){
                         if(k===item.id.toString()){
-                            list["value"]=record[k]
+                            list.value=record[k]
                         }
                     }
                 }else{
-                    list["value"]="";
+                    list.value="";
                 }
                 if(item.type==="relation"){
                     const options=[]
@@ -570,7 +576,6 @@ export default class Detail extends React.Component{
             }
             return false
         })
-        //console.log(editFormList)
         this.setState({
             editFormList,
             isNew,
@@ -583,6 +588,11 @@ export default class Detail extends React.Component{
         const groupId=fieldsValue.groupId.toString()
         let { dataSource,isNew,columns }=this.state;
         const data={}
+        for(let k in fieldsValue){
+            if(fieldsValue[k]!==null&&typeof fieldsValue[k]==='object'){
+                fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
+            }
+        }
         columns.map((item)=>{
             data[item.id]=[]
             return false
@@ -600,7 +610,7 @@ export default class Detail extends React.Component{
                 isEditTmpl:false,
                 fieldMap:fieldsValue
             }
-            dataSource[groupId].unshift(list)
+            dataSource[groupId].push(list)
         }else{     //修改记录  
             for(let k in dataSource){
                 if(k===groupId){
@@ -614,7 +624,6 @@ export default class Detail extends React.Component{
                 }
             }
         }
-        console.log(dataSource)
         this.setState({
             dataSource,
             visibleForm:false
@@ -663,7 +672,7 @@ export default class Detail extends React.Component{
         this.getTemplate(templateGroupId,excepts,dfieldIds,params)
     }
     TemplatehandleOk=(codes,formTmplGroupId,isUnshift,ddfieldIds)=>{
-        let {menuId,dfieldIds,templateGroupId,dataSource,columns,formltmpl}=this.state
+        let {menuId,dfieldIds,templateGroupId,dataSource,columns}=this.state
         if(formTmplGroupId){
             templateGroupId=formTmplGroupId
         }
@@ -731,7 +740,6 @@ export default class Detail extends React.Component{
             this.setState({
                 visibleTemplateList:false,
                 dataSource,
-                formltmpl
             })
         })
     }
@@ -741,10 +749,9 @@ export default class Detail extends React.Component{
         this.loadltmpl(menuId,code,type)
     }
     render(){
-        const { menuTitle,detailsTitle,fuseMode,formltmpl,loading,visibleForm,editFormList,visibleEditAddTemplate,
-            actions,premises,templateDtmpl,rightNav,columns,dataSource,editAddGroupId,
-            visibleDrawer,detailHistory,type,menuId,code,visibleTemplateList,fileType,
-            title,options,templateData,formTmplGroupId}=this.state
+        const { menuTitle,detailsTitle,fuseMode,loading,visibleForm,dtmplGroup,editFormList,visibleEditAddTemplate,
+            actions,premises,templateDtmpl,rightNav,columns,dataSource,editAddGroupId,visibleDrawer,detailHistory,
+            type,menuId,code,visibleTemplateList,fileType,title,options,templateData,formTmplGroupId}=this.state
         let content
         if(actions && actions.length>0){
             content = (
@@ -760,24 +767,25 @@ export default class Detail extends React.Component{
             );
         }
         let premisestitle
-        console.log(premises)
-        if(premises && premises.length>0 && formltmpl){
+        if(premises && premises.length>0 && dtmplGroup){
             premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
-            formltmpl.map((item)=>{
-                item.fields.map((it)=>{
-                    premises.map((i)=>{
-                        i.title=i.fieldTitle
-                        i.type="text"                    
-                        i.value=i.fieldValue        
-                        i.available=false
-                        if(i.fieldId===it.fieldId){
-                            it.fieldAvailable=false
-                            it["value"]= i["value"]
-                        }
+            dtmplGroup.map((item)=>{
+                if(!item.composite){
+                    item.fields.map((it)=>{
+                        premises.map((i)=>{
+                            i.title=i.fieldTitle
+                            i.type="text"                    
+                            i.value=i.fieldValue        
+                            i.available=false
+                            if(i.fieldId===it.fieldId){
+                                it.fieldAvailable=false
+                                it["value"]= i["value"]
+                            }
+                            return false
+                        })
                         return false
                     })
-                    return false
-                })
+                }
                 return false
             })
         }
@@ -826,41 +834,42 @@ export default class Detail extends React.Component{
                                         ><Icon type="sync" /></Button>:""}
                             </div>}                                  
                 </h3>
-                { premises && premises.length>0?<Form layout="inline" autoComplete="off">  
-                                <Card 
-                                    title={premisestitle} 
-                                    key={premisestitle} 
-                                    id={premisestitle}
-                                    className="hoverable" 
-                                    headStyle={{background:"#f2f4f5"}}
-                                    loading={loading}
-                                    >
-                                    <BaseInfoForm 
-                                        key={111}
-                                        formList={premises} 
-                                        type="detail"
-                                        width={220}
-                                        />
-                                </Card>
-                            </Form>:"" }
-                <FormCard
-                    formList={formltmpl}
-                    type={type}
-                    baseInfo={this.baseInfo}
-                    loading={loading}
-                    onRef={this.onRef}
-                    getOptions={this.getOptions}
-                    options={options}
-                />
-                <EditTable 
-                    type={type}
-                    columns={columns}
-                    dataSource={dataSource}
-                    handleAdd={this.getForm}
-                    getTemplate={this.getTemplate} //新增选择实体模板
-                    getFormTmpl={this.getFormTmpl}//新增修改实体模板
-                    isModal={this.props.match?false:true}
-                />               
+                { premises && premises.length>0?
+                    <Form layout="inline" autoComplete="off">  
+                        <Card 
+                            title={premisestitle} 
+                            key={premisestitle} 
+                            id={premisestitle}
+                            className="hoverable" 
+                            headStyle={{background:"#f2f4f5"}}
+                            loading={loading}
+                            >
+                            <BaseInfoForm 
+                                key={111}
+                                formList={premises} 
+                                type="detail"
+                                width={220}
+                                />
+                        </Card>
+                    </Form>:""
+                }
+                {dtmplGroup&&columns?
+                    <Formi
+                        dtmplGroup={dtmplGroup}
+                        columns={columns}
+                        dataSource={dataSource}
+                        type={type}
+                        loading={loading}
+                        options={options}
+                        onRef={this.onRef}
+                        getForm={this.getForm}
+                        getTemplate={this.getTemplate}
+                        getFormTmpl={this.getFormTmpl}
+                        match={this.props.match}
+                        baseInfo={this.baseInfo}
+                        getOptions={this.getOptions}
+                    >                  
+                    </Formi>:""}                            
                 <ModelForm
                     handleCancel={this.handleCancel}
                     handleOk={this.modelhandleOk}
@@ -871,6 +880,7 @@ export default class Detail extends React.Component{
                     options={options}
                     onRef2={this.onRef2}
                     title={title}
+                    maskClosable={false}
                 />
                 <Drawer
                     title="查看历史"
@@ -896,6 +906,7 @@ export default class Detail extends React.Component{
                     templatePageTo={this.templatePageTo}
                     title={title}
                     fileType={fileType}
+                    maskClosable={false}
                 />
                 <EditAddTemplate 
                     visibleEditAddTemplate={visibleEditAddTemplate}
@@ -907,6 +918,7 @@ export default class Detail extends React.Component{
                     code={code}
                     columns={columns}
                     fresh={this.fresh}
+                    maskClosable={false}
                     TemplatehandleOk={this.TemplatehandleOk}
                 />
                 {!rightNav||rightNav.length<3?"":

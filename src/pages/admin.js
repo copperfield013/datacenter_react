@@ -53,7 +53,7 @@ export default class Admin extends React.Component{
 				<Col span={4} className="nav-left">
 					<NavLeft onRef={this.onRef}/>
 				</Col>
-				<Col span={20} className="main" id="main" onScroll={this.handleNav}>
+				<Col span={20} className="main" onScroll={this.handleNav}>
 					<Header setCurrentList={this.setCurrentList}/>
 					<Row className="content" style={{padding:20}}>
 						{this.props.children}

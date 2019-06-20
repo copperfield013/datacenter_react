@@ -9,9 +9,6 @@ export default class EditTableList extends React.Component {
     dataSource:this.props.dataSource,
     searchText:"",
   }
-  componentDidMount(){
-    
-  }
   handleChange=(value)=> {
     console.log(`selected ${value}`);
   }
