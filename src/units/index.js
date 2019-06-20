@@ -3,6 +3,7 @@ import {Select,Radio,message} from 'antd'
 const Option = Select.Option;
 
 const api = process.env.hydrocarbonServer;
+let storageKeyPrefix = undefined;
 export default {
     api(){
         return api
@@ -88,26 +89,47 @@ export default {
             rnd+=Math.floor(Math.random()*10);
         return rnd;
     },
+    /**
+     * 获得用于在本地持久缓存的数据的Key前缀
+     * 当前返回的值是第一次访问当前方法时的所在页面链接的pathname
+     * 表示在不同的pathname下，永久缓存的数据将互不干扰
+     * @returns {undefined}
+     */
+    getStorageKeyPrefix(){
+        if(storageKeyPrefix == undefined){
+            storageKeyPrefix = window.location.pathname || '';
+        }
+        return storageKeyPrefix;
+    },
     setLocalStorge(key, value, min) {
+        if(key){
+            key = this.getStorageKeyPrefix() + key;
+        }
         // 设置过期原则
         if (!value) {
           localStorage.removeItem(key)
         } else {
           const Min = min || 30; // 默认保留30分钟
           const exp = new Date();
-          localStorage[key] = JSON.stringify({
-            value,
-            expires: exp.getTime() + Min * 60 * 1000
-          })
+          const expireAddTime =  (min || 30) * 60 * 1000;
+          localStorage.setItem(key, JSON.stringify({
+              value, expireAddTime,
+              expires: exp.getTime() + expireAddTime
+          }));
         }
       },
     getLocalStorge(name) {
+        if(name){
+            name = this.getStorageKeyPrefix() + name;
+        }
         try {
           let o = JSON.parse(localStorage[name])
           if (!o || o.expires < Date.now()) {
             return null
           } else {
-            return o.value
+              o.expires = Date.now() + o.expireAddTime;
+              localStorage.setItem(name, JSON.stringify(o));
+              return o.value;
           }
         } catch (e) {
             // 兼容其他localstorage 

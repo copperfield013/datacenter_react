@@ -32,5 +32,8 @@
     margin:0 10px;
 }
 .header-top .active{
-    background: #C1C1C1;
+    background: #1E90FF;
+}
+.header-top .active>a {
+    color: #fcfcfc;
 }
