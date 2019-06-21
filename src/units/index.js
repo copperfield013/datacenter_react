@@ -109,7 +109,6 @@ export default {
         if (!value) {
           localStorage.removeItem(key)
         } else {
-          const Min = min || 30; // 默认保留30分钟
           const exp = new Date();
           const expireAddTime = Min * 60 * 1000;
           localStorage.setItem(key, JSON.stringify({
