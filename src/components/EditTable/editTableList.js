@@ -64,18 +64,20 @@ export default class EditTableList extends React.Component {
     })
   }
   render() {
-    let { cardTitle,columns,type,dataSource,haveTemplate,rabcTemplatecreatable,isModal }=this.props
-    const page={pageSize:5,hideOnSinglePage:true}
+    let { cardTitle,columns,type,dataSource,haveTemplate,rabcTemplatecreatable,isModal,unallowedCreate,currentPage }=this.props
+    const page={pageSize:5,hideOnSinglePage:true,defaultCurrent:currentPage}
     let groupId
     const arr1=[]
     const arr2=[]
-    columns.map((item)=>{
-      if(item.groupId){
-        groupId=item.groupId
-        arr2.push(item.id)
-      }
-      return false
-    })
+    if(columns){     
+      columns.map((item)=>{
+        if(item.groupId){
+          groupId=item.groupId
+          arr2.push(item.id)
+        }
+        return false
+      })
+    }
     dataSource.map((item)=>{
       arr1.push(item.code)
       return false
@@ -94,7 +96,7 @@ export default class EditTableList extends React.Component {
                                         />:""}
           >
           <div className="editTableList">
-            {type==="detail"?"":<Button 
+            {type==="detail" || unallowedCreate===1?"":<Button 
                               type='primary' 
                               icon="plus" 
                               size="small"

@@ -233,13 +233,15 @@ export default class actTable extends React.Component{
                 }else{
                     params[k]=moment(params[k]).format("YYYY-MM-DD")
                 }
+            }else if(params[k] ==="Invalid date"){
+                params[k]=""
             }
         }
         this.setState({filterOptions:params})
         const oldfliter=this.props.history.location.search.slice(1)
         const newfliter=Units.queryParams(params)
         let flag=true
-        if(oldfliter===newfliter){ //查询条件更新时
+        if(oldfliter&&oldfliter===newfliter){ //查询条件更新时
             flag=false
         }
         if(flag){
@@ -413,7 +415,7 @@ export default class actTable extends React.Component{
                             className="hoverbig" 
                             title="导入" 
                             onClick={()=>this.handleImport(menuId)}>
-                            <Icon type="download" />
+                            <Icon type="upload" />
                         </Button>}
                         {statView===null?"":<Popover content={disableCols} title="显示列" placement="bottomRight" trigger="hover">
                                 <Button className="hoverbig" title="显示列" ><Icon type="table" /></Button>
@@ -434,7 +436,7 @@ export default class actTable extends React.Component{
                                 style={{display:hideExport?"none":"inline"}} //为了点击到没有导出模块，使组件不致销毁，丢失导出数据
                                 className="hoverbig" 
                                 title="导出">
-                                <Icon type="upload" />
+                                <Icon type="download" />
                             </Button>
                         </Popover>  
                         {hideTreeToggle?"":<Button 

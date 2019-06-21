@@ -59,7 +59,7 @@ export default class BaseInfoForm extends React.Component{
                                     )}
                                 </FormItem>
                     formItemList.push(DATE)                
-                }else if(item.type==="text"  || item.type==="password"){
+                }else if(item.type==="text"){
                     const TEXT= <FormItem label={title} key={field} className='labelcss'>
                                     {type==="detail"?<span className="infoStyle">{fieldValue}</span>:
                                         getFieldDecorator(fieldName,{
@@ -76,6 +76,24 @@ export default class BaseInfoForm extends React.Component{
                                                 />
                                     )}
                                 </FormItem>   
+                    formItemList.push(TEXT)                
+                }else if(item.type==="password"){
+                    const TEXT= <FormItem label={title} key={field} className='labelcss'>
+                                    {type==="detail"?<span className="infoStyle">******</span>:
+                                        getFieldDecorator(fieldName,{
+                                            initialValue:fieldValue,
+                                            rules:item.validators?[{
+                                                    required: true, message: `请输入${title}`,
+                                                }]:"",
+                                        })(
+                                            <Input 
+                                                type="password" 
+                                                style={{width:width}}
+                                                placeholder={`请输入${title}`}
+                                                onFocus={this.props.setPassword}
+                                                />
+                                    )}
+                                </FormItem> 
                     formItemList.push(TEXT)                
                 }else if(item.type==="select"){
                     const SELECT= <FormItem label={title} key={field} className='labelcss'>

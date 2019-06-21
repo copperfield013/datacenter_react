@@ -3,9 +3,7 @@ import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Popover,Card,Form} from
 import Super from "./../../super"
 import Units from '../../units'
 import './index.css'
-import 'moment/locale/zh-cn';
-import EditTable from './../../components/EditTable/editTable'
-import FormCard from './../../components/FormCard'
+import 'moment/locale/zh-cn'
 import ModelForm from './../../components/ModelForm/modelForm'
 import RightBar from './../../components/RightBar'
 import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
@@ -35,6 +33,7 @@ export default class Detail extends React.Component{
     }
     componentWillMount(){
         const {menuId,code,type}=this.props.match?this.props.match.params:this.props
+        console.log(this.props)
         const nodeId=this.props.match?this.props.match.params.nodeId:null
         const fieldGroupId=this.props.match?null:this.props.fieldGroupId
         this.setState({
@@ -65,8 +64,6 @@ export default class Detail extends React.Component{
             url=`api2/meta/tmpl/dtmpl_config/normal/${menuId}/`
         }
         Super.super({url}).then((res)=>{ 
-            const formltmpl=[]
-            const editformltmpl=[]
             const rightNav=[]
             const premises=res.config.premises
             const actions=res.config.actions
@@ -82,11 +79,6 @@ export default class Detail extends React.Component{
                         }
                         return false
                     })
-                }
-                if(!item.composite){
-                    formltmpl.push(item)
-                }else{
-                    editformltmpl.push(item)
                 }
                 return false
             })
@@ -314,6 +306,7 @@ export default class Detail extends React.Component{
                 columns.push(item)
                 return false
             }
+            return false
         })   
         //console.log(columns)
         return columns
@@ -442,6 +435,12 @@ export default class Detail extends React.Component{
             if(res && res.status==="suc"){
                 message.success("保存成功!")
                 Storage[`${menuId}`]=null
+                if(type!=='new'){
+                    this.fresh()
+                }else{
+                    const {menuId}=this.state
+                    this.props.history.push(`/${menuId}/edit/${res.code}`)
+                }
                 if(!this.props.match){
                     this.props.TemplatehandleOk(res.code,fieldGroupId,true,dfieldIds)
                     this.props.handleCancel()
@@ -587,6 +586,7 @@ export default class Detail extends React.Component{
         const Code=fieldsValue.code;
         const groupId=fieldsValue.groupId.toString()
         let { dataSource,isNew,columns }=this.state;
+        let currentPage=1
         const data={}
         for(let k in fieldsValue){
             if(fieldsValue[k]!==null&&typeof fieldsValue[k]==='object'){
@@ -611,6 +611,7 @@ export default class Detail extends React.Component{
                 fieldMap:fieldsValue
             }
             dataSource[groupId].push(list)
+            currentPage=Math.ceil(dataSource[groupId].length/5)
         }else{     //修改记录  
             for(let k in dataSource){
                 if(k===groupId){
@@ -626,7 +627,8 @@ export default class Detail extends React.Component{
         }
         this.setState({
             dataSource,
-            visibleForm:false
+            visibleForm:false,
+            currentPage,
         })
     }
     getTemplate=(templateGroupId,excepts,dfieldIds,searchParams)=>{
@@ -671,8 +673,9 @@ export default class Detail extends React.Component{
         let {templateGroupId,excepts,dfieldIds}=this.state;
         this.getTemplate(templateGroupId,excepts,dfieldIds,params)
     }
-    TemplatehandleOk=(codes,formTmplGroupId,isUnshift,ddfieldIds)=>{
+    TemplatehandleOk=(codes,formTmplGroupId,isNew,ddfieldIds)=>{
         let {menuId,dfieldIds,templateGroupId,dataSource,columns}=this.state
+        let currentPage=1
         if(formTmplGroupId){
             templateGroupId=formTmplGroupId
         }
@@ -721,7 +724,7 @@ export default class Detail extends React.Component{
                 }               
                 for(let k in dataSource){
                     if(k===templateGroupId.toString()){
-                        if(!isUnshift){
+                        if(!isNew){
                             dataSource[k].map((it,index)=>{
                                 if(it.code===item['唯一编码']){
                                     dataSource[k].splice(index,1,list); 
@@ -729,29 +732,33 @@ export default class Detail extends React.Component{
                                 return false
                             })
                         }else{
-                            dataSource[k].unshift(list)
+                            dataSource[k].push(list)
+                            currentPage=Math.ceil(dataSource[k].length/5)
                         }
                         
                     }
                 }
                 return false
             })
-            //console.log(dataSource)
             this.setState({
                 visibleTemplateList:false,
                 dataSource,
+                currentPage
             })
         })
     }
     fresh=()=>{
-        const {menuId,code,type}=this.state
+        const {menuId,code,type,nodeId}=this.state
         this.baseinfo.reset()
-        this.loadltmpl(menuId,code,type)
+        this.loadltmpl(menuId,code,type,"",nodeId)
+    }
+    setPassword=()=>{
+        console.log(888)
     }
     render(){
         const { menuTitle,detailsTitle,fuseMode,loading,visibleForm,dtmplGroup,editFormList,visibleEditAddTemplate,
             actions,premises,templateDtmpl,rightNav,columns,dataSource,editAddGroupId,visibleDrawer,detailHistory,
-            type,menuId,code,visibleTemplateList,fileType,title,options,templateData,formTmplGroupId}=this.state
+            type,menuId,code,visibleTemplateList,fileType,title,options,templateData,formTmplGroupId,currentPage}=this.state
         let content
         if(actions && actions.length>0){
             content = (
@@ -868,6 +875,8 @@ export default class Detail extends React.Component{
                         match={this.props.match}
                         baseInfo={this.baseInfo}
                         getOptions={this.getOptions}
+                        currentPage={currentPage}
+                        setPassword={this.setPassword}
                     >                  
                     </Formi>:""}                            
                 <ModelForm

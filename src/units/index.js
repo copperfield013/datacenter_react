@@ -96,7 +96,7 @@ export default {
      * @returns {undefined}
      */
     getStorageKeyPrefix(){
-        if(storageKeyPrefix == undefined){
+        if(storageKeyPrefix === undefined){
             storageKeyPrefix = window.location.pathname || '';
         }
         return storageKeyPrefix;
@@ -111,7 +111,7 @@ export default {
         } else {
           const Min = min || 30; // 默认保留30分钟
           const exp = new Date();
-          const expireAddTime =  (min || 30) * 60 * 1000;
+          const expireAddTime = Min * 60 * 1000;
           localStorage.setItem(key, JSON.stringify({
               value, expireAddTime,
               expires: exp.getTime() + expireAddTime
@@ -132,8 +132,7 @@ export default {
               return o.value;
           }
         } catch (e) {
-            // 兼容其他localstorage 
-          console.log(e)
+            // 兼容其他localstorage
           return localStorage[name]
         } finally {
         }
@@ -144,10 +143,11 @@ export default {
         for (let key in data) {
           let value = data[key]
           // 去掉为空的参数
-          if (['', undefined, null].includes(value)) {
+          if ([undefined, null].includes(value)) {
+            value=""
             continue
           }
-          if (value.constructor === Array) {
+          if (value && value.constructor === Array) {
             value.forEach(_value =>{
                 _result.push(encodeURI(key) + '[]=' + encodeURI(_value))
                 })

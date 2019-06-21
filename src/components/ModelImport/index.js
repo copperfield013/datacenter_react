@@ -268,13 +268,13 @@ export default class ModelImport extends React.Component{
         })
     }
     getWords=(list,type)=>{
-        let {dataSource,selectWords}=this.state     
+        let {dataSource,selectWords}=this.state   
         if(type==="normal"){
             dataSource.push(list)        
             selectWords.map((item,i)=>{ //normal改变tag选中状态
-                if(item.fields.length>0){
+                if(item.fields.length>0 && item.type==="normal"){
                     item.fields.map((it)=>{
-                        if(it.key===list.key){
+                        if(it.id===list.fieldId){
                             it.checked=true
                         }
                         return false
@@ -314,7 +314,7 @@ export default class ModelImport extends React.Component{
             }
             dataSource.push(res)
         }
-        console.log(dataSource)
+        //console.log(dataSource)
         this.setState({
             dataSource:Units.uniq(dataSource,"key"),
             selectWords,
@@ -359,7 +359,6 @@ export default class ModelImport extends React.Component{
     }
     render(){
         const { visible,title,dataSource,selectWords,modelList,tmplId }=this.state
-        console.log(dataSource)
         const content = (
             <div>
                 {modelList.map((item)=>{
@@ -421,14 +420,7 @@ export default class ModelImport extends React.Component{
                     模板名称：
                     <Input placeholder="输入导入模板名称" style={{ width: 200 }} value={title} onChange={this.setModelName}/>
                 </div>
-                <div className="table">                   
-                    {/* <Table
-                        bordered
-                        columns={columns}
-                        dataSource={dataSource}
-                        size="small"
-                        pagination={false}
-                    /> */}
+                <div className="table">
                     <DragTable
                         columns={columns}
                         dataSource={dataSource}

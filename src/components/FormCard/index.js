@@ -25,6 +25,7 @@ export default class FormCard extends React.Component{
                             width={220}
                             getOptions={this.props.getOptions}
                             options={options}
+                            setPassword={this.props.setPassword}
                             />
                     </Card>        
         }

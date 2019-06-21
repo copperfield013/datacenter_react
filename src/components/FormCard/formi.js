@@ -1,5 +1,5 @@
 import React from 'react'
-import {Card,Form} from 'antd'
+import {Form} from 'antd'
 import moment from 'moment';
 import EditTable from './../../components/EditTable/editTable'
 import FormCard from './../FormCard/index'
@@ -33,7 +33,8 @@ class Formi extends React.Component{
         this.props.form.resetFields()
     }
     initDetailsList=()=>{
-        const {dtmplGroup,columns,dataSource,type,loading,options,form}=this.props
+        const {dtmplGroup,columns,dataSource,type,loading,options,form,currentPage}=this.props
+        //console.log(dtmplGroup)
         return dtmplGroup.map((item)=>{
             if(item.composite && columns){
                 let data=[]
@@ -47,6 +48,7 @@ class Formi extends React.Component{
                     if(it.id===item.id){
                         column=it
                     }
+                    return false
                 })
                 return <EditTable 
                             type={type}
@@ -57,6 +59,7 @@ class Formi extends React.Component{
                             getTemplate={this.props.getTemplate} //新增选择实体模板
                             getFormTmpl={this.props.getFormTmpl}//新增修改实体模板
                             isModal={this.props.match?false:true}
+                            currentPage={currentPage}
                         />   
             }else{
                 return <FormCard
@@ -68,6 +71,7 @@ class Formi extends React.Component{
                             getOptions={this.props.getOptions}
                             options={options}
                             form={form}
+                            setPassword={this.props.setPassword}
                         />
             }
         })

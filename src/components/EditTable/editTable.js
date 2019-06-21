@@ -4,8 +4,9 @@ import EditTableList from './editTableList'
 export default class EditTable extends React.Component{
     
     initDetailsList=()=>{
-        const { type,dataSource,columns,getTemplate,getFormTmpl,isModal }=this.props
+        const { type,dataSource,columns,getTemplate,getFormTmpl,isModal,currentPage }=this.props
 
+        const unallowedCreate=columns.unallowedCreate
         const selectionTemplateId=columns.selectionTemplateId
         const dialogSelectType=columns.dialogSelectType
         const rabcUncreatable=columns.rabcUncreatable
@@ -33,6 +34,8 @@ export default class EditTable extends React.Component{
                     getFormTmpl={getFormTmpl}
                     rabcTemplatecreatable={rabcTemplatecreatable}
                     isModal={isModal}
+                    unallowedCreate={unallowedCreate}
+                    currentPage={currentPage}
                 /> 
     }
     render(){

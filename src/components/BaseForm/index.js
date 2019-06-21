@@ -26,13 +26,15 @@ class BaseForm extends React.Component{
             list:optionsMap[id]
         })
     }
-    handleEnterKey=(e)=>{
-        if(e.nativeEvent.keyCode === 13){ //e.nativeEvent获取原生的事件对像
-            this.handleFilterSubmit()
-       }
-    }
     reset=()=>{
         this.props.form.resetFields()
+    }
+    changeInt=(e)=>{ //只允许输入整数
+        if(e.target.value && !isNaN(e.target.value)){
+            e.target.value=parseInt(e.target.value)
+        }else{
+            e.target.value=""
+        }
     }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form;
@@ -65,17 +67,25 @@ class BaseForm extends React.Component{
                         )}
                     </FormItem>   
                     formItemList.push(TIMEPICKER)                
-                }else if(item.inputType==="decimal" || item.inputType==="int"){
-                    const TIMEPICKER= <FormItem label={label} key={field}>
+                }else if(item.inputType==="decimal" ){
+                    const decimal= <FormItem label={label} key={field}>
                         {getFieldDecorator(field,{initialValue:value?value:""})(
-                            <InputNumber placeholder={`请输入${label}`} style={{width:160}} min={0}/>
+                            <InputNumber placeholder={`请输入${label}`} style={{width:160}} min={0} step={0.1}/>
                         )}
                     </FormItem>   
-                    formItemList.push(TIMEPICKER)                
+                    formItemList.push(decimal)                
+                }else if(item.inputType==="int"){
+                    const int= <FormItem label={label} key={field}>
+                        {getFieldDecorator(field,{
+                            initialValue:value?value:""})(
+                            <InputNumber placeholder={`请输入${label}`} style={{width:160}} min={0} onKeyUp={this.changeInt}/>
+                        )}
+                    </FormItem>   
+                    formItemList.push(int)                
                 }else if(item.inputType==="text"){
                     const INPUT= <FormItem label={label} key={field}>
                         {getFieldDecorator(field,{initialValue:value?value:""})(
-                            <Input type="text" placeholder={`请输入${label}`} style={{width:160}} onKeyPress={this.handleEnterKey}/>
+                            <Input type="text" placeholder={`请输入${label}`} style={{width:160}} onPressEnter={this.handleFilterSubmit}/>
                         )}
                     </FormItem>   
                     formItemList.push(INPUT)                

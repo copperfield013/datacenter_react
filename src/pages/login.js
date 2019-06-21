@@ -1,5 +1,5 @@
 import React from 'react'
-import {Row,Col,Form, Icon, Input, Button,message,Checkbox } from 'antd'
+import {Row,Col,Form, Icon, Input, Button,message } from 'antd'
 import Super from "../super"
 import Units from '../units'
 const FormItem = Form.Item;
