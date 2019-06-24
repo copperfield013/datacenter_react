@@ -110,10 +110,12 @@ export default class actTable extends React.Component{
         })
     }
     queryList=(queryKey,data)=>{
-        const {menuId}=this.state
+        const {menuId,currentPage}=this.state
         Super.super({
             url:`api2/entity/curd/ask_for/${queryKey}`,     
-            data           
+            data:data?data:{
+                pageNo:currentPage
+            }         
         }).then((res)=>{
             Storage[`${menuId}`]=res
             this.sessionTodo(res)
@@ -256,7 +258,10 @@ export default class actTable extends React.Component{
         const url=decodeURI(this.props.history.location.search)
         let data="";
         data=url?Units.urlToObj(url):""
-        this.queryList(queryKey,{...data,pageNo,pageSize})			
+        this.queryList(queryKey,{...data,pageNo,pageSize})
+        this.setState({
+            currentPage:pageNo
+        })			
     }
     handleNew=(menuId)=>{
         this.props.history.push(`/${menuId}/new`)
