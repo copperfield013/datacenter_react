@@ -109,12 +109,13 @@ export default {
         if (!value) {
           localStorage.removeItem(key)
         } else {
-          const exp = new Date();
-          const expireAddTime = min * 60 * 1000;
-          localStorage.setItem(key, JSON.stringify({
-              value, expireAddTime,
-              expires: exp.getTime() + expireAddTime
-          }));
+            const Min=min || 30
+            const exp = new Date();
+            const expireAddTime = Min * 60 * 1000;
+            localStorage.setItem(key, JSON.stringify({
+                value, expireAddTime,
+                expires: exp.getTime() + expireAddTime
+            }));
         }
       },
     getLocalStorge(name) {

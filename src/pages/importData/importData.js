@@ -35,7 +35,6 @@ export default class Import extends React.Component{
         Super.super({
             url:`api2/entity/import/start/${menuId}`,
             query:{
-                fake: 1,
                 exportFaildFile: 1
             },
             data:formData,   

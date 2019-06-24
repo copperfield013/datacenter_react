@@ -28,6 +28,10 @@ export default class BaseInfoForm extends React.Component{
             close:"none"
         })
     }
+    changePass=(e,fieldValue)=>{
+        e.target.value=fieldValue
+        this.props.setPassword(fieldValue)
+    }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form?this.props.form:"";
         const { formList,width,type }=this.props
@@ -90,7 +94,7 @@ export default class BaseInfoForm extends React.Component{
                                                 type="password" 
                                                 style={{width:width}}
                                                 placeholder={`请输入${title}`}
-                                                onFocus={this.props.setPassword}
+                                                onChange={(e)=>this.changePass(e,fieldValue)}
                                                 />
                                     )}
                                 </FormItem> 

@@ -1,7 +1,7 @@
 import React from 'react'
 import {Form,Modal} from 'antd'
 import moment from 'moment';
-import BaseInfoForm from './../BaseForm/BaseInfoForm'
+import BaseInfoForm from '../BaseForm/BaseInfoForm'
 
 class ModelForm extends React.Component{
 

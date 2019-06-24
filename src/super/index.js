@@ -31,6 +31,7 @@ export default class Superagent{
                     } 
                     //console.log(res.body)
                     if(res.status===200){
+                        Units.setLocalStorge("tokenName",tokenName)
                         resolve(res.body)
                     }else if(res.status===403){
                         message.info("请求权限不足,可能是token已经超时")
