@@ -75,7 +75,6 @@ class Loginit extends React.Component{
                                     initialValue:password,
                                     rules: [
                                         { required: true, message: '请输入密码!' },
-                                        {min:5,message:"输入大于5个字符"}
                                     ],
                                 })(
                                     <Input 

@@ -1,7 +1,7 @@
 import React from 'react'
 import {Form} from 'antd'
 import moment from 'moment';
-import EditTable from './../../components/EditTable/editTable'
+import EditTable from '../EditTable'
 import FormCard from './../FormCard/index'
 
 
@@ -11,7 +11,6 @@ class Formi extends React.Component{
     }
     handleBaseInfoSubmit=()=>{
         this.props.form.validateFields({ force: true }, (err, values) => { //提交再次验证
-            console.log(values)
             if(!err){
                 const result={}
                 for(let k in values){
@@ -33,7 +32,7 @@ class Formi extends React.Component{
         this.props.form.resetFields()
     }
     initDetailsList=()=>{
-        const {dtmplGroup,columns,dataSource,type,loading,options,form,currentPage}=this.props
+        const {dtmplGroup,columns,dataSource,type,loading,options,form}=this.props
         //console.log(dtmplGroup)
         return dtmplGroup.map((item)=>{
             if(item.composite && columns){
@@ -59,7 +58,6 @@ class Formi extends React.Component{
                             getTemplate={this.props.getTemplate} //新增选择实体模板
                             getFormTmpl={this.props.getFormTmpl}//新增修改实体模板
                             isModal={this.props.match?false:true}
-                            currentPage={currentPage}
                         />   
             }else{
                 return <FormCard

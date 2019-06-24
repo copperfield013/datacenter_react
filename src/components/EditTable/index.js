@@ -4,7 +4,7 @@ import EditTableList from './editTableList'
 export default class EditTable extends React.Component{
     
     initDetailsList=()=>{
-        const { type,dataSource,columns,getTemplate,getFormTmpl,isModal,currentPage }=this.props
+        const { type,dataSource,columns,getTemplate,getFormTmpl,isModal, }=this.props
 
         const unallowedCreate=columns.unallowedCreate
         const selectionTemplateId=columns.selectionTemplateId
@@ -19,6 +19,7 @@ export default class EditTable extends React.Component{
         const data=[]
         dataSource.map((it,i)=>{
             it.fieldMap["order"]=i+1
+            it.fieldMap["current"]=it.current
             data.push(it.fieldMap)
             return false
         })              
@@ -35,7 +36,6 @@ export default class EditTable extends React.Component{
                     rabcTemplatecreatable={rabcTemplatecreatable}
                     isModal={isModal}
                     unallowedCreate={unallowedCreate}
-                    currentPage={currentPage}
                 /> 
     }
     render(){

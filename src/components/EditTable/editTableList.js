@@ -9,9 +9,6 @@ export default class EditTableList extends React.Component {
     dataSource:this.props.dataSource,
     searchText:"",
   }
-  handleChange=(value)=> {
-    console.log(`selected ${value}`);
-  }
   searchValue=(e)=>{
     const {columns,dataSource}=this.props
     const txt=e.target.value
@@ -53,19 +50,9 @@ export default class EditTableList extends React.Component {
       dataSource:data
     })
   }
-  tableChange=(pagination)=>{
-    this.props.columns.map((item)=>{
-      if(item.dataIndex==="order"){ //翻页的序号作计数处理
-        item["render"]=(text, record,index) => (
-              <label>{(pagination.current-1)*pagination.pageSize+index+1}</label>
-          )       
-      }
-      return false
-    })
-  }
   render() {
-    let { cardTitle,columns,type,dataSource,haveTemplate,rabcTemplatecreatable,isModal,unallowedCreate,currentPage }=this.props
-    const page={pageSize:5,hideOnSinglePage:true,defaultCurrent:currentPage}
+    let { cardTitle,columns,type,dataSource,haveTemplate,rabcTemplatecreatable,isModal,unallowedCreate }=this.props
+    const page={pageSize:5,hideOnSinglePage:true,defaultCurrent:dataSource&&dataSource.length>0?dataSource[0].current:1}
     let groupId
     const arr1=[]
     const arr2=[]
@@ -90,39 +77,42 @@ export default class EditTableList extends React.Component {
           id={cardTitle} 
           className="hoverable" 
           headStyle={{background:"#f2f4f5"}}
-          extra={type==="detail"?<Input placeholder="关键字搜索"
-                                        onChange={this.searchValue}
-                                        addonBefore={<Icon type="search"/>}
-                                        />:""}
+          extra={type==="detail"?
+            <Input placeholder="关键字搜索"
+              onChange={this.searchValue}
+              addonBefore={<Icon type="search"/>}
+              />:""}
           >
           <div className="editTableList">
-            {type==="detail" || unallowedCreate===1?"":<Button 
-                              type='primary' 
-                              icon="plus" 
-                              size="small"
-                              onClick={this.props.handleAdd} 
-                              style={{marginBottom:10,marginRight:10}}
-                              >新增</Button>}
-              {!isModal&&haveTemplate && type!=="detail"?<Button 
-                              type='primary' 
-                              icon="snippets" 
-                              size="small"
-                              onClick={()=>this.props.getTemplate(groupId,excepts,dfieldIds)}
-                              style={{marginBottom:10,marginRight:10}}
-                              >选择</Button>:""}
-              {!isModal&&rabcTemplatecreatable && type!=="detail"?<Button 
-                                        type='primary' 
-                                        icon="plus-square" 
-                                        size="small"
-                                        onClick={()=>this.props.getFormTmpl({groupId},true)} 
-                                        style={{marginBottom:10,marginRight:10}}
-                                        >新增</Button>:""}
+            {type==="detail" || unallowedCreate===1?"":
+            <Button 
+              type='primary' 
+              icon="plus" 
+              size="small"
+              onClick={this.props.handleAdd} 
+              style={{marginBottom:10,marginRight:10}}
+              >新增</Button>}
+              {!isModal&&haveTemplate && type!=="detail"?
+              <Button 
+                type='primary' 
+                icon="snippets" 
+                size="small"
+                onClick={()=>this.props.getTemplate(groupId,excepts,dfieldIds)}
+                style={{marginBottom:10,marginRight:10}}
+                >选择</Button>:""}
+              {!isModal&&rabcTemplatecreatable && type!=="detail"?
+              <Button 
+                type='primary' 
+                icon="plus-square" 
+                size="small"
+                onClick={()=>this.props.getFormTmpl({groupId},true)} 
+                style={{marginBottom:10,marginRight:10}}
+                >新增</Button>:""}
               <Table
                 bordered
                 dataSource={type==="edit"?dataSource:this.state.dataSource}
                 columns={columns}    
                 pagination={page}
-                onChange={this.tableChange}
               />
           </div>
             

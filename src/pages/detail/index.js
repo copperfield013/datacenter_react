@@ -4,7 +4,7 @@ import Super from "./../../super"
 import Units from '../../units'
 import './index.css'
 import 'moment/locale/zh-cn'
-import ModelForm from './../../components/ModelForm/modelForm'
+import ModelForm from '../../components/ModelForm'
 import RightBar from './../../components/RightBar'
 import BaseInfoForm from './../../components/BaseForm/BaseInfoForm'
 import TemplateList from '../../components/templateList';
@@ -12,6 +12,7 @@ import EditAddTemplate from '../../components/editAddTemplate';
 import Storage from './../../units/storage'
 import Formi from './../../components/FormCard/formi'
 import moment from 'moment';
+import SetPasswords from '../../components/SetPasswords';
 const confirm = Modal.confirm;
 
 export default class Detail extends React.Component{
@@ -25,6 +26,7 @@ export default class Detail extends React.Component{
         visibleForm:false,
         visibleTemplateList:false,
         isNew:false,
+        showSetPass:false,
     }
     componentDidMount(){
         if(!this.props.match){
@@ -33,7 +35,6 @@ export default class Detail extends React.Component{
     }
     componentWillMount(){
         const {menuId,code,type}=this.props.match?this.props.match.params:this.props
-        console.log(this.props)
         const nodeId=this.props.match?this.props.match.params.nodeId:null
         const fieldGroupId=this.props.match?null:this.props.fieldGroupId
         this.setState({
@@ -265,9 +266,6 @@ export default class Detail extends React.Component{
                     title: '序号',
                     width:65,
                     dataIndex:'order',
-                    render: (text, record,index) => (
-                        <label>{index+1}</label>
-                        ),
                 } 
                 item.fields.unshift(order)
                 if(type!=="detail"){
@@ -348,6 +346,7 @@ export default class Detail extends React.Component{
         for(let k in dataSource){
             if(k===record.groupId.toString()){
                 dataSource[k].map((item,index)=>{
+                    item.current=Math.ceil(record.order/5)
                     if(item.fieldMap.key===deleKey){
                         dataSource[k].splice(index,1); 
                     }
@@ -477,13 +476,34 @@ export default class Detail extends React.Component{
             visibleTemplateList:false,
             visibleDrawer: false,
             visibleEditAddTemplate:false,
+            showSetPass:false,
         });
     }
     showModal = () => {
         this.baseinfo.handleBaseInfoSubmit() //获取BaseInfo数据
     }
     baseInfo=(baseValue)=>{  
+        const {newPass,dtmplGroup}=this.state
         this.visibleModal(null,'handleOk','确定要保存修改吗')//弹出确认框 
+        if(newPass){
+            let name
+            dtmplGroup.map((item)=>{
+                if(!item.composite){
+                    item.fields.map((it)=>{
+                        if(it.type==="password"){
+                            name=it.name
+                        }
+                        return false
+                    })
+                }
+                return false
+            }) 
+            for(let k in baseValue){
+                if(k===name){
+                    baseValue[k]=newPass
+                }
+            }
+        }
         this.setState({
             baseValue,
         });
@@ -586,7 +606,6 @@ export default class Detail extends React.Component{
         const Code=fieldsValue.code;
         const groupId=fieldsValue.groupId.toString()
         let { dataSource,isNew,columns }=this.state;
-        let currentPage=1
         const data={}
         for(let k in fieldsValue){
             if(fieldsValue[k]!==null&&typeof fieldsValue[k]==='object'){
@@ -611,7 +630,10 @@ export default class Detail extends React.Component{
                 fieldMap:fieldsValue
             }
             dataSource[groupId].push(list)
-            currentPage=Math.ceil(dataSource[groupId].length/5)
+            dataSource[groupId].map((item)=>{
+                item.current=Math.ceil(dataSource[groupId].length/5)
+                return false
+            })
         }else{     //修改记录  
             for(let k in dataSource){
                 if(k===groupId){
@@ -628,7 +650,6 @@ export default class Detail extends React.Component{
         this.setState({
             dataSource,
             visibleForm:false,
-            currentPage,
         })
     }
     getTemplate=(templateGroupId,excepts,dfieldIds,searchParams)=>{
@@ -675,7 +696,6 @@ export default class Detail extends React.Component{
     }
     TemplatehandleOk=(codes,formTmplGroupId,isNew,ddfieldIds)=>{
         let {menuId,dfieldIds,templateGroupId,dataSource,columns}=this.state
-        let currentPage=1
         if(formTmplGroupId){
             templateGroupId=formTmplGroupId
         }
@@ -733,7 +753,10 @@ export default class Detail extends React.Component{
                             })
                         }else{
                             dataSource[k].push(list)
-                            currentPage=Math.ceil(dataSource[k].length/5)
+                            dataSource[k].map((item)=>{
+                                item.current=Math.ceil(dataSource[k].length/5)
+                                return false
+                            })
                         }
                         
                     }
@@ -743,7 +766,6 @@ export default class Detail extends React.Component{
             this.setState({
                 visibleTemplateList:false,
                 dataSource,
-                currentPage
             })
         })
     }
@@ -752,13 +774,22 @@ export default class Detail extends React.Component{
         this.baseinfo.reset()
         this.loadltmpl(menuId,code,type,"",nodeId)
     }
-    setPassword=()=>{
-        console.log(888)
+    showSetPass=(oldPass)=>{
+        this.setState({
+            showSetPass:true,
+            oldPass,
+        })
+    }
+    setNewPass=(newPass)=>{
+        this.setState({
+            newPass,
+            showSetPass:false,
+        })
     }
     render(){
-        const { menuTitle,detailsTitle,fuseMode,loading,visibleForm,dtmplGroup,editFormList,visibleEditAddTemplate,
-            actions,premises,templateDtmpl,rightNav,columns,dataSource,editAddGroupId,visibleDrawer,detailHistory,
-            type,menuId,code,visibleTemplateList,fileType,title,options,templateData,formTmplGroupId,currentPage}=this.state
+        const { menuTitle,detailsTitle,fuseMode,loading,visibleForm,dtmplGroup,editFormList,visibleEditAddTemplate,showSetPass,
+            actions,premises,templateDtmpl,rightNav,columns,dataSource,editAddGroupId,visibleDrawer,detailHistory,oldPass,
+            type,menuId,code,visibleTemplateList,fileType,title,options,templateData,formTmplGroupId}=this.state
         let content
         if(actions && actions.length>0){
             content = (
@@ -802,9 +833,24 @@ export default class Detail extends React.Component{
                     {type==="new"&& menuTitle ? menuTitle+"--创建":detailsTitle }   
                     {type==="detail"?
                         <div className="fr pad">
-                            <Button className="hoverbig" title="导出" onClick={this.exportDetail}><Icon type="upload" /></Button>
-                            <Button className="hoverbig" title="查看历史" onClick={()=>this.renderHistoryList()}><Icon type="schedule" /></Button>                                                      
-                            <Button className="hoverbig" title="刷新" onClick={this.fresh}><Icon type="sync" /></Button>
+                            <Button 
+                                className="hoverbig" 
+                                title="导出" 
+                                onClick={this.exportDetail}>
+                                    <Icon type="upload" />
+                            </Button>
+                            <Button 
+                                className="hoverbig" 
+                                title="查看历史" 
+                                onClick={()=>this.renderHistoryList()}>
+                                    <Icon type="schedule" />
+                            </Button>                                                      
+                            <Button 
+                                className="hoverbig" 
+                                title="刷新" 
+                                onClick={this.fresh}>
+                                    <Icon type="sync" />
+                            </Button>
                         </div>:
                         <div className="fr pad">
                             <div className="buttonGroup">
@@ -875,10 +921,8 @@ export default class Detail extends React.Component{
                         match={this.props.match}
                         baseInfo={this.baseInfo}
                         getOptions={this.getOptions}
-                        currentPage={currentPage}
-                        setPassword={this.setPassword}
-                    >                  
-                    </Formi>:""}                            
+                        setPassword={(fieldValue)=>this.visibleModal(fieldValue,'showSetPass','确定修改密码吗？')}
+                    />:""}                            
                 <ModelForm
                     handleCancel={this.handleCancel}
                     handleOk={this.modelhandleOk}
@@ -929,6 +973,12 @@ export default class Detail extends React.Component{
                     fresh={this.fresh}
                     maskClosable={false}
                     TemplatehandleOk={this.TemplatehandleOk}
+                />
+                <SetPasswords 
+                    showSetPass={showSetPass}
+                    handleCancel={this.handleCancel}
+                    oldPass={oldPass}
+                    setNewPass={this.setNewPass}
                 />
                 {!rightNav||rightNav.length<3?"":
                     this.props.match?<RightBar 
