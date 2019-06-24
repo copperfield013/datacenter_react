@@ -101,7 +101,7 @@ export default {
         }
         return storageKeyPrefix;
     },
-    setLocalStorge(key, value, min) {
+    setLocalStorge(key, value, min = 30) {
         if(key){
             key = this.getStorageKeyPrefix() + key;
         }
