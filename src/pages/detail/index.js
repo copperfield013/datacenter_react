@@ -631,7 +631,7 @@ export default class Detail extends React.Component{
             }
             dataSource[groupId].push(list)
             dataSource[groupId].map((item)=>{
-                item.current=Math.ceil(dataSource[groupId].length/5)
+                item.fieldMap.current=Math.ceil(dataSource[groupId].length/5)
                 return false
             })
         }else{     //修改记录  
@@ -754,7 +754,7 @@ export default class Detail extends React.Component{
                         }else{
                             dataSource[k].push(list)
                             dataSource[k].map((item)=>{
-                                item.current=Math.ceil(dataSource[k].length/5)
+                                item.fieldMap.current=Math.ceil(dataSource[k].length/5)
                                 return false
                             })
                         }
