@@ -47,6 +47,7 @@ export default class Detail extends React.Component{
         this.loadltmpl(menuId,code,type,"",nodeId,fieldGroupId)        
     }
     componentWillReceiveProps(nextProps){
+        console.log(99)
         const path=nextProps.location?nextProps.location.pathname.split("/"):null
         this.setState({
             menuId:path[1],
@@ -346,10 +347,13 @@ export default class Detail extends React.Component{
         for(let k in dataSource){
             if(k===record.groupId.toString()){
                 dataSource[k].map((item,index)=>{
-                    item.current=Math.ceil(record.order/5)
                     if(item.fieldMap.key===deleKey){
                         dataSource[k].splice(index,1); 
                     }
+                    return false
+                })
+                dataSource[k].map((item)=>{
+                    item.fieldMap.current=Math.ceil(record.order/5)
                     return false
                 })
             }
@@ -512,9 +516,6 @@ export default class Detail extends React.Component{
 	onRef=(ref)=>{
 		this.baseinfo=ref
     }
-    onRef2=(ref)=>{
-		this.modelform=ref
-    }
     fuseMode=(checked)=>{
         this.setState({
             fuseMode:checked
@@ -545,7 +546,6 @@ export default class Detail extends React.Component{
     }
     getForm=(record,isNew)=>{
         let {columns}=this.state
-        this.modelform.handleReset()
         let editFormList=[]
         if(!isNew){
             columns.map((item)=>{
@@ -931,7 +931,6 @@ export default class Detail extends React.Component{
                     type="edit"            
                     getOptions={this.getOptions}
                     options={options}
-                    onRef2={this.onRef2}
                     title={title}
                     maskClosable={false}
                 />

@@ -5,12 +5,6 @@ import BaseInfoForm from '../BaseForm/BaseInfoForm'
 
 class ModelForm extends React.Component{
 
-    componentDidMount(){
-        this.props.onRef2(this)
-    }
-    handleReset = () => {
-        this.props.form.resetFields();
-    } 
     handleOk=()=>{
         const {formList,form}=this.props
         let code,groupId,totalName
