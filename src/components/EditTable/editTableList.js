@@ -8,7 +8,7 @@ export default class EditTableList extends React.Component {
     count:this.props.count,
     dataSource:this.props.dataSource,
     searchText:"",
-    current:this.props.dataSource?this.props.dataSource[0].current:1,
+    current:this.props.dataSource&&this.props.dataSource.length>0?this.props.dataSource[0].current:1,
   }
   searchValue=(e)=>{
     const {columns,dataSource}=this.props
