@@ -21,7 +21,7 @@ export default class EditAddTemplate extends React.Component{
         })
         //console.log(arr)
         let dfieldIds=arr.join(',')
-        this.detail.showModal()
+        this.detail.showModal(dfieldIds)
         if(code){
             this.detail.TemplatehandleOk(code,editAddGroupId,false,dfieldIds)
         }

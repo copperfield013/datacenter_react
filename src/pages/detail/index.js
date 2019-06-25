@@ -363,26 +363,30 @@ export default class Detail extends React.Component{
         })
     }
     handleOk = (actionId) => {
-        const { baseValue,fuseMode,dataSource,descsFlag,fieldGroupId,columns,nodeId }=this.state 
+        const { baseValue,fuseMode,dataSource,descsFlag,fieldGroupId,columns,nodeId }=this.state
         const {menuId,code,type}=this.props.match?this.props.match.params:this.props
         const arr=[]
-        columns.map((item)=>{
-            if(item.id.toString()===fieldGroupId){
-                item.fields.map((it)=>{
-                    if(it.additionAccess){
-                        arr.push(it.id)
-                    }
-                    return false
-                })
-            }
-            return false
-        })   
-        let dfieldIds=arr.join(',')
+        let dfieldIds
+        if(columns&&columns.length>0){
+            columns.map((item)=>{
+                if(item.id.toString()===fieldGroupId){
+                    item.fields.map((it)=>{
+                        if(it.additionAccess){
+                            arr.push(it.id)
+                        }
+                        return false
+                    })
+                }
+                return false
+            })   
+            dfieldIds=arr.join(',')
+        }else{
+            dfieldIds=this.state.dfieldIds
+        }   
         const formData = new FormData(); 
         if(actionId){
             formData.append("%actionId%", actionId)
         }
-        console.log(baseValue)
         for(let k in baseValue){
             formData.append(k, baseValue[k]);
         }       
@@ -439,10 +443,8 @@ export default class Detail extends React.Component{
                 message.success("保存成功!")
                 Storage[`${menuId}`]=null
                 if(type!=='new'){
-                    this.fresh()
-                }else{
-                    const {menuId}=this.state
-                    this.props.history.push(`/${menuId}/edit/${res.code}`)
+                    console.log(99)
+                    this.fresh(res.code)
                 }
                 if(!this.props.match){
                     this.props.TemplatehandleOk(res.code,fieldGroupId,true,dfieldIds)
@@ -483,8 +485,11 @@ export default class Detail extends React.Component{
             showSetPass:false,
         });
     }
-    showModal = () => {
+    showModal = (dfieldIds) => {
         this.baseinfo.handleBaseInfoSubmit() //获取BaseInfo数据
+        this.setState({
+            dfieldIds
+        })
     }
     baseInfo=(baseValue)=>{  
         const {newPass,dtmplGroup}=this.state
@@ -695,7 +700,7 @@ export default class Detail extends React.Component{
         this.getTemplate(templateGroupId,excepts,dfieldIds,params)
     }
     TemplatehandleOk=(codes,formTmplGroupId,isNew,ddfieldIds)=>{
-        let {menuId,dfieldIds,templateGroupId,dataSource,columns}=this.state
+        let {menuId,dfieldIds,templateGroupId,dataSource,columns,dtmplGroup}=this.state
         if(formTmplGroupId){
             templateGroupId=formTmplGroupId
         }
@@ -766,11 +771,15 @@ export default class Detail extends React.Component{
             this.setState({
                 visibleTemplateList:false,
                 dataSource,
+                dtmplGroup
             })
         })
     }
-    fresh=()=>{
-        const {menuId,code,type,nodeId}=this.state
+    fresh=(codei)=>{
+        let {menuId,code,type,nodeId}=this.state
+        if(codei){
+            code=codei
+        }
         this.baseinfo.reset()
         this.loadltmpl(menuId,code,type,"",nodeId)
     }
