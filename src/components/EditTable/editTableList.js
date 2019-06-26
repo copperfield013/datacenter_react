@@ -8,6 +8,7 @@ export default class EditTableList extends React.Component {
     count:this.props.count,
     dataSource:this.props.dataSource,
     searchText:"",
+    current:this.props.dataSource&&this.props.dataSource.length>0?this.props.dataSource[0].current:1,
   }
   searchValue=(e)=>{
     const {columns,dataSource}=this.props
@@ -50,9 +51,20 @@ export default class EditTableList extends React.Component {
       dataSource:data
     })
   }
+  tabChange=(pagination)=>{
+    const {dataSource}=this.state
+    dataSource.map((item)=>{
+      item.current=pagination.current
+      return false
+    })
+    this.setState({
+      dataSource
+    })
+  }
   render() {
-    let { cardTitle,columns,type,dataSource,haveTemplate,rabcTemplatecreatable,isModal,unallowedCreate }=this.props
-    const page={pageSize:5,hideOnSinglePage:true,defaultCurrent:dataSource&&dataSource.length>0?dataSource[0].current:1}
+    let { cardTitle,columns,type,haveTemplate,rabcTemplatecreatable,isModal,unallowedCreate }=this.props
+    const {current,dataSource}=this.state
+    const page={pageSize:5,hideOnSinglePage:true,defaultCurrent:current}
     let groupId
     const arr1=[]
     const arr2=[]
@@ -110,9 +122,10 @@ export default class EditTableList extends React.Component {
                 >新增</Button>:""}
               <Table
                 bordered
-                dataSource={type==="edit"?dataSource:this.state.dataSource}
+                dataSource={dataSource}
                 columns={columns}    
                 pagination={page}
+                onChange={this.tabChange}
               />
           </div>
             

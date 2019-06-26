@@ -47,6 +47,7 @@ export default class Detail extends React.Component{
         this.loadltmpl(menuId,code,type,"",nodeId,fieldGroupId)        
     }
     componentWillReceiveProps(nextProps){
+        console.log(99)
         const path=nextProps.location?nextProps.location.pathname.split("/"):null
         this.setState({
             menuId:path[1],
@@ -346,10 +347,13 @@ export default class Detail extends React.Component{
         for(let k in dataSource){
             if(k===record.groupId.toString()){
                 dataSource[k].map((item,index)=>{
-                    item.current=Math.ceil(record.order/5)
                     if(item.fieldMap.key===deleKey){
                         dataSource[k].splice(index,1); 
                     }
+                    return false
+                })
+                dataSource[k].map((item)=>{
+                    item.fieldMap.current=Math.ceil(record.order/5)
                     return false
                 })
             }
@@ -359,26 +363,30 @@ export default class Detail extends React.Component{
         })
     }
     handleOk = (actionId) => {
-        const { baseValue,fuseMode,dataSource,descsFlag,fieldGroupId,columns,nodeId }=this.state 
+        const { baseValue,fuseMode,dataSource,descsFlag,fieldGroupId,columns,nodeId }=this.state
         const {menuId,code,type}=this.props.match?this.props.match.params:this.props
         const arr=[]
-        columns.map((item)=>{
-            if(item.id.toString()===fieldGroupId){
-                item.fields.map((it)=>{
-                    if(it.additionAccess){
-                        arr.push(it.id)
-                    }
-                    return false
-                })
-            }
-            return false
-        })   
-        let dfieldIds=arr.join(',')
+        let dfieldIds
+        if(columns&&columns.length>0){
+            columns.map((item)=>{
+                if(item.id.toString()===fieldGroupId){
+                    item.fields.map((it)=>{
+                        if(it.additionAccess){
+                            arr.push(it.id)
+                        }
+                        return false
+                    })
+                }
+                return false
+            })   
+            dfieldIds=arr.join(',')
+        }else{
+            dfieldIds=this.state.dfieldIds
+        }   
         const formData = new FormData(); 
         if(actionId){
             formData.append("%actionId%", actionId)
         }
-        console.log(baseValue)
         for(let k in baseValue){
             formData.append(k, baseValue[k]);
         }       
@@ -435,10 +443,8 @@ export default class Detail extends React.Component{
                 message.success("保存成功!")
                 Storage[`${menuId}`]=null
                 if(type!=='new'){
-                    this.fresh()
-                }else{
-                    const {menuId}=this.state
-                    this.props.history.push(`/${menuId}/edit/${res.code}`)
+                    console.log(99)
+                    this.fresh(res.code)
                 }
                 if(!this.props.match){
                     this.props.TemplatehandleOk(res.code,fieldGroupId,true,dfieldIds)
@@ -479,8 +485,11 @@ export default class Detail extends React.Component{
             showSetPass:false,
         });
     }
-    showModal = () => {
+    showModal = (dfieldIds) => {
         this.baseinfo.handleBaseInfoSubmit() //获取BaseInfo数据
+        this.setState({
+            dfieldIds
+        })
     }
     baseInfo=(baseValue)=>{  
         const {newPass,dtmplGroup}=this.state
@@ -512,9 +521,6 @@ export default class Detail extends React.Component{
 	onRef=(ref)=>{
 		this.baseinfo=ref
     }
-    onRef2=(ref)=>{
-		this.modelform=ref
-    }
     fuseMode=(checked)=>{
         this.setState({
             fuseMode:checked
@@ -545,7 +551,6 @@ export default class Detail extends React.Component{
     }
     getForm=(record,isNew)=>{
         let {columns}=this.state
-        this.modelform.handleReset()
         let editFormList=[]
         if(!isNew){
             columns.map((item)=>{
@@ -631,7 +636,7 @@ export default class Detail extends React.Component{
             }
             dataSource[groupId].push(list)
             dataSource[groupId].map((item)=>{
-                item.current=Math.ceil(dataSource[groupId].length/5)
+                item.fieldMap.current=Math.ceil(dataSource[groupId].length/5)
                 return false
             })
         }else{     //修改记录  
@@ -695,7 +700,7 @@ export default class Detail extends React.Component{
         this.getTemplate(templateGroupId,excepts,dfieldIds,params)
     }
     TemplatehandleOk=(codes,formTmplGroupId,isNew,ddfieldIds)=>{
-        let {menuId,dfieldIds,templateGroupId,dataSource,columns}=this.state
+        let {menuId,dfieldIds,templateGroupId,dataSource,columns,dtmplGroup}=this.state
         if(formTmplGroupId){
             templateGroupId=formTmplGroupId
         }
@@ -754,7 +759,7 @@ export default class Detail extends React.Component{
                         }else{
                             dataSource[k].push(list)
                             dataSource[k].map((item)=>{
-                                item.current=Math.ceil(dataSource[k].length/5)
+                                item.fieldMap.current=Math.ceil(dataSource[k].length/5)
                                 return false
                             })
                         }
@@ -766,11 +771,15 @@ export default class Detail extends React.Component{
             this.setState({
                 visibleTemplateList:false,
                 dataSource,
+                dtmplGroup
             })
         })
     }
-    fresh=()=>{
-        const {menuId,code,type,nodeId}=this.state
+    fresh=(codei)=>{
+        let {menuId,code,type,nodeId}=this.state
+        if(codei){
+            code=codei
+        }
         this.baseinfo.reset()
         this.loadltmpl(menuId,code,type,"",nodeId)
     }
@@ -931,7 +940,6 @@ export default class Detail extends React.Component{
                     type="edit"            
                     getOptions={this.getOptions}
                     options={options}
-                    onRef2={this.onRef2}
                     title={title}
                     maskClosable={false}
                 />

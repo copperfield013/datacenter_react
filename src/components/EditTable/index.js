@@ -19,7 +19,6 @@ export default class EditTable extends React.Component{
         const data=[]
         dataSource.map((it,i)=>{
             it.fieldMap["order"]=i+1
-            it.fieldMap["current"]=it.current
             data.push(it.fieldMap)
             return false
         })              
