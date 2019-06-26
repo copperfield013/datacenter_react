@@ -23,8 +23,8 @@ export default class actTable extends React.Component{
     }
     componentDidMount(){
         const {menuId}=this.props.match.params;
-        this.setState({menuId})
         const url=decodeURI(this.props.history.location.search)//获取url参数，并解码
+        this.setState({menuId})
         if(!url){
             this.requestLtmpl(menuId)
         }else{
@@ -33,8 +33,12 @@ export default class actTable extends React.Component{
     }
     componentWillReceiveProps(nextProps){
         const menuId=nextProps.match.params.menuId
-        this.setState({menuId,isSeeTotal:false})
         const url=decodeURI(nextProps.location.search)//前进后退获取url参数
+        this.setState({
+            menuId,
+            isSeeTotal:false,
+            currentPage:1
+        })
         if(!url){
             this.requestLtmpl(menuId)
         }else{
@@ -335,6 +339,8 @@ export default class actTable extends React.Component{
                 }).then((res)=>{
                    if(res.status==="suc"){
                         _this.reset()
+                   }else{
+                       message.error(res.errorMsg)
                    }
                 })
             },

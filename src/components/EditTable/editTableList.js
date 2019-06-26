@@ -37,7 +37,7 @@ export default class EditTableList extends React.Component {
             data.push(...dataSource)
           }
         }  
-        item["render"]=(text) => (<Highlighter
+        item["render"]=(text) => (<Highlighter 
                                       highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
                                       searchWords={[this.state.searchText]}
                                       autoEscape
@@ -61,10 +61,13 @@ export default class EditTableList extends React.Component {
       dataSource
     })
   }
+  showTotal=(total)=> {
+    return `总共有${total}条`;
+  }
   render() {
     let { cardTitle,columns,type,haveTemplate,rabcTemplatecreatable,isModal,unallowedCreate }=this.props
     const {current,dataSource}=this.state
-    const page={pageSize:5,hideOnSinglePage:true,defaultCurrent:current}
+    const page={pageSize:5,hideOnSinglePage:true,defaultCurrent:current,total:dataSource.length,showTotal:this.showTotal}
     let groupId
     const arr1=[]
     const arr2=[]
@@ -127,8 +130,7 @@ export default class EditTableList extends React.Component {
                 pagination={page}
                 onChange={this.tabChange}
               />
-          </div>
-            
+          </div>           
       </Card>
     );
   }

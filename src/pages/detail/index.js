@@ -443,7 +443,6 @@ export default class Detail extends React.Component{
                 message.success("保存成功!")
                 Storage[`${menuId}`]=null
                 if(type!=='new'){
-                    console.log(99)
                     this.fresh(res.code)
                 }
                 if(!this.props.match){
