@@ -14,7 +14,7 @@ export default class EditTableList extends React.Component {
     const {columns,dataSource}=this.props
     const txt=e.target.value
     const data=[]
-    columns.map((item)=>{
+    columns.forEach((item)=>{
       const id=item.id;
       if(item && item.type!=="file"){
         if(e.target.value){
@@ -37,14 +37,14 @@ export default class EditTableList extends React.Component {
             data.push(...dataSource)
           }
         }  
-        item["render"]=(text) => (<Highlighter 
-                                      highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-                                      searchWords={[this.state.searchText]}
-                                      autoEscape
-                                      textToHighlight= {text?text.toString():""}
-                                      />)        
+        item["render"]=text => 
+            <Highlighter 
+              highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+              searchWords={[this.state.searchText]}
+              autoEscape
+              textToHighlight= {text?text.toString():""}
+              />        
       }
-        return false
     })
     this.setState({
       searchText:e.target.value,
@@ -53,9 +53,8 @@ export default class EditTableList extends React.Component {
   }
   tabChange=(pagination)=>{
     const {dataSource}=this.state
-    dataSource.map((item)=>{
+    dataSource.forEach((item)=>{
       item.current=pagination.current
-      return false
     })
     this.setState({
       dataSource
@@ -72,17 +71,15 @@ export default class EditTableList extends React.Component {
     const arr1=[]
     const arr2=[]
     if(columns){     
-      columns.map((item)=>{
+      columns.forEach((item)=>{
         if(item.groupId){
           groupId=item.groupId
           arr2.push(item.id)
         }
-        return false
       })
     }
-    dataSource.map((item)=>{
+    dataSource.forEach((item)=>{
       arr1.push(item.code)
-      return false
     })
     let excepts=arr1.join(',')
     let dfieldIds=arr2.join(',')

@@ -1,5 +1,4 @@
 import React from 'react'
-import Units from './../../units'
 import {Button,Upload,Icon,message} from 'antd'
 
 export default class NewUpload extends React.Component{

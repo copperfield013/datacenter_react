@@ -61,7 +61,7 @@ export default class actTable extends React.Component{
                 this.queryList(res.queryKey,data)
             }
             const fieldIds=[]
-            res.ltmpl.criterias.map((item)=>{
+            res.ltmpl.criterias.forEach((item)=>{
                 if(item.inputType==="select"){
                     fieldIds.push(item.fieldId)
                 }
@@ -71,7 +71,6 @@ export default class actTable extends React.Component{
                         item.value=criteriaValueMap[k]
                     }
                 }
-                return false
             })
             if(fieldIds.length>0){
                 this.requestSelect(fieldIds)
@@ -79,19 +78,18 @@ export default class actTable extends React.Component{
             const url=decodeURI(this.props.history.location.search)
             if(url){//将url参数填入搜索栏
                 const obj=Units.urlToObj(url)
-                res.ltmpl.criterias.map((item)=>{
+                res.ltmpl.criterias.forEach((item)=>{
                     for(let k in obj){
                         if(k.split("_")[1]===item.id.toString()){
                             item.value=obj[k] //更新表单筛选
                         }
                     }
-                    return false
                 })
             }else{
                 this.child.reset()
             }
             const plainOptions=[]
-            res.ltmpl.columns.map((item)=>{
+            res.ltmpl.columns.forEach((item)=>{
                 if(item.title!=="序号"){
                     const list={
                         value:item.id,
@@ -99,7 +97,6 @@ export default class actTable extends React.Component{
                     }
                     plainOptions.push(list)
                 }
-                return false
             })
             this.setState({
                 moduleTitle:res.menu.title,
@@ -129,11 +126,10 @@ export default class actTable extends React.Component{
     sessionTodo=(data)=>{
         const {isSeeTotal}=this.state
         const dataSource=[]
-        data.entities.map((item,index)=>{
+        data.entities.forEach((item,index)=>{
             item.cellMap.key=index
             item.cellMap.code=item.code //增加code,为了删除操作
             dataSource.push(item.cellMap)
-            return false
         })
         const noSeeTotal=data.pageInfo.pageSize*data.pageInfo.virtualEndPageNo
         this.setState({
@@ -146,7 +142,7 @@ export default class actTable extends React.Component{
         })
     }
     renderColumns=(columns)=>{
-        columns.map((item)=>{
+        columns.forEach((item)=>{
             if(item.title==="序号"){
                 item['render']= (text, record,index) => (
                                     <label>{index+1}</label>
@@ -174,7 +170,6 @@ export default class actTable extends React.Component{
             }
             item.dataIndex=item.id
             item.key=item.id
-            return false
         })
         return columns
     }
@@ -231,9 +226,8 @@ export default class actTable extends React.Component{
             if(typeof params[k] ==="object"){ //日期格式转换
                 if(params[k] instanceof Array){
                     const arr=[]
-                    params[k].map(item=>{
+                    params[k].forEach(item=>{
                         arr.push(moment(item).format("YYYY-MM-DD"))
-                        return false
                     }) 
                     params[k]=arr.join("~")
                 }else{
@@ -361,16 +355,14 @@ export default class actTable extends React.Component{
             disabledColIds,plainOptions,downloadTitle,pageSize,formList,tmplGroup,columns,
             Loading,currentPage,menuId,pageCount,isSeeTotal,optionsMap,queryKey } = this.state;
         if(statView!==null&&columns){
-            columns.map((item,index)=>{             
+            columns.forEach((item,index)=>{             
                 if(disabledColIds){
-                    disabledColIds.map((it)=>{
+                    disabledColIds.forEach((it)=>{
                         if(item.id===it){
                             columns.splice(index,1)
                         }
-                        return false
                     })
                 }
-                return false
             })
         }
         const disableCols=<DisableCols
@@ -398,9 +390,8 @@ export default class actTable extends React.Component{
             onChange: (selectedRowKeys, selectedRows) => {
                 //console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
                 let selectCodes=""
-                selectedRows.map((item)=>{
+                selectedRows.forEach((item)=>{
                     selectCodes+=item.code+","
-                    return false
                 })
                 this.setState({selectCodes,selectedRowKeys})
             },

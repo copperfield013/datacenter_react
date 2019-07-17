@@ -72,17 +72,15 @@ export default class Detail extends React.Component{
             const menuTitle=menuId==="user"?"用户":res.menu.title
             const requestSelectArr=[] //下拉菜单选项fieldId数组
             const dtmplGroup=res.config.dtmpl.groups
-            dtmplGroup.map((item)=>{
+            dtmplGroup.forEach((item)=>{
                 rightNav.push(item.title)
                 if(type==="edit" || type==="new"){
-                    item.fields.map((it)=>{
+                    item.fields.forEach((it)=>{
                         if(it.type==="select" || it.type==="label"){
                             requestSelectArr.push(it.fieldId)
                         }
-                        return false
                     })
                 }
-                return false
             })
             if(requestSelectArr.length>0){
                 this.requestSelect(requestSelectArr)
@@ -111,11 +109,10 @@ export default class Detail extends React.Component{
     }
     forDescsFlag=(dtmplGroup)=>{
         const descsFlag=[] 
-        dtmplGroup.map((item)=>{
+        dtmplGroup.forEach((item)=>{
             if(item.composite){
                 descsFlag.push(item.composite.name)
             }
-            return false
         })
         this.setState({
             descsFlag
@@ -134,29 +131,26 @@ export default class Detail extends React.Component{
             if(res.status==="suc"){
                 const arrayMap=res.entity.arrayMap
                 const fieldMap=Units.forPic(res.entity.fieldMap)          
-                dtmplGroup.map((item)=>{
+                dtmplGroup.forEach((item)=>{
                     if(!item.composite){
-                        item.fields.map((item)=>{
+                        item.fields.forEach((item)=>{
                             for(let k in fieldMap){
                                 if(item.id.toString()===k){
                                     item.value=fieldMap[k]
                                 }
                             }
-                            return false
                         })
                     }           
-                    return false
                 })
                 this.detailTitle(res.entity.title,type)
                 for(let k in arrayMap){
                     let totalName
-                    dtmplGroup.map((item)=>{
+                    dtmplGroup.forEach((item)=>{
                         if(item.composite && item.id.toString()===k){
                             totalName=item.composite.name
                         }
-                        return false
                     })
-                    arrayMap[k].map((item)=>{
+                    arrayMap[k].forEach((item)=>{
                         const fieldMap=Units.forPic(item.fieldMap) //有图片，转化为图片
                         fieldMap["code"]=item.code //为了后面操作修改
                         fieldMap["key"]=item.code
@@ -165,7 +159,6 @@ export default class Detail extends React.Component{
                         if(item.relationLabel){
                             fieldMap["10000"]=item.relationLabel
                         }
-                        return false
                     })
                 }
                 this.setState({
@@ -233,9 +226,9 @@ export default class Detail extends React.Component{
     renderColumns=(dtmplGroup)=>{ //editTable的表头
         const {type}=this.state 
         const columns=[]
-        dtmplGroup.map((item)=>{
+        dtmplGroup.forEach((item)=>{
             if(item.composite){
-                item.fields.map((item)=>{
+                item.fields.forEach((item)=>{
                     const id=item.id
                     item["dataIndex"]=id               
                     if(type==="detail"){
@@ -248,8 +241,7 @@ export default class Detail extends React.Component{
                                 }
                             }
                         }
-                    }           
-                    return false      					
+                    }               					
                 })			
                 if(item.composite.addType===5){//判断是否有关系属性
                     let rela={
@@ -303,9 +295,7 @@ export default class Detail extends React.Component{
                     item.fields.push(act) 
                 }
                 columns.push(item)
-                return false
             }
-            return false
         })   
         //console.log(columns)
         return columns
@@ -324,9 +314,8 @@ export default class Detail extends React.Component{
     }
     requestSelect=(selectId)=>{ //有下拉菜单时，请求下拉选项操作       
         let fieldIds = ""
-        selectId.map((item)=>{
+        selectId.forEach((item)=>{
             fieldIds+=item+","
-            return false
         })
         if(selectId.length>0){
             Super.super({
@@ -346,15 +335,13 @@ export default class Detail extends React.Component{
         const {dataSource}=this.state
         for(let k in dataSource){
             if(k===record.groupId.toString()){
-                dataSource[k].map((item,index)=>{
+                dataSource[k].forEach((item,index)=>{
                     if(item.fieldMap.key===deleKey){
                         dataSource[k].splice(index,1); 
                     }
-                    return false
                 })
-                dataSource[k].map((item)=>{
+                dataSource[k].forEach((item)=>{
                     item.fieldMap.current=Math.ceil(record.order/5)
-                    return false
                 })
             }
         }
@@ -368,16 +355,14 @@ export default class Detail extends React.Component{
         const arr=[]
         let dfieldIds
         if(columns&&columns.length>0){
-            columns.map((item)=>{
+            columns.forEach((item)=>{
                 if(item.id.toString()===fieldGroupId){
-                    item.fields.map((it)=>{
+                    item.fields.forEach((it)=>{
                         if(it.additionAccess){
                             arr.push(it.id)
                         }
-                        return false
                     })
                 }
-                return false
             })   
             dfieldIds=arr.join(',')
         }else{
@@ -390,13 +375,12 @@ export default class Detail extends React.Component{
         for(let k in baseValue){
             formData.append(k, baseValue[k]);
         }       
-        descsFlag.map((item)=>{
-            formData.append(`${item}.$$flag$$`, true);
-            return false
+        descsFlag.forEach((item)=>{
+            formData.append(`${item}.$$flag$$`, true)
         })
         if(dataSource.constructor===Object){
             for(let k in dataSource){
-                dataSource[k].map((item)=>{
+                dataSource[k].forEach((item)=>{
                     const fieldMap=item.fieldMap
                     const totalName=fieldMap.totalName
                     const order=fieldMap.order-1
@@ -418,8 +402,7 @@ export default class Detail extends React.Component{
                         if(i==="10000"){
                             formData.append(`${totalName}[${order}].$$label$$`,fieldMap[i]);
                         }
-                    }  
-                    return false                                  
+                    }                                  
                 })
             }
         }
@@ -495,16 +478,14 @@ export default class Detail extends React.Component{
         this.visibleModal(null,'handleOk','确定要保存修改吗')//弹出确认框 
         if(newPass){
             let name
-            dtmplGroup.map((item)=>{
+            dtmplGroup.forEach((item)=>{
                 if(!item.composite){
-                    item.fields.map((it)=>{
+                    item.fields.forEach((it)=>{
                         if(it.type==="password"){
                             name=it.name
                         }
-                        return false
                     })
                 }
-                return false
             }) 
             for(let k in baseValue){
                 if(k===name){
@@ -552,17 +533,16 @@ export default class Detail extends React.Component{
         let {columns}=this.state
         let editFormList=[]
         if(!isNew){
-            columns.map((item)=>{
+            columns.forEach((item)=>{
                 if(item.id.toString()===record.groupId){
                     columns=item.fields
                 }
-                return false
             })
         }else{
             columns=record
         }
         const code=Units.RndNum(9)
-        columns.map((item)=>{
+        columns.forEach((item)=>{
             if(item.type){
                 const list={
                     title:item.title,
@@ -585,19 +565,17 @@ export default class Detail extends React.Component{
                 }
                 if(item.type==="relation"){
                     const options=[]
-                    item.options.map((it)=>{
+                    item.options.forEach((it)=>{
                         const op={
                             title:it,
                             value:it
                         }
                         options.push(op)
-                        return false
                     })
                     list["options"]=options
                 }
                 editFormList.push(list)
             }
-            return false
         })
         this.setState({
             editFormList,
@@ -616,9 +594,8 @@ export default class Detail extends React.Component{
                 fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")
             }
         }
-        columns.map((item)=>{
+        columns.forEach((item)=>{
             data[item.id]=[]
-            return false
         })
         for(let k in data){
             for(let i in dataSource){
@@ -634,19 +611,17 @@ export default class Detail extends React.Component{
                 fieldMap:fieldsValue
             }
             dataSource[groupId].push(list)
-            dataSource[groupId].map((item)=>{
+            dataSource[groupId].forEach((item)=>{
                 item.fieldMap.current=Math.ceil(dataSource[groupId].length/5)
-                return false
             })
         }else{     //修改记录  
             for(let k in dataSource){
                 if(k===groupId){
-                    dataSource[k].map((item)=>{
+                    dataSource[k].forEach((item)=>{
                         const fildcode=item.fieldMap.code.toString()
                         if(fildcode===Code){
                             item.fieldMap=fieldsValue
                         }
-                        return false
                     })
                 }
             }
@@ -717,14 +692,13 @@ export default class Detail extends React.Component{
             // console.log(columns)
             let relationSubdomain=[]
             let totalName
-            columns.map((item)=>{
+            columns.forEach((item)=>{
                 if(item.id.toString()===templateGroupId.toString()){
                     relationSubdomain=item.relationSubdomain
                     totalName=item.composite.name
                 }
-                return false
             })
-            res.entities.map((item)=>{
+            res.entities.forEach((item)=>{
                 const byDfieldIds=item.byDfieldIds
                 byDfieldIds.key=item['唯一编码']
                 byDfieldIds.code=item['唯一编码']
@@ -749,23 +723,20 @@ export default class Detail extends React.Component{
                 for(let k in dataSource){
                     if(k===templateGroupId.toString()){
                         if(!isNew){
-                            dataSource[k].map((it,index)=>{
+                            dataSource[k].forEach((it,index)=>{
                                 if(it.code===item['唯一编码']){
                                     dataSource[k].splice(index,1,list); 
                                 }
-                                return false
                             })
                         }else{
                             dataSource[k].push(list)
-                            dataSource[k].map((item)=>{
+                            dataSource[k].forEach((item)=>{
                                 item.fieldMap.current=Math.ceil(dataSource[k].length/5)
-                                return false
                             })
                         }
                         
                     }
                 }
-                return false
             })
             this.setState({
                 visibleTemplateList:false,
@@ -776,9 +747,7 @@ export default class Detail extends React.Component{
     }
     fresh=(codei)=>{
         let {menuId,code,type,nodeId}=this.state
-        if(codei){
-            code=codei
-        }
+        code=codei?codei:code
         this.baseinfo.reset()
         this.loadltmpl(menuId,code,type,"",nodeId)
     }
@@ -802,23 +771,23 @@ export default class Detail extends React.Component{
         if(actions && actions.length>0){
             content = (
                 <div className="btns">
-                    {actions.map((item)=>{
-                            return <Button 
-                                        key={item.id} 
-                                        type="primary" 
-                                        onClick={()=>this.visibleModal(item.id,'handleOk','确实要执行这项操作吗？')}
-                                        >{item.title}</Button>
-                        })}
+                    {actions.map(item =>
+                        <Button 
+                            key={item.id} 
+                            type="primary" 
+                            onClick={()=>this.visibleModal(item.id,'handleOk','确实要执行这项操作吗？')}
+                            >{item.title}</Button>
+                        )}
                 </div>
             );
         }
         let premisestitle
         if(premises && premises.length>0 && dtmplGroup){
             premisestitle=type==="detail"?"默认字段":"默认字段（不可修改）"
-            dtmplGroup.map((item)=>{
+            dtmplGroup.forEach((item)=>{
                 if(!item.composite){
-                    item.fields.map((it)=>{
-                        premises.map((i)=>{
+                    item.fields.forEach((it)=>{
+                        premises.forEach((i)=>{
                             i.title=i.fieldTitle
                             i.type="text"                    
                             i.value=i.fieldValue        
@@ -827,12 +796,9 @@ export default class Detail extends React.Component{
                                 it.fieldAvailable=false
                                 it["value"]= i["value"]
                             }
-                            return false
                         })
-                        return false
                     })
                 }
-                return false
             })
         }
         return(

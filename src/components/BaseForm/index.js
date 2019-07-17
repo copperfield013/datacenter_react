@@ -119,9 +119,9 @@ class BaseForm extends React.Component{
                     {hideDelete?"":<Button type="danger" disabled={this.props.disabled} onClick={(e)=>this.props.handleOperate("delete","",e)}>删除选中</Button>}
                     {
                         actions && actions.length>0?
-                        actions.map((item)=>{
-                            return <Button type="primary" key={item.id} onClick={()=>this.props.handleActions(item.id)}  disabled={this.props.disabled}>{item.title}</Button>
-                        }):""
+                        actions.map(item =>
+                            <Button type="primary" key={item.id} onClick={()=>this.props.handleActions(item.id)}  disabled={this.props.disabled}>{item.title}</Button>
+                        ):""
                     }
                     {/* <Button type="primary" onClick={this.props.reset}>清空</Button> */}
                 </FormItem>

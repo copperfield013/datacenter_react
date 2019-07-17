@@ -30,22 +30,19 @@ class Header extends React.Component{
 			url:'api2/meta/menu/get_blocks',                   
 		}).then((res)=>{
 			const currentBlockId=usedBlockId?usedBlockId:res.currentBlockId //判断url里有blockid
-			res.blocks.map((item)=>{
+			res.blocks.forEach((item)=>{
 				if(item.id===currentBlockId){
 					this.props.setCurrentList(item)
 				}
-				item.l1Menus.map((it)=>{
+				item.l1Menus.forEach((it)=>{
 					it.blockId=item.id
-					it.l2Menus.map((i)=>{
+					it.l2Menus.forEach((i)=>{
 						i.blockId=item.id
-						return false
 					})
-					return false
 				})
 				item.menus=<Menu>
 								{this.renderBlockMenu(item.l1Menus)}
 							</Menu>
-				return false
 			})
 			this.setState({
 				blocks:res.blocks,

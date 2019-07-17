@@ -62,7 +62,7 @@ export default class Import extends React.Component{
             }          
         },"","none").then((res)=>{
             const MSG=[]
-            res.messageSequence.messages.map((item)=>{
+            res.messageSequence.messages.forEach((item)=>{
                 const time=Units.formateDate(item.createTime)
                 let color="";
                 if(item.type==="SUC"){
@@ -76,7 +76,6 @@ export default class Import extends React.Component{
                 }
                 const msg=<div type={item.type}><p>{time}</p><p style={{color:color}}>{item.text}</p></div>
                 MSG.push(msg)
-                return false
             })  
             totalMSG=MSG
             this.setState({
@@ -102,14 +101,12 @@ export default class Import extends React.Component{
         const messages=totalMSG
         let newmesg=[]
         if(messages.length>0){
-            messages.map((it)=>{              
-                checkedList.map((item)=>{                 
+            messages.forEach((it)=>{              
+                checkedList.forEach((item)=>{                 
                     if(item===it.props.type){
                         newmesg.push(it)
-                    } 
-                    return false       
+                    }      
                 })
-                return false
             })
         }
         this.setState({

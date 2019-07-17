@@ -26,14 +26,13 @@ export default class NewCascader extends React.Component{
 			url:`api2/meta/dict/cas_ops/${optGroupId}`,                
 		}).then((res)=>{
 			const ops=[]
-            res.options.map((item)=>{
+            res.options.forEach((item)=>{
                 const op={}
                 op["value"]=item.title
                 op["label"]=item.title
                 op["key"]=item.id
                 op["isLeaf"]= false
                 ops.push(op)
-                return false
             })
             this.setState({
                 options:ops,
@@ -49,16 +48,15 @@ export default class NewCascader extends React.Component{
         })
         if(selectedOptions && this.state.time>=1){
             let id="";
-            selectedOptions.map((item)=>{
+            selectedOptions.forEach((item)=>{
                 id=item.key
-                return false
             })
             Super.super({
                 url:`api2/meta/dict/cas_ops/${id}`,                
             }).then((res)=>{
                 const ops=[]
                 const time=this.state.time
-                res.options.map((item)=>{
+                res.options.forEach((item)=>{
                     let op={}
                     op["value"]=item.title
                     op["label"]=item.title
@@ -69,7 +67,6 @@ export default class NewCascader extends React.Component{
                         op["isLeaf"]= false
                     }
                     ops.push(op)
-                    return false
                 })
                 setTimeout(() => {
                     targetOption.loading = false;

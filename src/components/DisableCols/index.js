@@ -11,9 +11,8 @@ export default class DisableCols extends React.Component{
         const {plainOptions}=this.props
         const checkedValues=[]
         if(plainOptions){
-            plainOptions.map((item)=>{
+            plainOptions.forEach((item)=>{
                 checkedValues.push(item.value)
-                return false
             })
         }
         this.setState({
@@ -29,21 +28,18 @@ export default class DisableCols extends React.Component{
         let {plainOptions}=this.props
         let {checkedValues}=this.state
         const ids=[]
-        plainOptions.map((item)=>{
+        plainOptions.forEach((item)=>{
             item.selecttd=false
-            checkedValues.map((it,i)=>{
+            checkedValues.forEach((it,i)=>{
                 if(item.value===it){
                     item.selecttd=true
                 }
-                return false
             })
-            return false
         })
-        plainOptions.map((item)=>{
+        plainOptions.forEach((item)=>{
             if(!item.selecttd){
                 ids.push(item.value)
             }
-            return false
         })
         this.props.handelDisableCols(ids.join(","))
     }
