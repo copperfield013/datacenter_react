@@ -28,12 +28,10 @@ export default class Detail extends React.Component{
         isNew:false,
         showSetPass:false,
     }
-    componentDidMount(){
+    componentDidMount(){        
         if(!this.props.match){
             this.props.onRef3(this)
-        }
-    }
-    componentWillMount(){
+        } 
         const {menuId,code,type}=this.props.match?this.props.match.params:this.props
         const nodeId=this.props.match?this.props.match.params.nodeId:null
         const fieldGroupId=this.props.match?null:this.props.fieldGroupId
@@ -44,7 +42,7 @@ export default class Detail extends React.Component{
             nodeId,
             fieldGroupId,
         })
-        this.loadltmpl(menuId,code,type,"",nodeId,fieldGroupId)        
+        this.loadltmpl(menuId,code,type,"",nodeId,fieldGroupId)      
     }
     componentWillReceiveProps(nextProps){
         console.log(99)
@@ -861,7 +859,7 @@ export default class Detail extends React.Component{
                                         ><Icon type="sync" /></Button>:""}
                             </div>}                                  
                 </h3>
-                { premises && premises.length>0?
+                {premises && premises.length>0?
                     <Form layout="inline" autoComplete="off">  
                         <Card 
                             title={premisestitle} 
@@ -880,7 +878,7 @@ export default class Detail extends React.Component{
                         </Card>
                     </Form>:""
                 }
-                {dtmplGroup&&columns?
+                {dtmplGroup?
                     <Formi
                         dtmplGroup={dtmplGroup}
                         columns={columns}
