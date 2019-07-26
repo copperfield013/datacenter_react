@@ -2,7 +2,8 @@ import React from 'react'
 import {Select,Radio,message} from 'antd'
 const Option = Select.Option;
 
-const api = process.env.hydrocarbonServer;
+//const api = process.env.hydrocarbonServer;
+const api="http://47.100.187.235:7080/three-service-api/"
 let storageKeyPrefix = undefined;
 export default {
     api(){
