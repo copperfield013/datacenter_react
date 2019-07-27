@@ -3,7 +3,7 @@ import {Row,Col,Dropdown,Menu,Icon} from 'antd'
 import { withRouter,NavLink } from 'react-router-dom'
 import Units from './../../units'
 import Super from "./../../super"
-import "./index.css"
+import "./index.less"
 const { SubMenu } = Menu
 
 class Header extends React.Component{

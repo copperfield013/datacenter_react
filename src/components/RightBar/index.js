@@ -1,5 +1,5 @@
 import React from 'react'
-import './index.css'
+import './index.less'
 
 export default class RightBar extends React.Component{
     

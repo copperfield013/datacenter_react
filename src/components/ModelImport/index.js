@@ -3,7 +3,7 @@ import Super from "./../../super"
 import Units from "./../../units"
 import {Button,Icon,Popover,Input,Modal, message,Collapse,Tag} from 'antd'
 import DragTable from './../DragTable'
-import './index.css'
+import './index.less'
 const {confirm} = Modal
 const {Panel}=Collapse
 const {CheckableTag}=Tag

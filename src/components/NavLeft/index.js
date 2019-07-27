@@ -2,7 +2,7 @@ import React from 'react'
 import { Menu} from 'antd';
 //import Super from "./../../super"
 import { NavLink,withRouter } from 'react-router-dom'
-import './index.css'
+import './index.less'
 const SubMenu = Menu.SubMenu;
 
 class NavLeft extends React.Component{

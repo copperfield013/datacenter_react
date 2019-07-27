@@ -1,0 +1,55 @@
+.importBtns {
+    button{
+        margin:15px 0 10px 0
+    }
+}
+.importList {
+    .ant-spin-container{
+        height:300px;
+        overflow: auto
+    }
+}
+.ant-list-item-content p{
+    margin-bottom: 0;
+}
+.listHeader {
+    h4{
+        display: inline;
+    }
+    .checks{
+        float:right;
+        position: relative;
+        padding-right: 62px
+    }
+    .btns{
+        position: absolute;
+        right:-22px;
+        top:0;
+    }
+}
+.checked(@color){
+    color:@color;
+    .ant-checkbox-checked {
+        .ant-checkbox-inner{
+            background-color:@color;
+            border-color: @color;
+        }
+    }
+}
+.infoColor{
+    .checked(black)
+}
+.sucColor{
+    .checked(green)
+}
+.errorColor{
+    .checked(red)
+}
+.warnColor{
+    .checked(rgb(250, 225, 4))
+}
+.importData {
+    h3{
+        font-size: 18px
+    }
+}

@@ -3,7 +3,7 @@ import {Card,Button,Upload,message,Icon,Progress,List,Checkbox,Row,Col,Modal,Pop
 import Super from "./../../super"
 import Units from "./../../units"
 import ModelImport from "./../../components/ModelImport"
-import './index.css'
+import './index.less'
 
 const CheckboxGroup = Checkbox.Group;
 const checkedList = ['INFO', 'SUC', 'ERROR', 'WARN'];

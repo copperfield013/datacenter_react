@@ -1,9 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Router from './router'
-import "antd/dist/antd.css"
-import "./style/common.css"
-import "./style/coverstyle.css"
+import "./style/common.less"
+import "./style/coverstyle.less"
 
 ReactDOM.render(
     <Router />

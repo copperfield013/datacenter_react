@@ -5,7 +5,7 @@ import ExportFrame from '../../components/exportFrame'
 import Units from '../../units'
 import Super from "../../super"
 import Storage from './../../units/storage';
-import './index.css'
+import './index.less'
 import moment from 'moment';
 import DisableCols from './../../components/DisableCols'
 const confirm = Modal.confirm;
@@ -484,8 +484,8 @@ export default class actTable extends React.Component{
                     loading={Loading}
                 >
                 </Table>
-                <div className='Pagination'>
-                    <span className={isSeeTotal?'sewTotal':'seeTotal'} onClick={this.seeTotal}>
+                <div className='pagination'>
+                    <span className={isSeeTotal?'sawTotal':'seeTotal'} onClick={this.seeTotal}>
                         {isSeeTotal?`共${isSeeTotal}条`:list&&list.length===0?null:'点击查看总数'}
                     </span>
                     <Pagination 

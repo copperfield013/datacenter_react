@@ -1,6 +1,6 @@
 import React from 'react'
 import {Modal,Input,Form,Icon,message} from 'antd'
-import './index.css'
+import './index.less'
 
 class SetPasswords extends React.Component{
     

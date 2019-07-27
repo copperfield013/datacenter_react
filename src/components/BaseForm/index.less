@@ -1,7 +1,7 @@
 .btns button{
     margin-right: 10px
 }
-.downAvatar,.infoStyle{
+.infoStyle{
     width:220px;
     display:inline-block;
 }
@@ -10,6 +10,11 @@
     color:#1890ff;
     cursor: pointer;
 }
-.downAvatar:hover a,.downAvatar:hover .deleAvatar{
-    visibility:visible;
+.downAvatar{
+    &:extend(.infoStyle);
+    &:hover{
+        a,.deleAvatar{
+            visibility:visible;
+        }
+    }
 }

@@ -2,7 +2,7 @@ import React from 'react'
 import {Button,Modal,message,Icon,Drawer,Timeline,Switch,Popover,Card,Form} from 'antd'
 import Super from "./../../super"
 import Units from '../../units'
-import './index.css'
+import './index.less'
 import 'moment/locale/zh-cn'
 import ModelForm from '../../components/ModelForm'
 import RightBar from './../../components/RightBar'

@@ -1,6 +1,6 @@
 import React from 'react'
 import {Button,Radio,Divider,InputNumber,Checkbox,Progress} from 'antd';
-import './index.css'
+import './index.less'
 import Super from "../../super"
 import Units from "../../units"
 const RadioGroup = Radio.Group;

@@ -4,7 +4,7 @@ import Units from "../../units";
 import 'moment/locale/zh-cn';
 import moment from 'moment';
 import locale from 'antd/lib/date-picker/locale/zh_CN';
-import './index.css'
+import './index.less'
 const FormItem=Form.Item
 const {RangePicker} = DatePicker;
 

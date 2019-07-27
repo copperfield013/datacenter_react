@@ -1,7 +1,7 @@
 import React from 'react'
 import {Table,Input,Button,Card,Icon} from 'antd';
 import Highlighter from 'react-highlight-words';
-import "./index.css"
+import "./index.less"
 
 export default class EditTableList extends React.Component {
   state={

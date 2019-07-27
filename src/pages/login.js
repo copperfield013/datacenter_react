@@ -51,9 +51,9 @@ class Loginit extends React.Component{
         const {username,password}=this.state
         const { getFieldDecorator } = this.props.form;
 		return(
-			<Row className="container login">
+			<Row className="login">
 				<Col>
-					<Form style={{width:350}}>
+					<Form>
 					    <h3>欢迎登录</h3>
                         <FormItem>
                             {getFieldDecorator('username', {
@@ -87,7 +87,6 @@ class Loginit extends React.Component{
                         </FormItem>
                         <FormItem>
                             <Button 
-                                style={{width:'100%'}} 
                                 type="primary" 
                                 onClick={this.handleSubmit}
                                 >

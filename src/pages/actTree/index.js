@@ -4,7 +4,7 @@ import {Tree,Card,Icon,Button,message } from 'antd'
 import BaseForm from './../../components/BaseForm'
 import {NavLink } from 'react-router-dom'
 import moment from 'moment';
-import './index.css'
+import './index.less'
 import Units from './../../units'
 const { TreeNode } = Tree;
 
