@@ -15,10 +15,9 @@ export default class TemplateList extends React.Component{
     componentWillReceiveProps(nextProps){
         if(nextProps.fileType==="ttmpl" && nextProps.templateData){
             const id=nextProps.templateDtmpl.config?nextProps.templateDtmpl.config.nodeTmpl.relations[0].id:null
-            nextProps.templateData.entities.map((item)=>{
+            nextProps.templateData.entities.forEach((item)=>{
                 item.key=item.code
                 item.id=id
-                return false
             })
             if(!nextProps.templateData.isEndList){
                 const More={
@@ -135,12 +134,11 @@ export default class TemplateList extends React.Component{
                             pageNo:1
                         }       
                     }).then((resq)=>{
-                        resq.entities.map((item,index)=>{
+                        resq.entities.forEach((item)=>{
                             item.title=item.text
                             item.key=item.code
                             item.id=treeNode.props.id
                             item.nodeId=nodeId
-                            return false
                         })
                         if(!resq.isEndList){
                             const More={
@@ -186,44 +184,38 @@ export default class TemplateList extends React.Component{
 		}).then((res)=>{
             console.log(res)
             if(code){ //最里面列表的加载更多
-                res.entities.map((item)=>{
+                res.entities.forEach((item)=>{
                     item.title=item.text
                     item.isLeaf=true
                     item.selectable=false
-                    return false
                 })
-                treeData.map((item)=>{
+                treeData.forEach((item)=>{
                     if(item.code===code){
-                        item.children.map((it)=>{
+                        item.children.forEach((it)=>{
                             if(it.id===id){
                                 it.children.splice(it.children.length-1,1)
                                 it.children.push(...res.entities)
-                                it.children.map((i,index)=>{
+                                it.children.forEach((i,index)=>{
                                     i.key=it.key+"-"+index
-                                    return false
                                 })
                             }
-                            return false
                         })
                     }
-                    return false
                 })
                 this.setState(treeData)
             }else{//最外面列表的加载更多
                 const {nodeTmpl}=this.state
-                res.entities.map((item,index)=>{
+                res.entities.forEach((item,index)=>{
                     item.title=item.text
                     item.key=(pageNo-1)*10+index
                     item.nodeId=nodeTmpl.id
                     item.children=[];
-                    nodeTmpl.relations.map((it,i)=>{
+                    nodeTmpl.relations.forEach((it,i)=>{
                         const copyRel = Object.assign({}, it);
                         copyRel.code = item.code;
                         copyRel.key = index+"-"+i
                         item.children.push(copyRel);
-                        return false
-                    });
-                    return false
+                    })
                 })
                 if(!res.isEndList){
                     const More={
@@ -272,9 +264,8 @@ export default class TemplateList extends React.Component{
                 //console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
                 let selectCodes=""
                 const arr=[]
-                selectedRows.map((item)=>{
+                selectedRows.forEach((item)=>{
                     arr.push(item.code)
-                    return false
                 })
                 selectCodes=arr.join(',')
                 this.setState({selectCodes,selectedRowKeys})
@@ -284,14 +275,13 @@ export default class TemplateList extends React.Component{
         if(templateDtmpl && templateData &&columns){
             formList=templateDtmpl.config?templateDtmpl.config.criterias:null
             pageCount=templateData.pageInfo.virtualEndPageNo*templateData.pageInfo.pageSize           
-            columns.map((item)=>{
+            columns.forEach((item)=>{
                 item["dataIndex"]=item.id;
                 if(item.title==="序号"){
                     item["dataIndex"]="order";
                 }
-                return false
             })
-            templateData.entities.map((item,index)=>{
+            templateData.entities.forEach((item,index)=>{
                 const list={}
                 list['key']=index;
                 list['order']=index+1;
@@ -300,7 +290,6 @@ export default class TemplateList extends React.Component{
                     list[k]=item.cellMap[k]
                 }
                 dataSource.push(list)
-                return false
             })
         }
         

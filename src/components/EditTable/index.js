@@ -17,10 +17,9 @@ export default class EditTable extends React.Component{
             rabcTemplatecreatable=true
         }
         const data=[]
-        dataSource.map((it,i)=>{
+        dataSource.forEach((it,i)=>{
             it.fieldMap["order"]=i+1
             data.push(it.fieldMap)
-            return false
         })              
         return <EditTableList               
                     key={Math.random()}

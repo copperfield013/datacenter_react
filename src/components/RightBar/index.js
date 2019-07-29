@@ -24,9 +24,9 @@ export default class RightBar extends React.Component{
             <div className="rightBar" onScroll={this.scroll}>
                 <ul>              
                     {
-                        list?list.map((item)=>{
-                            return <li onClick={()=>this.scrollToAnchor(item)} key={item}>{item}</li>
-                        }):""
+                        list?list.map(item=>
+                            <li onClick={()=>this.scrollToAnchor(item)} key={item}>{item}</li>
+                        ):""
                     }
                 </ul>
             </div>

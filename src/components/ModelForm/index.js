@@ -8,13 +8,12 @@ class ModelForm extends React.Component{
     handleOk=()=>{
         const {formList,form}=this.props
         let code,groupId,totalName
-        formList.map((item)=>{
+        formList.forEach((item)=>{
             if(item.name!=="关系"){
                 code=item.code
                 groupId=item.groupId
                 totalName=item.name.split(".")[0]
             }
-            return false
         })      
         let fieldsValue=form.getFieldsValue()[totalName]
         for(let k in fieldsValue){
@@ -24,7 +23,7 @@ class ModelForm extends React.Component{
                                                                                         src={fieldsValue[k].thumbUrl} 
                                                                                         owlner={fieldsValue[k].originFileObj} 
                                                                                         alt="" />
-                formList.map((item)=>{
+                formList.forEach((item)=>{
                     if(k===item.name.split(".")[1]){
                         if(fieldsValue[k].constructor!==Object){
                             fieldsValue[item.id]=fieldsValue[k]
@@ -36,7 +35,6 @@ class ModelForm extends React.Component{
                                                 alt="" />
                         }
                     }
-                    return false
                 })
                 if(fieldsValue[k] && moment(fieldsValue[k],moment.ISO_8601).isValid()){ //日期格式转换
                     fieldsValue[k]=moment(fieldsValue[k]).format("YYYY-MM-DD")

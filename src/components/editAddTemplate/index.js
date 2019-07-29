@@ -8,16 +8,14 @@ export default class EditAddTemplate extends React.Component{
         const {code,editAddGroupId,columns}=this.props
         //console.log(columns)
         const arr=[]
-        columns.map((item)=>{
+        columns.forEach((item)=>{
             if(item.id.toString()===editAddGroupId){
-                item.fields.map((it)=>{
+                item.fields.forEach((it)=>{
                     if(it.additionAccess){
                         arr.push(it.id)
                     }
-                    return false
                 })
             }
-            return false
         })
         //console.log(arr)
         let dfieldIds=arr.join(',')

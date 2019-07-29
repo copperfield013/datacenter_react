@@ -16,11 +16,10 @@ class NavLeft extends React.Component{
 		const {open}=this.state
 		const key=[]
 		for(let k in open){
-			open[k].map((it)=>{
+			open[k].forEach((it)=>{
 				if(it.toString()===menuId){
 					key.push(k)
 				}
-				return false
 			})
 		}
 		this.setState({
@@ -34,24 +33,21 @@ class NavLeft extends React.Component{
 	setMenuTreeNode=(list)=>{
 		const menuId=this.props.location.pathname.split("/")[1]
 		const open={}
-		list.l1Menus.map((item)=>{
+		list.l1Menus.forEach((item)=>{
 			if(item.l2Menus){
 				const ids=[]
-				item.l2Menus.map((it)=>{
+				item.l2Menus.forEach((it)=>{
 					ids.push(it.id)
-					return false
 				})
 				open[item.id]=ids
 			}
-			return false
 		})
 		const key=[]
 		for(let k in open){
-			open[k].map((it)=>{
+			open[k].forEach((it)=>{
 				if(it.toString()===menuId){
 					key.push(k)
 				}
-				return false
 			})
 		}
 		this.setState({

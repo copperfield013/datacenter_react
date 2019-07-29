@@ -28,9 +28,9 @@ export default class ModelImport extends React.Component{
             let selectWords=res.fieldDictionary.composites
             //console.log(selectWords)
             const forType=[]
-            selectWords.map((item)=>{
+            selectWords.forEach((item)=>{
                 if(item.fields.length>0){
-                    item.fields.map((it)=>{
+                    item.fields.forEach((it)=>{
                         it.checked=false
                         it.key=it.name
                         if(item.type==="relation"){
@@ -41,10 +41,8 @@ export default class ModelImport extends React.Component{
                             fieldId:it.id,
                         }
                         forType.push(list)
-                        return false
                     })
                 }
-                return false
             })
             this.setState({
                 selectWords,
@@ -73,30 +71,26 @@ export default class ModelImport extends React.Component{
         }).then((res)=>{
             //console.log(res.tmpl.fields)
             if(res){
-                selectWords.map((item)=>{
+                selectWords.forEach((item)=>{
                     if(item.type==="normal"){
-                        item.fields.map((it)=>{
+                        item.fields.forEach((it)=>{
                             let check=false
-                            res.tmpl.fields.map((i)=>{
+                            res.tmpl.fields.forEach((i)=>{
                                 if(i.fieldId===it.id){
                                     check=true
                                 }
-                                return false
                             })
                             it.checked=check
-                            return false
                         })
                     }
-                    return false
                 })
                 let data=[]
                 let type=""
-                res.tmpl.fields.map((item)=>{
-                    forType.map((it)=>{  //选择模板数据，添加type值
+                res.tmpl.fields.forEach((item)=>{
+                    forType.forEach((it)=>{  //选择模板数据，添加type值
                         if(item.fieldId===it.fieldId){
                             type=it.type
                         }
-                        return false
                     })
                     let list={
                         key:item.title,
@@ -112,7 +106,6 @@ export default class ModelImport extends React.Component{
                         list.totalname=item.title.split("[")[0]
                     }
                     data.push(list)
-                    return false
                 })
                 this.setState({
                     tmplId:res.tmpl.id,
@@ -198,29 +191,26 @@ export default class ModelImport extends React.Component{
     }
     deleteRow=(record)=>{
         let {dataSource,selectWords}=this.state
-        dataSource.map((item,i)=>{
+        dataSource.forEach((item,i)=>{
             if(item.key===record.key){
                 dataSource.splice(i,1)
             }
-            return false
         })
         if(record.type==="normal"){           
-            selectWords.map((item,i)=>{ //控制模板内tag是否选中
+            selectWords.forEach((item,i)=>{ //控制模板内tag是否选中
                 if(item.fields.length>0){
-                    item.fields.map((it)=>{
+                    item.fields.forEach((it)=>{
                         if(it.key===record.key){
                             it.checked=false
                         }
-                        return false
                     })
                 }
-                return false
             })
         }else{
             let len=[]
             let labelarr=[]
             let data=[]
-            dataSource.map((item)=>{
+            dataSource.forEach((item)=>{
                 if(item.fieldId===record.fieldId && !item.key.includes("label")){ 
                     len.push(item)
                 }
@@ -230,35 +220,31 @@ export default class ModelImport extends React.Component{
                 if(item.fieldId && !item.key.includes("label")){
                     data.push(item)
                 }
-                return false
             })
-            len.map((item,i)=>{
+            len.forEach((item,i)=>{
                 const NM=`${record.totalname}[${i}].${record.name.split(".")[1]}`
                 item.key=NM
                 item.name=NM
                 item.words=NM
                 item.fieldIndex=i
-                return false
             })
             if(record.type==="relation"){ 
                 let dele=true
-                data.map((item)=>{
+                data.forEach((item)=>{
                     const dataTotal=item.key.split(".")[0]
                     const labelLastTotal=labelarr[labelarr.length-1].key.split(".")[0]                    
                     if(dataTotal===labelLastTotal){
                         dele=false
                     }
-                    labelarr[labelarr.length-1].delete=dele                   
-                    return false
+                    labelarr[labelarr.length-1].delete=dele  
                 })
                 if(data.length===0){
                     labelarr[labelarr.length-1].delete=true
                 }          
-                dataSource.map((item,i)=>{
+                dataSource.forEach((item,i)=>{
                     if(item.delete){
                         dataSource.splice(i,1)
                     }
-                    return false
                 })
             }
         }
@@ -271,24 +257,21 @@ export default class ModelImport extends React.Component{
         let {dataSource,selectWords}=this.state   
         if(type==="normal"){
             dataSource.push(list)        
-            selectWords.map((item,i)=>{ //normal改变tag选中状态
+            selectWords.forEach((item,i)=>{ //normal改变tag选中状态
                 if(item.fields.length>0 && item.type==="normal"){
-                    item.fields.map((it)=>{
+                    item.fields.forEach((it)=>{
                         if(it.id===list.fieldId){
                             it.checked=true
                         }
-                        return false
                     })
                 }
-                return false
             })
         }else{
             let len=[]
-            dataSource.map((item)=>{
+            dataSource.forEach((item)=>{
                 if(item.fieldId===list.fieldId && !item.key.includes("label")){
                     len.push(item)
                 }
-                return false
             })
             const NM=`${list.totalname}[${len.length}].${list.name}`
             const res={
@@ -322,7 +305,7 @@ export default class ModelImport extends React.Component{
     }
     getFields=(dataSource)=>{
         const fields=[]
-        dataSource.map((item)=>{
+        dataSource.forEach((item)=>{
             const list={}
             if(item.fieldIndex!==null){
                 list.fieldIndex=item.fieldIndex
@@ -337,7 +320,6 @@ export default class ModelImport extends React.Component{
                 list.id=item.id
             }
             fields.push(list)
-            return false
         })
         return fields
     }
@@ -361,13 +343,13 @@ export default class ModelImport extends React.Component{
         const { visible,title,dataSource,selectWords,modelList,tmplId }=this.state
         const content = (
             <div>
-                {modelList.map((item)=>{
-                        return  <div key={item.id} className="modelList" onClick={()=>this.handelModel(item.id)}>
-                                    <span className={tmplId===item.id?"light":""}><Icon type="bulb" style={{color:"#fff",fontSize:20}}/></span>
-                                    <p className="tit">{item.title}</p>
-                                    <p>{Units.formateDate(item.createTime)}</p>
-                                </div>
-                    })}
+                {modelList.map(item =>
+                    <div key={item.id} className="modelList" onClick={()=>this.handelModel(item.id)}>
+                        <span className={tmplId===item.id?"light":""}><Icon type="bulb" style={{color:"#fff",fontSize:20}}/></span>
+                        <p className="tit">{item.title}</p>
+                        <p>{Units.formateDate(item.createTime)}</p>
+                    </div>
+                )}
             </div>
         );
         const columns = [{
@@ -435,18 +417,18 @@ export default class ModelImport extends React.Component{
                                     {selectWords.map((item)=>{
                                         if(item.fields.length>0){
                                             return <Panel header={item.name} key={item.id}>
-                                                        {item.fields.map((it)=>{
-                                                            return <MyTag 
-                                                                        key={it.name} 
-                                                                        id={it.id}
-                                                                        name={it.name}
-                                                                        checked={it.checked}
-                                                                        getwords={this.getWords}
-                                                                        type={item.type}
-                                                                        totalname={item.name}
-                                                                        compositeid={it.compositeId}
-                                                                        >{it.name}</MyTag>
-                                                        })}
+                                                        {item.fields.map(it =>
+                                                            <MyTag 
+                                                                key={it.name} 
+                                                                id={it.id}
+                                                                name={it.name}
+                                                                checked={it.checked}
+                                                                getwords={this.getWords}
+                                                                type={item.type}
+                                                                totalname={item.name}
+                                                                compositeid={it.compositeId}
+                                                                >{it.name}</MyTag>
+                                                        )}
                                                     </Panel>
                                             
                                         }

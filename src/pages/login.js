@@ -9,7 +9,7 @@ class Loginit extends React.Component{
         username:"",
         password:"",
     }
-    componentWillUnmount(){
+    componentDidMount(){
         window.removeEventListener('keydown', this.handleKeyDown)
     }
     handleKeyDown = (event) => { //按下enter键，触发login事件
@@ -52,7 +52,7 @@ class Loginit extends React.Component{
         const { getFieldDecorator } = this.props.form;
 		return(
 			<Row className="container login">
-				<Col style={{position: 'unset'}}>
+				<Col>
 					<Form style={{width:350}}>
 					    <h3>欢迎登录</h3>
                         <FormItem>

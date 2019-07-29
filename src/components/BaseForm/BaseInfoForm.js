@@ -32,6 +32,13 @@ export default class BaseInfoForm extends React.Component{
         e.target.value=fieldValue
         this.props.setPassword(fieldValue)
     }
+    changeInt=(e)=>{ //只允许输入整数
+        if(e.target.value && !isNaN(e.target.value)){
+            e.target.value=parseInt(e.target.value)
+        }else{
+            e.target.value=""
+        }
+    }
     initFormList=()=>{
         const { getFieldDecorator } = this.props.form?this.props.form:"";
         const { formList,width,type }=this.props
@@ -254,6 +261,7 @@ export default class BaseInfoForm extends React.Component{
                                                 placeholder={`请输入${title}`}  
                                                 style={{width:width}} 
                                                 disabled={!available}
+                                                onKeyUp={this.changeInt}
                                                 min={0}/>
                                         )}
                                     </FormItem>

@@ -25,7 +25,7 @@ export default class ActTree extends React.Component{
         }).then((res)=>{
             const fieldIds=[]
             if(res){
-                res.ltmpl.criterias.map((item)=>{
+                res.ltmpl.criterias.forEach((item)=>{
                     if(item.inputType==="select"){
                         fieldIds.push(item.fieldId)
                     }
@@ -35,7 +35,6 @@ export default class ActTree extends React.Component{
                             item.value=criteriaValueMap[k]
                         }
                     }
-                    return false
                 })
                 if(fieldIds.length>0){
                     this.requestSelect(fieldIds)
@@ -65,47 +64,41 @@ export default class ActTree extends React.Component{
             }       
 		}).then((res)=>{
             if(code){ //最里面列表的加载更多
-                res.entities.map((item)=>{
+                res.entities.forEach((item)=>{
                     item.title=item.text
                     item.isLeaf=true
                     item.selectable=false
-                    return false
                 })
-                treeData.map((item)=>{
+                treeData.forEach((item)=>{
                     if(item.code===code){
-                        item.children.map((it)=>{
+                        item.children.forEach((it)=>{
                             if(it.id===id){
                                 it.children.splice(it.children.length-1,1)
                                 it.children.push(...res.entities)
-                                it.children.map((i,index)=>{
+                                it.children.forEach((i,index)=>{
                                     i.key=it.key+"-"+index
-                                    return false
                                 })
                             }
-                            return false
                         })
                     }
-                    return false
                 })
                 this.setState(treeData)
             }else{//最外面列表的加载更多
                 const {nodeTmpl}=this.state
-                res.entities.map((item,index)=>{
+                res.entities.forEach((item,index)=>{
                     item.title=item.text
                     item.key=(pageNo-1)*10+index
                     item.nodeId = nodeTmpl.id;
                     item.id= nodeTmpl.relations.length===1?nodeTmpl.relations[0].id:null
                     if(nodeTmpl.relations.length>1){  
                         item.children=[]                   
-                        nodeTmpl.relations.map((it,i)=>{
+                        nodeTmpl.relations.forEach((it,i)=>{
                             const copyRel = Object.assign({}, it);
                             copyRel.code = item.code;
                             copyRel.key = index+"-"+i
                             item.children.push(copyRel);
-                            return false
                         });
                     }
-                    return false
                 })
                 if(!res.isEndList){
                     const More={
@@ -162,12 +155,11 @@ export default class ActTree extends React.Component{
                             pageNo:1
                         }       
                     }).then((resq)=>{
-                        resq.entities.map((item,index)=>{
+                        resq.entities.forEach((item,index)=>{
                             item.title=item.text
                             item.key=treeNode.props.dataRef.key+"-"+index
                             item.nodeId=res.nodeTmpl.id
                             item.id=treeNode.props.id
-                            return false
                         })
                         if(!resq.isEndList){
                             const More={
@@ -256,9 +248,8 @@ export default class ActTree extends React.Component{
             if(typeof params[k] ==="object"){ //日期格式转换
                 if(params[k] instanceof Array){
                     const arr=[]
-                    params[k].map(item=>{
+                    params[k].forEach(item=>{
                         arr.push(moment(item).format("YYYY-MM-DD"))
-                        return false
                     }) 
                     params[k]=arr.join("~")
                 }else{

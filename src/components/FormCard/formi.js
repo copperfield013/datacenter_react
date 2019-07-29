@@ -43,11 +43,10 @@ class Formi extends React.Component{
                         data=dataSource[k]
                     }
                 }
-                columns.map((it)=>{
+                columns.forEach((it)=>{
                     if(it.id===item.id){
                         column=it
                     }
-                    return false
                 })
                 return <EditTable 
                             type={type}

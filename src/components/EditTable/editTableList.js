@@ -14,7 +14,7 @@ export default class EditTableList extends React.Component {
     const {columns,dataSource}=this.props
     const txt=e.target.value
     const data=[]
-    columns.map((item)=>{
+    columns.forEach((item)=>{
       const id=item.id;
       if(item && item.type!=="file"){
         if(e.target.value){
@@ -37,14 +37,14 @@ export default class EditTableList extends React.Component {
             data.push(...dataSource)
           }
         }  
-        item["render"]=(text) => (<Highlighter
-                                      highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-                                      searchWords={[this.state.searchText]}
-                                      autoEscape
-                                      textToHighlight= {text?text.toString():""}
-                                      />)        
+        item["render"]=text => 
+            <Highlighter 
+              highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+              searchWords={[this.state.searchText]}
+              autoEscape
+              textToHighlight= {text?text.toString():""}
+              />        
       }
-        return false
     })
     this.setState({
       searchText:e.target.value,
@@ -53,33 +53,33 @@ export default class EditTableList extends React.Component {
   }
   tabChange=(pagination)=>{
     const {dataSource}=this.state
-    dataSource.map((item)=>{
+    dataSource.forEach((item)=>{
       item.current=pagination.current
-      return false
     })
     this.setState({
       dataSource
     })
   }
+  showTotal=(total)=> {
+    return `总共有${total}条`;
+  }
   render() {
     let { cardTitle,columns,type,haveTemplate,rabcTemplatecreatable,isModal,unallowedCreate }=this.props
     const {current,dataSource}=this.state
-    const page={pageSize:5,hideOnSinglePage:true,defaultCurrent:current}
+    const page={pageSize:5,hideOnSinglePage:true,defaultCurrent:current,total:dataSource.length,showTotal:this.showTotal}
     let groupId
     const arr1=[]
     const arr2=[]
     if(columns){     
-      columns.map((item)=>{
+      columns.forEach((item)=>{
         if(item.groupId){
           groupId=item.groupId
           arr2.push(item.id)
         }
-        return false
       })
     }
-    dataSource.map((item)=>{
+    dataSource.forEach((item)=>{
       arr1.push(item.code)
-      return false
     })
     let excepts=arr1.join(',')
     let dfieldIds=arr2.join(',')
@@ -127,8 +127,7 @@ export default class EditTableList extends React.Component {
                 pagination={page}
                 onChange={this.tabChange}
               />
-          </div>
-            
+          </div>           
       </Card>
     );
   }
