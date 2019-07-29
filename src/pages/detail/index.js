@@ -804,7 +804,7 @@ export default class Detail extends React.Component{
                 <h3>
                     {type==="new"&& menuTitle ? menuTitle+"--创建":detailsTitle }   
                     {type==="detail"?
-                        <div className="fr pad">
+                        <div className="fr">
                             <Button 
                                 className="hoverbig" 
                                 title="导出" 
