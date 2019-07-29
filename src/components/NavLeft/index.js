@@ -11,8 +11,16 @@ class NavLeft extends React.Component{
 		selectedKeys:[],
 		openKeys:[]
 	}
+	getCurrentMenuId(){
+        const pathname = this.props.history.location.pathname;
+        let menuId = pathname.split("/")[1];
+        console.log('ssssssssss');
+        const execResult = /\/customPage\/(\d+)\//.exec(pathname);
+        if(execResult) menuId = execResult[1];
+        return menuId;
+	}
 	componentWillReceiveProps(){
-		const menuId=this.props.history.location.pathname.split("/")[1]
+		const menuId = this.getCurrentMenuId();
 		const {open}=this.state
 		const key=[]
 		for(let k in open){
@@ -31,7 +39,7 @@ class NavLeft extends React.Component{
         this.props.onRef(this)
     }
 	setMenuTreeNode=(list)=>{
-		const menuId=this.props.location.pathname.split("/")[1]
+		const menuId = this.getCurrentMenuId();
 		const open={}
 		list.l1Menus.forEach((item)=>{
 			if(item.l2Menus){
@@ -65,7 +73,7 @@ class NavLeft extends React.Component{
 						</SubMenu>				
 			}
 			return  <Menu.Item key={item.id} >
-						<NavLink to={`/${item.id}`}>{item.title}</NavLink>
+						<NavLink to={item.customPagePath? `/customPage/${item.id}/${item.customPagePath}`: `/${item.id}`}>{item.title}</NavLink>
 				    </Menu.Item>
 		})
 	}
@@ -82,7 +90,7 @@ class NavLeft extends React.Component{
 		return (
 			<div>
 				<div className="logo">
-					<h1>易+数据融合中心</h1>
+					<a href="#/home"><h1>易+数据融合中心</h1></a>
 				</div>
 				<Menu 
 					mode="inline"

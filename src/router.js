@@ -8,6 +8,7 @@ import ActTable from "./pages/actTable"
 import Detail from "./pages/detail"
 import Import from "./pages/importData/importData"
 import ActTree from "./pages/actTree"
+import CustomPageRouter from "./pages/customPage/CustomPageRouter";
 
 export default class iRouter extends React.Component{
     render(){
@@ -21,6 +22,7 @@ export default class iRouter extends React.Component{
                             <Admin>
                                 <Switch>
                                     <Route path='/home' component={Home} exact/>
+                                    <Route path='/customPage/:menuId/:pageName(.+)' component={CustomPageRouter}/>
                                     <Route path="/:menuId" component={ActTable} exact />
                                     <Route path="/:menuId/search" component={ActTable} exact />
                                     <Route path="/:menuId/import" component={Import} exact />
