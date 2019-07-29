@@ -51,7 +51,7 @@ class Loginit extends React.Component{
         const {username,password}=this.state
         const { getFieldDecorator } = this.props.form;
 		return(
-			<Row className="login">
+			<Row className="container login">
 				<Col>
 					<Form>
 					    <h3>欢迎登录</h3>

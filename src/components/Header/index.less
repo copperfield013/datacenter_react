@@ -5,7 +5,7 @@
     color:#333;
     background: #fff;
     font-size: 16px;
-    border-bottom: 1px solid #40a9ff;
+    border-bottom: 1px solid @primary-color;
 }
 .userLogin{
     float:right;
@@ -16,7 +16,7 @@
         font-size: 24px!important;
     }
     &:hover{
-        background: #4a5f74;
+        background: darken( @primary-color, 10%);
         color:#fff;
     }
 }
@@ -26,7 +26,7 @@
 }
 .header-top {
     .active{
-        background: #1E90FF;
+        background:darken( @primary-color, 10%);
         a{
             color: #fcfcfc;
         }
